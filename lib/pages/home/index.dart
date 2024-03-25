@@ -1,8 +1,11 @@
-import 'package:duel_links_meta/pages/articles/index.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:duel_links_meta/http/NavTabApi.dart';
+import 'package:duel_links_meta/pages/home/type/NavTabType.dart';
+import 'package:duel_links_meta/pages/tier_list/index.dart';
+import 'package:duel_links_meta/type/NavTab.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 
-/// Flutter code sample for [BottomNavigationBar].
+import '../../constant/colors.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -11,114 +14,143 @@ class HomePage extends StatefulWidget {
   State<HomePage> createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage> {
-  int _selectedIndex = 0;
+class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin{
+  int? activeIndex;
 
-  final PageController _pageController = PageController();
+  var id2TitleMap = {
+    0: 'TIER LIST',
+    1: 'TOP DECKS: SPEED',
+    2: 'TOP DECKS: RUSH',
+    3: 'FRAMING & EVENTS',
+    4: 'LEAKS & UPDATES',
+    5: 'GEM GUIDE',
+    6: 'DECK BUILDER',
+    7: 'TOURNAMENTS',
+    8: 'DUEL ASSIST',
+    9: 'PACK OPENER',
+    10: 'DLM SHOP',
+  };
 
-  static const TextStyle optionStyle =
-      TextStyle(fontSize: 30, fontWeight: FontWeight.bold);
+  List<NavTab> _navTabs = [];
 
-  static const List<Widget> _widgetOptions = <Widget>[
-    Text(
-      'Index 0: Home',
-      style: optionStyle,
-    ),
-    Text(
-      'Index 1: Business',
-      style: optionStyle,
-    ),
-    Text(
-      'Index 2: School',
-      style: optionStyle,
-    ),
-    Text(
-      'Index 3: School',
-      style: optionStyle,
-    ),
-  ];
+  handleTapNav(NavTab nav) {
+    if (nav.id == NavTabType.tierList.value) {
+      Navigator.push(context, MaterialPageRoute(builder: (context)=> const TierListPage()));
+      return;
+    }
+  }
+  void fetchData() async {
+    var res = await NavTabApi().list();
+    var list = res.body?.map((e) => NavTab.fromJson(e)).toList() ?? [];
 
-  void _onItemTapped(int index) {
-    _pageController.jumpToPage(index);
+    var id2NavTabMap = {};
+    for (var element in list) {
+      id2NavTabMap[element.id] = element;
+    }
+    list.sort((a, b) => a.id.compareTo(b.id));
+
+    list.forEach((element) {
+      element.title = id2TitleMap[element.id] ?? '';
+      print('image ${element.image}, title: ${element.title}');
+    });
 
     setState(() {
-      _selectedIndex = index;
+      _navTabs = list;
     });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    fetchData();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // appBar: AppBar(
-      //   title: const Text('BottomNavigationBar Sample'),
-      // ),
-      body: PageView(
-        controller: _pageController,
-        onPageChanged: _onItemTapped,
-        physics: const NeverScrollableScrollPhysics(),
-        children: [
-          Container(
-            color: Colors.pink,
-          ),
-          Container(
-            color: Colors.yellow,
-          ),
-          ArticlesPage(),
-          Container(
-            color: Colors.purple,
-          )
-        ],
+      backgroundColor: BaColors.theme,
+      appBar: AppBar(
+        backgroundColor: BaColors.main,
+        automaticallyImplyLeading: false,
+        title: const Text(
+          "Home",
+          style: TextStyle(color: Colors.white),
+        ),
       ),
-      // bottomNavigationBar: NavigationBar(
-      //   destinations: const [
-      //     NavigationDestination(icon: Icon(Icons.home, size: 20,), label: 'home'),
-      //     NavigationDestination(icon: Icon(Icons.home), label: 'home'),
-      //     NavigationDestination(icon: Icon(Icons.home), label: 'home'),
-      //     NavigationDestination(icon: Icon(Icons.home), label: 'home'),
-      //   ],
-      //   // labelBehavior: NavigationDestinationLabelBehavior.onlyShowSelected,
-      //   selectedIndex: _selectedIndex,
-      //   onDestinationSelected: _onItemTapped,
-      //   height: 70,
-      // ),
-      bottomNavigationBar: Theme(
-        data: ThemeData(
-          highlightColor: Colors.transparent,
-          splashColor: Colors.transparent
-        ),
-        child: BottomNavigationBar(
-          currentIndex: _selectedIndex,
-          items: const <BottomNavigationBarItem>[
-            BottomNavigationBarItem(
-              icon: Icon(Icons.home),
-              backgroundColor: Color(0xFF001427),
-              label: 'Home',
+      body: GridView.builder(
+        padding: const EdgeInsets.all(8),
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2, mainAxisSpacing: 8, crossAxisSpacing: 8, childAspectRatio: 2),
+        itemCount: _navTabs.length,
+        itemBuilder: (BuildContext context, int index) {
+          return GestureDetector(
+            onTap: () {
+              handleTapNav(_navTabs[index]);
+            },
+            onTapDown: (e) {
+              setState(() {
+                activeIndex = index;
+              });
+            },
+            onTapUp: (e) {
+              setState(() {
+                activeIndex = null;
+              });
+            },
+            child: AnimatedScale(
+              scale: activeIndex == index ? 0.97 : 1,
+              duration: const Duration(milliseconds: 200),
+              child: ClipRRect(
+                borderRadius: const BorderRadius.all(Radius.circular(8)),
+                // color: Colors.redAccent,
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    AnimatedScale(
+                      scale: activeIndex == index ? 1.1 : 1,
+                      duration: const Duration(milliseconds: 200),
+                      child: CachedNetworkImage(
+                        fit: BoxFit.cover,
+                        imageUrl:
+                            'https://wsrv.nl/?url=https://s3.duellinksmeta.com${_navTabs[index].image}&w=360&output=webp&we&n=-1&maxage=7d',
+                      ),
+                    ),
+                    Positioned(
+                        bottom: 0,
+                        left: 0,
+                        right: 0,
+                        child: Container(
+                          decoration: const BoxDecoration(
+                              gradient: LinearGradient(
+                            begin: Alignment.centerRight,
+                            end: Alignment.centerLeft,
+                            colors: [
+                              Colors.black12,
+                              Colors.black87,
+                            ],
+                          )),
+                          height: 30,
+                          padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 4),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                _navTabs[index].title,
+                                style: const TextStyle(color: Colors.white, fontSize: 12),
+                              )
+                            ],
+                          ),
+                        ))
+                  ],
+                ),
+              ),
             ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.business),
-              backgroundColor: Color(0xFF001427),
-              label: 'Business',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.school),
-              label: 'School',
-              backgroundColor: Color(0xFF001427),
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.school),
-              label: 'School',
-              backgroundColor: Color(0xFF001427),
-            ),
-          ],
-          type: BottomNavigationBarType.fixed,
-          backgroundColor: const Color(0xFF001427),
-          selectedIconTheme: const IconThemeData(color: Colors.white),
-          selectedItemColor: Colors.white,
-          selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold),
-          unselectedItemColor: Colors.grey,
-          onTap: _onItemTapped,
-        ),
+          );
+        },
       ),
     );
   }
+
+  @override
+  bool get wantKeepAlive => true;
 }

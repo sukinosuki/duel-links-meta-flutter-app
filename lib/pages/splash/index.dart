@@ -1,7 +1,6 @@
 import 'dart:async';
 
-import 'package:duel_links_meta/constant/colors.dart';
-import 'package:duel_links_meta/pages/home/index.dart';
+import 'package:duel_links_meta/pages/main/index.dart';
 import 'package:flutter/material.dart';
 
 class SplashPage extends StatefulWidget {
@@ -22,7 +21,7 @@ class _SplashPageState extends State<SplashPage> {
         timer.cancel();
 
         Navigator.push(
-            context, MaterialPageRoute(builder: (context) => const HomePage()));
+            context, MaterialPageRoute(builder: (context) => const MainPage()));
         return;
       }
 
@@ -43,7 +42,7 @@ class _SplashPageState extends State<SplashPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        color: BaColors.momo,
+        // color: BaColors.momo,
         child: Center(
           child: Text("splash page"),
         ),

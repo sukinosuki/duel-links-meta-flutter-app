@@ -37,6 +37,9 @@ dependencies:
   cupertino_icons: ^1.0.6
   cached_network_image: ^3.2.3
   webview_flutter: ^4.7.0
+  get: ^4.6.5
+  json_annotation: ^4.8.1
+  intl: ^0.19.0
 
 dev_dependencies:
   flutter_test:
@@ -48,6 +51,8 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^3.0.0
+  build_runner: ^2.4.6
+  json_serializable: ^6.7.1
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -61,8 +66,10 @@ flutter:
   uses-material-design: true
 
   # To add assets to your application, add an assets section, like this:
-  # assets:
-  #   - images/a_dot_burr.jpeg
+  assets:
+   - assets/images/tier_1.webp
+   - assets/images/tier_2.webp
+   - assets/images/tier_3.webp
   #   - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see

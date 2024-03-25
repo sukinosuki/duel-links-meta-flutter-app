@@ -1,6 +1,9 @@
 import 'package:duel_links_meta/pages/home/index.dart';
+import 'package:duel_links_meta/pages/main/index.dart';
 import 'package:duel_links_meta/pages/splash/index.dart';
+import 'package:duel_links_meta/pages/tier_list/index.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/date_symbol_data_local.dart';
 
 void main() {
   runApp(const MyApp());
@@ -17,6 +20,12 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
+        // appBarTheme: AppBarTheme(
+        //   iconTheme: IconThemeData(
+        //     // splashRadius: 1
+        //     opticalSize: 10
+        //   )
+        // )
       ),
       home: const MyHomePage(title: 'Flutter Demo Home Page'),
     );
@@ -33,12 +42,15 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
 
-  void _incrementCounter() {
-    setState(() {
-      _counter++;
-    });
+  init() {
+    initializeDateFormatting();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    init();
   }
 
   @override
@@ -47,7 +59,8 @@ class _MyHomePageState extends State<MyHomePage> {
       title: 'Duel Links Meta',
       initialRoute: '/splash',
       routes: {
-        '/splash': (context) => const SplashPage(),
+        // '/splash': (context) => const SplashPage(),
+        '/splash': (context) => const MainPage(),
         // '/home': (context) => const HomePage() // TODO: routes声明与不声明有什么区别
       },
     );
