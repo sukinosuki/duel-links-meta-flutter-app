@@ -1,3 +1,4 @@
+import 'package:duel_links_meta/pages/deck_type_detail/index.dart';
 import 'package:duel_links_meta/pages/home/index.dart';
 import 'package:duel_links_meta/pages/main/index.dart';
 import 'package:duel_links_meta/pages/splash/index.dart';
@@ -60,7 +61,7 @@ class _MyHomePageState extends State<MyHomePage> {
       initialRoute: '/splash',
       routes: {
         // '/splash': (context) => const SplashPage(),
-        '/splash': (context) => const MainPage(),
+        '/splash': (context) => const DeckTypeDetailPage(),
         // '/home': (context) => const HomePage() // TODO: routes声明与不声明有什么区别
       },
     );

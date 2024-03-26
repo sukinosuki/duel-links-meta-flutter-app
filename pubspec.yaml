@@ -40,6 +40,7 @@ dependencies:
   get: ^4.6.5
   json_annotation: ^4.8.1
   intl: ^0.19.0
+  flutter_svg: ^2.0.10+1
 
 dev_dependencies:
   flutter_test:
@@ -70,6 +71,16 @@ flutter:
    - assets/images/tier_1.webp
    - assets/images/tier_2.webp
    - assets/images/tier_3.webp
+   - assets/images/rarity_ur.webp
+   - assets/images/rarity_sr.webp
+   - assets/images/rarity_r.webp
+   - assets/images/rarity_n.webp
+   - assets/images/modal_bg.webp
+   - assets/images/icon_limited_1.svg
+   - assets/images/icon_limited_2.svg
+   - assets/images/icon_limited_3.svg
+   - assets/images/icon_gem.webp
+   - assets/images/icon_skill_2.webp
   #   - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see

@@ -1,6 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:duel_links_meta/components/Loading.dart';
-import 'package:duel_links_meta/http/DeckTypeApi.dart';
+import 'package:duel_links_meta/http/TierListApi.dart';
 import 'package:duel_links_meta/pages/tier_list/components/TierListItemView.dart';
 import 'package:duel_links_meta/pages/tier_list/type/TierListGroup.dart';
 import 'package:duel_links_meta/pages/tier_list/type/TierListType.dart';
@@ -39,17 +39,17 @@ class _TierListViewState extends State<TierListView> with AutomaticKeepAliveClie
       2: 'Expected to be in the top cut of a competitive tournament, but not a large percentage.*',
       3: 'Expected to be played in a competitive tournament, with the possibility of being in the top cut.*',
     };
-    var res = await DeckTypeApi().getTopTiers();
+    var res = await TierListApi().getTopTiers();
     var list = res.body?.map((e) => TierList_TopTier.fromJson(e)).toList() ?? [];
 
     var tier2DeckTypesMap = <int, List<TierList_TopTier>>{};
-    list.forEach((item) {
+    for (var item in list) {
       if (tier2DeckTypesMap[item.tier] != null) {
         tier2DeckTypesMap[item.tier]?.add(item);
       } else {
         tier2DeckTypesMap[item.tier] = [item];
       }
-    });
+    }
 
     List<TierListGroup> _list = [];
     tier2DeckTypesMap.forEach((key, value) {
@@ -64,7 +64,7 @@ class _TierListViewState extends State<TierListView> with AutomaticKeepAliveClie
   }
 
   fetchPowerRankings(bool rush) async {
-    var res = await (rush ? DeckTypeApi().getRushRankings() : DeckTypeApi().getPowerRankings());
+    var res = await (rush ? TierListApi().getRushRankings() : TierListApi().getPowerRankings());
 
     var list = res.body?.map((e) => TierList_PowerRanking.fromJson(e)).toList() ?? [];
     TierListGroup tier0 = TierListGroup(
