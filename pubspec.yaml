@@ -81,6 +81,23 @@ flutter:
    - assets/images/icon_limited_3.svg
    - assets/images/icon_gem.webp
    - assets/images/icon_skill_2.webp
+   - assets/images/icon_attribute_dark.png
+   - assets/images/icon_attribute_earth.png
+   - assets/images/icon_attribute_fire.png
+   - assets/images/icon_attribute_light.png
+   - assets/images/icon_attribute_water.png
+   - assets/images/icon_attribute_wind.png
+   - assets/images/icon_card_race_continuous.png
+   - assets/images/icon_card_race_counter.png
+   - assets/images/icon_card_race_equip.png
+   - assets/images/icon_card_race_field.png
+   - assets/images/icon_card_race_normal.png
+   - assets/images/icon_card_race_quick-play.png
+   - assets/images/icon_card_type_spell.png
+   - assets/images/icon_card_type_trap.png
+   - assets/images/icon_normal_level.png
+   - assets/images/icon_normal_rank.png
+   - assets/images/card_placeholder.webp
   #   - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see

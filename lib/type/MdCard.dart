@@ -30,6 +30,8 @@ class MdCard {
 
   String? banStatus;
 
+  int? linkRating;
+
   @JsonKey(name: '_id')
   String oid = '';
 

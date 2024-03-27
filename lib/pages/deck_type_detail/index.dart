@@ -152,7 +152,7 @@ class _DeckTypeDetailPageState extends State<DeckTypeDetailPage> {
                         ClipRRect(
                           child: ImageFiltered(
                             // filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                            imageFilter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+                            imageFilter: ImageFilter.blur(sigmaX: 3, sigmaY: 3),
                             // enabled: false,
                             child: CachedNetworkImage(
                               width: double.infinity,
@@ -168,53 +168,57 @@ class _DeckTypeDetailPageState extends State<DeckTypeDetailPage> {
                             ),
                           ),
                         ),
-                        // Positioned(
-                        //     bottom: 100,
-                        //     left: 0,
-                        //     right: 0,
-                        //     child: Container(
-                        //       // color: Colors.white10,
-                        //       padding: const EdgeInsets.only(left: 8, bottom: 18),
-                        //       child: Text(
-                        //         _deckTypeName,
-                        //         style: const TextStyle(color: Colors.white, fontSize: 26),
-                        //       ),
-                        //     ))
+                        Positioned(
+                            bottom: 40,
+                            left: 0,
+                            right: 0,
+                            child: Container(
+                              // color: Colors.white10,
+                              padding: const EdgeInsets.only(left: 8, bottom: 18),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    _deckTypeName,
+                                    style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.w500),
+                                  ),
+                                  Row(
+                                    children: [
+                                      const Text('Average size: ', style: TextStyle(color: Colors.white, fontSize: 12)),
+                                      Text(_deckType?.deckBreakdown.avgMainSize.toString() ?? '', style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w500)),
+                                      const SizedBox(width: 3),
+                                      const Text('cards', style: TextStyle(color: Colors.white, fontSize: 12)),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                              // child: Text(
+                              //   _deckTypeName,
+                              //   style: const TextStyle(color: Colors.white, fontSize: 26),
+                              // ),
+                            ))
                       ],
                     ),
                   ),
-                  Positioned(
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    child: AppBar(
-                      title: Text('Blue-Eyes'),
-                      actions: [IconButton(onPressed: fetchDeckType, icon: Icon(Icons.refresh))],
-                    ),
-                  )
+                  // Positioned(
+                  //   top: 0,
+                  //   left: 0,
+                  //   right: 0,
+                  //   child: AppBar(
+                  //     title: Text('Blue-Eyes'),
+                  //     actions: [IconButton(onPressed: fetchDeckType, icon: Icon(Icons.refresh))],
+                  //   ),
+                  // )
                 ],
               ),
             ),
             Transform.translate(
-              offset: Offset(0, -120),
+              offset: Offset(0, -40),
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      _deckTypeName,
-                      style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.w500),
-                    ),
-                    Row(
-                      children: [
-                        const Text('Average size: ', style: TextStyle(color: Colors.white, fontSize: 12)),
-                        Text(_deckType?.deckBreakdown.avgMainSize.toString() ?? '', style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w500)),
-                        const SizedBox(width: 3),
-                        const Text('cards', style: TextStyle(color: Colors.white, fontSize: 12)),
-                      ],
-                    ),
-                    const SizedBox(height: 20),
                     const Text('Top Main Deck', style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w500)),
                     const SizedBox(height: 10),
                     DeckTypeBreakdownGridView(cards: breakdownCards, crossAxisCount: 6),
