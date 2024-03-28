@@ -18,12 +18,12 @@ class _LoadingState extends State<Loading> with TickerProviderStateMixin {
   late Animation<Offset> _animation;
   late Animation<double> _scaleAnimation;
   late AnimationController _animationController;
-  late Timer loadingImgTimer;
+  // late Timer loadingImgTimer;
 
   @override
   void dispose() {
     _animationController.dispose();
-    loadingImgTimer.cancel();
+    // loadingImgTimer.cancel();
 
     super.dispose();
   }
@@ -32,41 +32,34 @@ class _LoadingState extends State<Loading> with TickerProviderStateMixin {
   void initState() {
     super.initState();
 
-    _animationController = AnimationController(
-        vsync: this, duration: const Duration(milliseconds: 500))
-      ..repeat(reverse: true);
+    _animationController = AnimationController(vsync: this, duration: const Duration(milliseconds: 500))..repeat(reverse: true);
 
-    _animation =
-        Tween<Offset>(begin: const Offset(0, 0), end: const Offset(0, -0.4))
-            .chain(CurveTween(curve: Curves.easeOut))
-            .animate(_animationController);
+    _animation = Tween<Offset>(begin: const Offset(0, 0), end: const Offset(0, -0.2)).chain(CurveTween(curve: Curves.easeOut)).animate(_animationController);
     // ..addListener(() {
     //   print("animation change status ${_animation.status}");
     //   print("animation change value ${_animation.value}");
     //   print("animation change isCompleted ${_animation.isCompleted}");
     // });
 
-    _scaleAnimation = Tween<double>(begin: 1, end: 1.01)
-        .chain(CurveTween(curve: Curves.easeInOut))
-        .animate(_animationController);
+    _scaleAnimation = Tween<double>(begin: 1, end: 1.01).chain(CurveTween(curve: Curves.easeInOut)).animate(_animationController);
 
     _animationController.repeat(reverse: true);
 
-    loadingImgTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      var random = Random();
-      var randomNumber = random.nextInt(4) + 1;
-      // print("randomNumber $randomNumber");
-
-      if (randomNumber == currentLoadingIndex) {
-        randomNumber += 1;
-        if (randomNumber > 4) {
-          randomNumber = 1;
-        }
-      }
-      setState(() {
-        currentLoadingIndex = randomNumber;
-      });
-    });
+    // loadingImgTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+    //   var random = Random();
+    //   var randomNumber = random.nextInt(4) + 1;
+    //   // print("randomNumber $randomNumber");
+    //
+    //   if (randomNumber == currentLoadingIndex) {
+    //     randomNumber += 1;
+    //     if (randomNumber > 4) {
+    //       randomNumber = 1;
+    //     }
+    //   }
+    //   setState(() {
+    //     currentLoadingIndex = randomNumber;
+    //   });
+    // });
   }
 
   @override
@@ -78,18 +71,9 @@ class _LoadingState extends State<Loading> with TickerProviderStateMixin {
       children: [
         SlideTransition(
           position: _animation,
-          child: CachedNetworkImage(
-            width: 80,
-            height: 80,
-            imageUrl: loadingImageUrl,
-          ),
+          child: CachedNetworkImage(width: 60, height: 60, imageUrl: loadingImageUrl),
         ),
-        ScaleTransition(
-            scale: _scaleAnimation,
-            child: const Text(
-              "Loading",
-              style: TextStyle(fontSize: 18, color: Colors.white),
-            ))
+        ScaleTransition(scale: _scaleAnimation, child: const Text("Loading", style: TextStyle(fontSize: 14, color: Colors.white)))
       ],
     );
   }

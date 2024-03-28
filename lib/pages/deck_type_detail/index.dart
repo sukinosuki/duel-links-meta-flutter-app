@@ -2,8 +2,10 @@ import 'dart:developer';
 import 'dart:ui';
 
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:duel_links_meta/components/Loading.dart';
 import 'package:duel_links_meta/components/MdCardItemView.dart';
 import 'package:duel_links_meta/components/MdCardsBoxLayout.dart';
+import 'package:duel_links_meta/components/SkillModalView.dart';
 import 'package:duel_links_meta/constant/colors.dart';
 import 'package:duel_links_meta/http/CardApi.dart';
 import 'package:duel_links_meta/http/DeckTypeApi.dart';
@@ -13,11 +15,10 @@ import 'package:duel_links_meta/type/MdCard.dart';
 import 'package:duel_links_meta/type/deck_type/DeckType.dart';
 import 'package:duel_links_meta/type/enum/PageStatus.dart';
 import 'package:duel_links_meta/type/top_deck/TopDeck.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/painting.dart';
-import 'package:flutter/widgets.dart';
 import 'package:intl/intl.dart';
+
+import '../cards_viewpager/index.dart';
 
 class DeckTypeDetailPage extends StatefulWidget {
   const DeckTypeDetailPage({super.key, this.name = 'Shiranui'});
@@ -42,7 +43,7 @@ class _DeckTypeDetailPageState extends State<DeckTypeDetailPage> {
 
   String formatToK(int number) {
     if (number >= 1000) {
-      return (number / 1000).floor().toString() + 'k';
+      return '${(number / 1000).floor()}k';
     }
 
     return number.toString();
@@ -51,7 +52,9 @@ class _DeckTypeDetailPageState extends State<DeckTypeDetailPage> {
   DeckType? _deckType;
   TopDeck? _topDeck;
   List<MdCard> _mainCards = [];
+  List<MdCard> _mainSingularCards = [];
   List<MdCard> _extraCards = [];
+  List<MdCard> _extraSingularCards = [];
   var _pageStatus = PageStatus.loading;
 
   List<DeckType_DeckBreakdownCards> get breakdownCards {
@@ -78,9 +81,51 @@ class _DeckTypeDetailPageState extends State<DeckTypeDetailPage> {
     return '${_topDeck!.tournamentType!.shortName} ${_topDeck!.tournamentType!.enumSuffix} ${_topDeck!.tournamentNumber}';
   }
 
+  handleTapSkill(DeckType_DeckBreakdown_Skill skill) {
+    showDialog(
+      context: context,
+      builder: (context) => Dialog.fullscreen(
+        backgroundColor: Colors.black.withOpacity(0.2),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 30),
+          child: SkillModalView(name: skill.name),
+        ),
+      ),
+    );
+  }
+
+  handleTapSampleDeckCard(int index) {
+    var id = _mainCards[index].oid;
+
+    var _index = _mainSingularCards.indexWhere((element) => element.oid == id);
+
+    showDialog(
+      context: context,
+      builder: (context) => Dialog.fullscreen(
+        backgroundColor: Colors.black87.withOpacity(0.3),
+        child: CardsViewpagerPage(mdCards: _mainSingularCards, index: _index),
+      ),
+    );
+  }
+
+  handleTapSampleDeckExtraCard(int index) {
+    var id = _extraCards[index].oid;
+
+    var _index = _extraSingularCards.indexWhere((element) => element.oid == id);
+
+    showDialog(
+      context: context,
+      builder: (context) => Dialog.fullscreen(
+        backgroundColor: Colors.black87.withOpacity(0.3),
+        child: CardsViewpagerPage(mdCards: _extraSingularCards, index: _index),
+      ),
+    );
+  }
+
   fetchDeckType() async {
     setState(() {
       _deckType = null;
+      _pageStatus = PageStatus.loading;
     });
 
     var res = await DeckTypeApi().getDetailByName(_deckTypeName);
@@ -102,15 +147,24 @@ class _DeckTypeDetailPageState extends State<DeckTypeDetailPage> {
       id2CardMap[item.oid] = item;
     });
     List<MdCard> mainCards = [];
+    List<MdCard> mainSingularCards = [];
     List<MdCard> extraCards = [];
+    List<MdCard> extraSingularCards = [];
+
     topDeck.main.forEach((item) {
+      var card = id2CardMap[item.card.oid]!;
+      mainSingularCards.add(card);
+
       var amount = item.amount;
       while (amount > 0) {
-        mainCards.add(id2CardMap[item.card.oid]!);
+        mainCards.add(card);
         amount--;
       }
     });
     topDeck.extra.forEach((item) {
+      var card = id2CardMap[item.card.oid]!;
+      extraSingularCards.add(card);
+
       var amount = item.amount;
       while (amount > 0) {
         extraCards.add(id2CardMap[item.card.oid]!);
@@ -123,7 +177,9 @@ class _DeckTypeDetailPageState extends State<DeckTypeDetailPage> {
       _topDeck = topDeck;
       _pageStatus = PageStatus.success;
       _mainCards = mainCards;
+      _mainSingularCards = mainSingularCards;
       _extraCards = extraCards;
+      _extraSingularCards = extraSingularCards;
     });
   }
 
@@ -136,205 +192,219 @@ class _DeckTypeDetailPageState extends State<DeckTypeDetailPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: BaColors.theme,
-      body: SingleChildScrollView(
-        child: Column(
+      body: Container(
+        height: double.infinity,
+        color: BaColors.theme,
+        child: Stack(
           children: [
-            GestureDetector(
-              onTap: fetchDeckType,
-              child: Stack(
-                children: [
-                  Container(
-                    height: 240,
-                    width: double.infinity,
-                    child: Stack(
-                      children: [
-                        ClipRRect(
-                          child: ImageFiltered(
-                            // filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                            imageFilter: ImageFilter.blur(sigmaX: 3, sigmaY: 3),
-                            // enabled: false,
-                            child: CachedNetworkImage(
-                              width: double.infinity,
-                              imageUrl: 'https://imgserv.duellinksmeta.com/v2/dlm/deck-type/$_deckTypeName?portrait=true&width=420',
-                              fit: BoxFit.cover,
-                            ),
-                          ),
-                        ),
-                        Positioned.fill(
-                          child: Container(
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(begin: Alignment.bottomCenter, end: Alignment.topCenter, colors: [BaColors.theme, BaColors.theme.withOpacity(0)]),
-                            ),
-                          ),
-                        ),
-                        Positioned(
-                            bottom: 40,
-                            left: 0,
-                            right: 0,
-                            child: Container(
-                              // color: Colors.white10,
-                              padding: const EdgeInsets.only(left: 8, bottom: 18),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    _deckTypeName,
-                                    style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.w500),
-                                  ),
-                                  Row(
-                                    children: [
-                                      const Text('Average size: ', style: TextStyle(color: Colors.white, fontSize: 12)),
-                                      Text(_deckType?.deckBreakdown.avgMainSize.toString() ?? '', style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w500)),
-                                      const SizedBox(width: 3),
-                                      const Text('cards', style: TextStyle(color: Colors.white, fontSize: 12)),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                              // child: Text(
-                              //   _deckTypeName,
-                              //   style: const TextStyle(color: Colors.white, fontSize: 26),
-                              // ),
-                            ))
-                      ],
-                    ),
-                  ),
-                  // Positioned(
-                  //   top: 0,
-                  //   left: 0,
-                  //   right: 0,
-                  //   child: AppBar(
-                  //     title: Text('Blue-Eyes'),
-                  //     actions: [IconButton(onPressed: fetchDeckType, icon: Icon(Icons.refresh))],
-                  //   ),
-                  // )
-                ],
-              ),
-            ),
-            Transform.translate(
-              offset: Offset(0, -40),
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8),
+            Container(
+              child: SingleChildScrollView(
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('Top Main Deck', style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w500)),
-                    const SizedBox(height: 10),
-                    DeckTypeBreakdownGridView(cards: breakdownCards, crossAxisCount: 6),
-                    const SizedBox(height: 20),
-                    const Text('Top Extra Deck', style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w500)),
-                    const SizedBox(height: 10),
-                    DeckTypeBreakdownGridView(
-                      cards: breakdownExtraCards,
-                      crossAxisCount: 6,
+                    GestureDetector(
+                      onTap: fetchDeckType,
+                      child: Stack(
+                        children: [
+                          Container(
+                            height: 240,
+                            width: double.infinity,
+                            child: Stack(
+                              children: [
+                                ClipRRect(
+                                  child: ImageFiltered(
+                                    imageFilter: ImageFilter.blur(sigmaX: 3, sigmaY: 3),
+                                    child: CachedNetworkImage(
+                                      width: double.infinity,
+                                      imageUrl: 'https://imgserv.duellinksmeta.com/v2/dlm/deck-type/$_deckTypeName?portrait=true&width=420',
+                                      fit: BoxFit.cover,
+                                    ),
+                                  ),
+                                ),
+                                Positioned.fill(
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      gradient: LinearGradient(begin: Alignment.bottomCenter, end: Alignment.topCenter, colors: [BaColors.theme, BaColors.theme.withOpacity(0)]),
+                                    ),
+                                  ),
+                                ),
+                                Positioned(
+                                    bottom: 40,
+                                    left: 0,
+                                    right: 0,
+                                    child: Container(
+                                      // color: Colors.white10,
+                                      padding: const EdgeInsets.only(left: 8, bottom: 18),
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(_deckTypeName, style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.w500)),
+                                          AnimatedOpacity(
+                                            opacity: _pageStatus == PageStatus.success ? 1 : 0,
+                                            duration: const Duration(milliseconds: 300),
+                                            child: Row(
+                                              children: [
+                                                const Text('Average size: ', style: TextStyle(color: Colors.white, fontSize: 12)),
+                                                Text(_deckType?.deckBreakdown.avgMainSize.toString() ?? '',
+                                                    style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w500)),
+                                                const SizedBox(width: 3),
+                                                const Text('cards', style: TextStyle(color: Colors.white, fontSize: 12)),
+                                              ],
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ))
+                              ],
+                            ),
+                          ),
+                          // Positioned(
+                          //   top: 0,
+                          //   left: 0,
+                          //   right: 0,
+                          //   child: AppBar(
+                          //     title: Text('Blue-Eyes'),
+                          //     actions: [IconButton(onPressed: fetchDeckType, icon: Icon(Icons.refresh))],
+                          //   ),
+                          // )
+                        ],
+                      ),
                     ),
-                    const SizedBox(height: 10),
-                    const Text('Popular Skills', style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w500)),
-                    Column(
-                      children: _deckType?.deckBreakdown.skills
-                              .where((item) => ((item.count) / _deckType!.deckBreakdown.total).round() > 0)
-                              .map((skill) => InkWell(
-                                    onTap: () {},
-                                    child: Padding(
-                                      padding: const EdgeInsets.symmetric(vertical: 2),
+                    if (_pageStatus == PageStatus.success)
+                      AnimatedOpacity(
+                        opacity: _pageStatus == PageStatus.success ? 1 : 0,
+                        duration: const Duration(milliseconds: 300),
+                        child: Transform.translate(
+                          offset: const Offset(0, -40),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text('Top Main Deck', style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w500)),
+                                const SizedBox(height: 10),
+                                DeckTypeBreakdownGridView(cards: breakdownCards, crossAxisCount: 6),
+                                const SizedBox(height: 20),
+                                const Text('Top Extra Deck', style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w500)),
+                                const SizedBox(height: 10),
+                                DeckTypeBreakdownGridView(
+                                  cards: breakdownExtraCards,
+                                  crossAxisCount: 6,
+                                ),
+                                const SizedBox(height: 10),
+                                const Text('Popular Skills', style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w500)),
+                                Column(
+                                  children: _deckType?.deckBreakdown.skills
+                                          .where((item) => ((item.count) / _deckType!.deckBreakdown.total).round() > 0)
+                                          .map((skill) => InkWell(
+                                                onTap: () => handleTapSkill(skill),
+                                                child: Padding(
+                                                  padding: const EdgeInsets.symmetric(vertical: 2),
+                                                  child: Row(
+                                                    children: [
+                                                      Text(skill.name, style: const TextStyle(color: Color(0xff0a87bb))),
+                                                      Text(': ${(skill.count * 100 / _deckType!.deckBreakdown.total).toStringAsFixed(0)}%',
+                                                          style: const TextStyle(color: Colors.white, fontSize: 12))
+                                                    ],
+                                                  ),
+                                                ),
+                                              ))
+                                          .toList() ??
+                                      [],
+                                ),
+                                const SizedBox(height: 20),
+                                const Text('Sample Deck', style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w500)),
+                                Wrap(
+                                  children: [
+                                    Text(_topDeck?.tournamentPlacement.toString() ?? '', style: const TextStyle(color: Colors.white, fontSize: 12)),
+                                    const Padding(padding: EdgeInsets.symmetric(horizontal: 4), child: Text('—', style: TextStyle(color: Colors.white, fontSize: 12))),
+                                    Text(sampleDeckTournamentName, style: const TextStyle(color: Color(0xff0a87bb), fontSize: 12)),
+                                    const Padding(padding: EdgeInsets.symmetric(horizontal: 4), child: Text('—', style: TextStyle(color: Colors.white, fontSize: 12))),
+                                    if (_topDeck != null) Text(DateFormat.yMMMMd().format(_topDeck!.created!), style: const TextStyle(color: Colors.white, fontSize: 12)),
+                                    const Padding(padding: EdgeInsets.symmetric(horizontal: 4), child: Text('—', style: TextStyle(color: Colors.white, fontSize: 12))),
+                                    if (_topDeck != null) Text(_topDeck!.author is String ? _topDeck!.author : '', style: const TextStyle(color: Colors.white, fontSize: 12))
+                                  ],
+                                ),
+                                const SizedBox(height: 10),
+                                Row(
+                                  children: [
+                                    SizedBox(
+                                      width: 80,
                                       child: Row(
                                         children: [
-                                          Text(skill.name, style: const TextStyle(color: Color(0xff0a87bb))),
-                                          Text(': ${(skill.count * 100 / _deckType!.deckBreakdown.total).toStringAsFixed(0)}%',
-                                              style: const TextStyle(color: Colors.white, fontSize: 12))
+                                          Image.asset('assets/images/icon_gem.webp', width: 12, height: 12),
+                                          const SizedBox(width: 4),
+                                          Text(formatToK(_topDeck?.gemsPrice ?? 0), style: const TextStyle(color: Colors.white, fontSize: 11)),
+                                          const Padding(padding: EdgeInsets.symmetric(horizontal: 4), child: Text('+', style: const TextStyle(color: Colors.white, fontSize: 11))),
+                                          Text('\$${_topDeck?.dollarsPrice.toString() ?? '0'}', style: const TextStyle(color: Colors.white, fontSize: 11)),
                                         ],
                                       ),
                                     ),
-                                  ))
-                              .toList() ??
-                          [],
-                    ),
-                    const SizedBox(height: 20),
-                    const Text('Sample Deck', style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w500)),
-                    Wrap(
-                      children: [
-                        Text(_topDeck?.tournamentPlacement.toString() ?? '', style: const TextStyle(color: Colors.white, fontSize: 12)),
-                        const Padding(padding: EdgeInsets.symmetric(horizontal: 4), child: Text('—', style: TextStyle(color: Colors.white, fontSize: 12))),
-                        Text(sampleDeckTournamentName, style: const TextStyle(color: Color(0xff0a87bb), fontSize: 12)),
-                        const Padding(padding: EdgeInsets.symmetric(horizontal: 4), child: Text('—', style: TextStyle(color: Colors.white, fontSize: 12))),
-                        if (_topDeck != null) Text(DateFormat.yMMMMd().format(_topDeck!.created!), style: const TextStyle(color: Colors.white, fontSize: 12)),
-                        const Padding(padding: EdgeInsets.symmetric(horizontal: 4), child: Text('—', style: TextStyle(color: Colors.white, fontSize: 12))),
-                        if (_topDeck != null) Text(_topDeck!.author is String ? _topDeck!.author : '', style: const TextStyle(color: Colors.white, fontSize: 12))
-                      ],
-                    ),
-                    SizedBox(height: 10),
-                    Row(
-                      children: [
-                        Container(
-                          width: 80,
-                          child: Row(
-                            children: [
-                              Image.asset('assets/images/icon_gem.webp', width: 12, height: 12),
-                              const SizedBox(width: 4),
-                              Text(formatToK(_topDeck?.gemsPrice ?? 0), style: const TextStyle(color: Colors.white, fontSize: 11)),
-                              const Padding(padding: EdgeInsets.symmetric(horizontal: 4), child: Text('+', style: const TextStyle(color: Colors.white, fontSize: 11))),
-                              Text('\$${_topDeck?.dollarsPrice.toString() ?? '0'}', style: const TextStyle(color: Colors.white, fontSize: 11)),
-                            ],
-                          ),
-                        ),
-                        Expanded(
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            // mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Image.asset('assets/images/icon_skill_2.webp', width: 14, height: 14),
-                              Text(_topDeck?.skill.name ?? '', style: const TextStyle(color: Color(0xff0a87bb), fontSize: 12)),
-                            ],
-                          ),
-                        ),
-                        Container(
-                            width: 80,
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.end,
-                              children: [
-                                Text(
-                                  _topDeck?.main.map((e) => e.amount).reduce((a, b) => a + b).toString() ?? '',
-                                  style: TextStyle(color: Colors.white, fontSize: 11),
+                                    Expanded(
+                                      child: Row(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: [
+                                          Image.asset('assets/images/icon_skill_2.webp', width: 14, height: 14),
+                                          const SizedBox(width: 2),
+                                          Text(_topDeck?.skill.name ?? '', style: const TextStyle(color: Color(0xff0a87bb), fontSize: 12)),
+                                        ],
+                                      ),
+                                    ),
+                                    SizedBox(
+                                        width: 80,
+                                        child: Row(
+                                          mainAxisAlignment: MainAxisAlignment.end,
+                                          children: [
+                                            Text(
+                                              _topDeck?.main.map((e) => e.amount).reduce((a, b) => a + b).toString() ?? '',
+                                              style: const TextStyle(color: Colors.white, fontSize: 11),
+                                            ),
+                                          ],
+                                        ))
+                                  ],
+                                ),
+                                const SizedBox(height: 10),
+                                MdCardsBoxLayout(
+                                  child: GridView.builder(
+                                    gridDelegate:
+                                        const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 5, mainAxisSpacing: 0, crossAxisSpacing: 6, childAspectRatio: 0.55),
+                                    padding: const EdgeInsets.all(0),
+                                    shrinkWrap: true,
+                                    physics: const NeverScrollableScrollPhysics(),
+                                    itemCount: _mainCards.length,
+                                    itemBuilder: (context, index) {
+                                      return MdCardItemView(
+                                        onTap: (card) => handleTapSampleDeckCard(index),
+                                        mdCard: _mainCards[index],
+                                      );
+                                    },
+                                  ),
+                                ),
+                                const SizedBox(height: 10),
+                                MdCardsBoxLayout(
+                                  child: GridView.builder(
+                                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 8, mainAxisSpacing: 0, crossAxisSpacing: 6, childAspectRatio: 0.55),
+                                    padding: const EdgeInsets.all(0),
+                                    shrinkWrap: true,
+                                    physics: const NeverScrollableScrollPhysics(),
+                                    itemCount: _extraCards.length,
+                                    itemBuilder: (context, index) {
+                                      return MdCardItemView(
+                                        onTap: (card) => handleTapSampleDeckExtraCard(index),
+                                        mdCard: _extraCards[index],
+                                      );
+                                    },
+                                  ),
                                 ),
                               ],
-                            ))
-                      ],
-                    ),
-                    SizedBox(height: 10),
-                    MdCardsBoxLayout(
-                      child: GridView.builder(
-                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 5, mainAxisSpacing: 0, crossAxisSpacing: 6, childAspectRatio: 0.55),
-                        padding: const EdgeInsets.all(0),
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        itemCount: _mainCards.length,
-                        itemBuilder: (context, index) {
-                          return MdCardItemView(
-                            mdCard: _mainCards[index],
-                          );
-                        },
+                            ),
+                          ),
+                        ),
                       ),
-                    ),
-                    SizedBox(height: 10),
-                    MdCardsBoxLayout(
-                      child: GridView.builder(
-                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 8, mainAxisSpacing: 0, crossAxisSpacing: 6, childAspectRatio: 0.55),
-                        padding: const EdgeInsets.all(0),
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        itemCount: _extraCards.length,
-                        itemBuilder: (context, index) {
-                          return MdCardItemView(
-                            mdCard: _extraCards[index],
-                          );
-                        },
-                      ),
-                    ),
                   ],
                 ),
               ),
             ),
+            if (_pageStatus == PageStatus.loading) const Positioned.fill(top: 0, bottom: 0, child: Center(child: Loading()))
           ],
         ),
       ),

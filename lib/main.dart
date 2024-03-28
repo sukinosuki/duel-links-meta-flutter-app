@@ -1,7 +1,9 @@
+import 'package:duel_links_meta/components/SkillModalView.dart';
 import 'package:duel_links_meta/pages/cards_viewpager/index.dart';
 import 'package:duel_links_meta/pages/deck_type_detail/index.dart';
 import 'package:duel_links_meta/pages/home/index.dart';
 import 'package:duel_links_meta/pages/main/index.dart';
+import 'package:duel_links_meta/pages/skill_stats/index.dart';
 import 'package:duel_links_meta/pages/splash/index.dart';
 import 'package:duel_links_meta/pages/tier_list/index.dart';
 import 'package:flutter/material.dart';
@@ -62,7 +64,10 @@ class _MyHomePageState extends State<MyHomePage> {
       initialRoute: '/splash',
       routes: {
         // '/splash': (context) => const SplashPage(),
-        '/splash': (context) => const DeckTypeDetailPage(),
+        // '/splash': (context) => const DeckTypeDetailPage(),
+        '/splash': (context) => const SkillStatsPage(name: 'The Legend of the Heroes'),
+        // '/splash': (context) => const SkillStatsPage(name: 'Monster Move'),
+        // '/splash': (context) => const SkillModalView(name: 'Photon Dragon Advent'),
         // '/splash': (context) => const CardsViewpagerPage(mdCards: [], index: 0,),
         // '/home': (context) => const HomePage() // TODO: routes声明与不声明有什么区别
       },
