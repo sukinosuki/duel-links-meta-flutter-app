@@ -7,7 +7,7 @@ class IfElseBox extends StatelessWidget {
   final Widget? ifTure;
   final Widget? elseTrue;
 
-  Widget?  get target => condition ? ifTure : elseTrue;
+  Widget? get target => condition ? ifTure : elseTrue;
 
   @override
   Widget build(BuildContext context) {

@@ -81,6 +81,7 @@ flutter:
    - assets/images/icon_limited_2.svg
    - assets/images/icon_limited_3.svg
    - assets/images/icon_gem.webp
+   - assets/images/icon_skill.webp
    - assets/images/icon_skill_2.webp
    - assets/images/icon_attribute_dark.png
    - assets/images/icon_attribute_earth.png

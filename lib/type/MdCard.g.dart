@@ -55,22 +55,24 @@ Map<String, dynamic> _$MdCardToJson(MdCard instance) {
 
 MdCard_Obtain _$MdCard_ObtainFromJson(Map<String, dynamic> json) =>
     MdCard_Obtain()
-      ..amount = json['amount'] as int
-      ..type = json['type'] as String
+      ..amount = json['amount'] as int? ?? 0
+      ..type = json['type'] as String? ?? ''
+      ..subSource = json['subSource'] as String? ?? ''
       ..source = MdCard_Obtain_Source.fromJson(json['source']);
 
 Map<String, dynamic> _$MdCard_ObtainToJson(MdCard_Obtain instance) =>
     <String, dynamic>{
       'amount': instance.amount,
       'type': instance.type,
+      'subSource': instance.subSource,
       'source': instance.source,
     };
 
 MdCard_Obtain_Source _$MdCard_Obtain_SourceFromJson(
         Map<String, dynamic> json) =>
     MdCard_Obtain_Source()
-      ..name = json['name'] as String
-      ..type = json['type'] as String?
+      ..name = json['name'] as String? ?? ''
+      ..type = json['type'] as String? ?? ''
       ..oid = json['_id'] as String;
 
 Map<String, dynamic> _$MdCard_Obtain_SourceToJson(

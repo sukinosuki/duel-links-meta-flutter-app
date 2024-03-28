@@ -44,8 +44,15 @@ class MdCard {
 
 @JsonSerializable()
 class MdCard_Obtain {
+  @JsonKey(defaultValue: 0)
   int amount = 0;
+
+  @JsonKey(defaultValue: '')
   String type = '';
+
+  @JsonKey(defaultValue: '')
+  String subSource = '';
+
   MdCard_Obtain_Source source = MdCard_Obtain_Source();
 
   MdCard_Obtain();
@@ -57,8 +64,11 @@ class MdCard_Obtain {
 
 @JsonSerializable(includeIfNull: true)
 class MdCard_Obtain_Source {
+  @JsonKey(defaultValue: '')
   String name = '';
-  String? type = '';
+
+  @JsonKey(defaultValue: '')
+  String type = '';
 
   @JsonKey(name: '_id')
   String oid = '';

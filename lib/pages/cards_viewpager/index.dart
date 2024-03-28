@@ -181,7 +181,7 @@ class _CardsViewpagerPageState extends State<CardsViewpagerPage> {
                                               decorationStyle: TextDecorationStyle.solid),
                                         ),
                                         const SizedBox(height: 10),
-                                        Text(
+                                        if (card.release!= null) Text(
                                           'Released on ${DateFormat.yMMMMd().format(card.release!)}',
                                           style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 11),
                                         )

@@ -8,9 +8,10 @@ import 'package:duel_links_meta/type/skill/Skill.dart';
 import 'package:flutter/material.dart';
 
 class SkillModalView extends StatefulWidget {
-  const SkillModalView({super.key, required this.name});
+  const SkillModalView({super.key, required this.name, this.skill});
 
   final String name;
+  final Skill? skill;
 
   @override
   State<SkillModalView> createState() => _SkillModalViewState();
@@ -23,9 +24,15 @@ class _SkillModalViewState extends State<SkillModalView> {
   var _pageStatus = PageStatus.loading;
 
   fetchData() async {
+    if (widget.skill != null) {
+      _skill = widget.skill!;
+      _pageStatus = PageStatus.success;
+      return;
+    }
+
     // var _name = 'The Legend of the Heroes';
     // var _name = 'Monster Move';
-    var res = await SkillApi().getSkills(name);
+    var res = await SkillApi().getByName(name);
     log('res ${res.body}, status: ${res.status.code}');
 
     var skill = res.body!;

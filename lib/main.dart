@@ -1,5 +1,6 @@
 import 'package:duel_links_meta/components/SkillModalView.dart';
 import 'package:duel_links_meta/pages/cards_viewpager/index.dart';
+import 'package:duel_links_meta/pages/characters/index.dart';
 import 'package:duel_links_meta/pages/deck_type_detail/index.dart';
 import 'package:duel_links_meta/pages/home/index.dart';
 import 'package:duel_links_meta/pages/main/index.dart';
@@ -65,7 +66,8 @@ class _MyHomePageState extends State<MyHomePage> {
       routes: {
         // '/splash': (context) => const SplashPage(),
         // '/splash': (context) => const DeckTypeDetailPage(),
-        '/splash': (context) => const SkillStatsPage(name: 'The Legend of the Heroes'),
+        // '/splash': (context) => const SkillStatsPage(name: 'The Legend of the Heroes'),
+        '/splash': (context) => const CharactersPage(),
         // '/splash': (context) => const SkillStatsPage(name: 'Monster Move'),
         // '/splash': (context) => const SkillModalView(name: 'Photon Dragon Advent'),
         // '/splash': (context) => const CardsViewpagerPage(mdCards: [], index: 0,),
