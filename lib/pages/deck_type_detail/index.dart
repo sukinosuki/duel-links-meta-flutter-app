@@ -187,6 +187,7 @@ class _DeckTypeDetailPageState extends State<DeckTypeDetailPage> {
   void initState() {
     super.initState();
     fetchDeckType();
+
   }
 
   @override

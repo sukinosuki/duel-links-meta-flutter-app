@@ -17,7 +17,7 @@ class PacksPage extends StatefulWidget {
 
 class _PacksPageState extends State<PacksPage> with SingleTickerProviderStateMixin, AutomaticKeepAliveClientMixin {
   var _pageStatus = PageStatus.loading;
-  late TabController _tabController;
+   TabController? _tabController = null;
 
   Map<String, List<PackSet>> tabsMap = {};
 
@@ -45,7 +45,7 @@ class _PacksPageState extends State<PacksPage> with SingleTickerProviderStateMix
   @override
   void dispose() {
     super.dispose();
-    _tabController.dispose();
+    _tabController?.dispose();
   }
 
   @override
@@ -65,7 +65,7 @@ class _PacksPageState extends State<PacksPage> with SingleTickerProviderStateMix
         appBar: AppBar(
           backgroundColor: BaColors.main,
           title: const Text('Packs', style: TextStyle(color: Colors.white)),
-          bottom: _pageStatus == PageStatus.success
+          bottom: _tabController!= null
               ? TabBar(
                   isScrollable: true,
                   indicatorColor: Colors.white,
@@ -78,7 +78,7 @@ class _PacksPageState extends State<PacksPage> with SingleTickerProviderStateMix
         ),
 
         body: IfElseBox(
-          condition: _pageStatus == PageStatus.success,
+          condition: _tabController!= null,
           ifTure: TabBarView(
             controller: _tabController,
             children: tabsMap.values.map((packs) => PackListView(packs: packs)).toList(),
