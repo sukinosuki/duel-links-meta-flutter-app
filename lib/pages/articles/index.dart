@@ -32,7 +32,7 @@ class _ArticlesPageState extends State<ArticlesPage> with AutomaticKeepAliveClie
 
   _handleTapArticleItem(Article article) {
     var title = article.title;
-    var url = 'https://www.duellinksmeta.com${article.url}';
+    var url = 'https://www.duellinksmeta.com/articles${article.url}';
 
     print('url $url');
     Navigator.push(context, MaterialPageRoute(builder: (context) => WebviewPage(title: title, url: url)));
@@ -98,9 +98,10 @@ class _ArticlesPageState extends State<ArticlesPage> with AutomaticKeepAliveClie
   }
 
   @override
-  Widget build(BuildContext context) {
-    print('article build');
+  bool get wantKeepAlive => true;
 
+  @override
+  Widget build(BuildContext context) {
     super.build(context);
 
     return Scaffold(
@@ -108,10 +109,7 @@ class _ArticlesPageState extends State<ArticlesPage> with AutomaticKeepAliveClie
       appBar: AppBar(
         backgroundColor: BaColors.main,
         automaticallyImplyLeading: false,
-        title: const Text(
-          "Articles",
-          style: TextStyle(color: Colors.white),
-        ),
+        title: const Text("Articles", style: TextStyle(color: Colors.white)),
       ),
       body: Stack(
         children: [
@@ -135,19 +133,13 @@ class _ArticlesPageState extends State<ArticlesPage> with AutomaticKeepAliveClie
                 );
               },
               separatorBuilder: (BuildContext context, int index) {
-                return const SizedBox(
-                  height: 10,
-                );
+                return const SizedBox(height: 10);
               },
             ),
           ),
-          if (_pageStatus != PageStatus.success)
-            const Positioned(top: 0, bottom: 0, left: 0, right: 0, child: Center(child: Loading())),
+          if (_pageStatus != PageStatus.success) const Positioned(top: 0, bottom: 0, left: 0, right: 0, child: Center(child: Loading())),
         ],
       ),
     );
   }
-
-  @override
-  bool get wantKeepAlive => true;
 }

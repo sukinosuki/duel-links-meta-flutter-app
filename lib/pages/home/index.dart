@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:duel_links_meta/http/NavTabApi.dart';
 import 'package:duel_links_meta/pages/home/type/NavTabType.dart';
@@ -67,6 +69,8 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin{
 
   @override
   Widget build(BuildContext context) {
+    log('home page build');
+
     return Scaffold(
       backgroundColor: BaColors.theme,
       appBar: AppBar(

@@ -1,4 +1,5 @@
 import 'package:duel_links_meta/components/Loading.dart';
+import 'package:duel_links_meta/constant/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
@@ -42,6 +43,11 @@ class _WebviewPageState extends State<WebviewPage> {
   }
 
   @override
+  void dispose() {
+    super.dispose();
+  }
+
+  @override
   void initState() {
     super.initState();
     initWebViewController();
@@ -50,40 +56,42 @@ class _WebviewPageState extends State<WebviewPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF001b35),
+      backgroundColor: BaColors.theme,
       appBar: AppBar(
-        title: Text(title),
+        backgroundColor: BaColors.main,
+        iconTheme: const IconThemeData(color: Colors.white),
+        title: Text(title, style: const TextStyle(color: Colors.white)),
         actions: [
           Row(
             children: [
-              IconButton(
-                icon: const Icon(Icons.arrow_back_ios),
-                onPressed: () async {
-                  final messenger = ScaffoldMessenger.of(context);
-                  if (await _webViewController.canGoBack()) {
-                    await _webViewController.goBack();
-                  } else {
-                    messenger.showSnackBar(
-                      const SnackBar(content: Text('No back history item')),
-                    );
-                    return;
-                  }
-                },
-              ),
-              IconButton(
-                icon: const Icon(Icons.arrow_forward_ios),
-                onPressed: () async {
-                  final messenger = ScaffoldMessenger.of(context);
-                  if (await _webViewController.canGoForward()) {
-                    await _webViewController.goForward();
-                  } else {
-                    messenger.showSnackBar(
-                      const SnackBar(content: Text('No forward history item')),
-                    );
-                    return;
-                  }
-                },
-              ),
+              // IconButton(
+              //   icon: const Icon(Icons.arrow_back_ios),
+              //   onPressed: () async {
+              //     final messenger = ScaffoldMessenger.of(context);
+              //     if (await _webViewController.canGoBack()) {
+              //       await _webViewController.goBack();
+              //     } else {
+              //       messenger.showSnackBar(
+              //         const SnackBar(content: Text('No back history item')),
+              //       );
+              //       return;
+              //     }
+              //   },
+              // ),
+              // IconButton(
+              //   icon: const Icon(Icons.arrow_forward_ios),
+              //   onPressed: () async {
+              //     final messenger = ScaffoldMessenger.of(context);
+              //     if (await _webViewController.canGoForward()) {
+              //       await _webViewController.goForward();
+              //     } else {
+              //       messenger.showSnackBar(
+              //         const SnackBar(content: Text('No forward history item')),
+              //       );
+              //       return;
+              //     }
+              //   },
+              // ),
               IconButton(
                 icon: const Icon(Icons.replay),
                 onPressed: () {

@@ -1,5 +1,6 @@
 import 'package:duel_links_meta/pages/articles/index.dart';
 import 'package:duel_links_meta/pages/home/index.dart';
+import 'package:duel_links_meta/pages/packs/index.dart';
 import 'package:flutter/material.dart';
 
 /// Flutter code sample for [BottomNavigationBar].
@@ -16,26 +17,13 @@ class _MainPageState extends State<MainPage> {
 
   final PageController _pageController = PageController();
 
-  static const TextStyle optionStyle =
-      TextStyle(fontSize: 30, fontWeight: FontWeight.bold);
+  static const TextStyle optionStyle = TextStyle(fontSize: 30, fontWeight: FontWeight.bold);
 
   static const List<Widget> _widgetOptions = <Widget>[
-    Text(
-      'Index 0: Home',
-      style: optionStyle,
-    ),
-    Text(
-      'Index 1: Business',
-      style: optionStyle,
-    ),
-    Text(
-      'Index 2: School',
-      style: optionStyle,
-    ),
-    Text(
-      'Index 3: School',
-      style: optionStyle,
-    ),
+    Text('Index 0: Home', style: optionStyle),
+    Text('Index 1: Business', style: optionStyle),
+    Text('Articles', style: optionStyle),
+    Text('Index 3: School', style: optionStyle),
   ];
 
   void _onItemTapped(int index) {
@@ -56,12 +44,9 @@ class _MainPageState extends State<MainPage> {
         controller: _pageController,
         onPageChanged: _onItemTapped,
         physics: const NeverScrollableScrollPhysics(),
-
         children: [
-           HomePage(),
-          Container(
-            color: Colors.yellow,
-          ),
+          const HomePage(),
+          const PacksPage(),
           const ArticlesPage(),
           Container(
             color: Colors.purple,
@@ -81,10 +66,7 @@ class _MainPageState extends State<MainPage> {
       //   height: 70,
       // ),
       bottomNavigationBar: Theme(
-        data: ThemeData(
-          highlightColor: Colors.transparent,
-          splashColor: Colors.transparent
-        ),
+        data: ThemeData(highlightColor: Colors.transparent, splashColor: Colors.transparent),
         child: BottomNavigationBar(
           currentIndex: _selectedIndex,
           items: const <BottomNavigationBarItem>[

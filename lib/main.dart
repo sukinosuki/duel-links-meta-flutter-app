@@ -25,12 +25,13 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
-        // appBarTheme: AppBarTheme(
-        //   iconTheme: IconThemeData(
-        //     // splashRadius: 1
-        //     opticalSize: 10
-        //   )
-        // )
+        appBarTheme: AppBarTheme(
+          // iconTheme: IconThemeData(
+          //   // splashRadius: 1
+          //   // opticalSize: 10
+          //   color: Colors.white
+          // ),
+        )
       ),
       home: const MyHomePage(title: 'Flutter Demo Home Page'),
     );
@@ -67,7 +68,8 @@ class _MyHomePageState extends State<MyHomePage> {
         // '/splash': (context) => const SplashPage(),
         // '/splash': (context) => const DeckTypeDetailPage(),
         // '/splash': (context) => const SkillStatsPage(name: 'The Legend of the Heroes'),
-        '/splash': (context) => const CharactersPage(),
+        // '/splash': (context) => const CharactersPage(),
+        '/splash': (context) => const MainPage(),
         // '/splash': (context) => const SkillStatsPage(name: 'Monster Move'),
         // '/splash': (context) => const SkillModalView(name: 'Photon Dragon Advent'),
         // '/splash': (context) => const CardsViewpagerPage(mdCards: [], index: 0,),
