@@ -31,7 +31,10 @@ class _PackDetailPageState extends State<PackDetailPage> {
   handleTapCardItem(List<MdCard> cards, int index) {
     showDialog(
       context: context,
-      builder: (context) => Dialog.fullscreen(backgroundColor: Colors.black87.withOpacity(0.3), child: CardsViewpagerPage(mdCards: cards, index: index)),
+      builder: (context) => Dialog.fullscreen(
+        backgroundColor: Colors.black87.withOpacity(0.3),
+        child: CardsViewpagerPage(cards: cards, index: index),
+      ),
     );
   }
 
@@ -67,7 +70,6 @@ class _PackDetailPageState extends State<PackDetailPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: BaColors.theme,
       body: Container(
         child: Stack(
           children: [
@@ -86,11 +88,11 @@ class _PackDetailPageState extends State<PackDetailPage> {
                         ),
                         Positioned.fill(
                           child: Container(
-                            decoration: const BoxDecoration(
+                            decoration:  BoxDecoration(
                               gradient: LinearGradient(
                                 begin: Alignment.bottomCenter,
                                 end: Alignment.topCenter,
-                                colors: [BaColors.theme, Colors.transparent],
+                                colors: [Theme.of(context).colorScheme.background, Colors.transparent],
                               ),
                             ),
                           ),
@@ -101,8 +103,8 @@ class _PackDetailPageState extends State<PackDetailPage> {
                   AnimatedOpacity(
                     opacity: _pageStatus == PageStatus.success ? 1 : 0,
                     duration: const Duration(milliseconds: 500),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
                       child: Column(
                         children: rarity2CardsGroup.keys
                             .map((key) => Column(
@@ -112,20 +114,28 @@ class _PackDetailPageState extends State<PackDetailPage> {
                                       mainAxisAlignment: MainAxisAlignment.end,
                                       children: [Image.asset('assets/images/rarity_${key.toLowerCase()}.webp', height: 20)],
                                     ),
-                                    MdCardsBoxLayout(
-                                      child: GridView.builder(
-                                          padding: const EdgeInsets.all(0),
-                                          shrinkWrap: true,
-                                          itemCount: rarity2CardsGroup[key]!.length,
-                                          physics: const NeverScrollableScrollPhysics(),
-                                          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 5, childAspectRatio: 0.58, crossAxisSpacing: 6),
-                                          itemBuilder: (context, index) {
-                                            return MdCardItemView(
-                                              mdCard: rarity2CardsGroup[key]![index],
-                                              onTap: (card) => handleTapCardItem(rarity2CardsGroup[key]!, index),
-                                            );
-                                            // return Container(color: Colors.white,);
-                                          }),
+                                    Card(
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(6)
+                                      ),
+                                      margin: const EdgeInsets.all(0),
+                                      child: Padding(
+                                        padding: const EdgeInsets.only(left: 6, right: 6, top: 6),
+                                        child: GridView.builder(
+                                            padding: const EdgeInsets.all(0),
+                                            shrinkWrap: true,
+                                            itemCount: rarity2CardsGroup[key]!.length,
+                                            physics: const NeverScrollableScrollPhysics(),
+                                            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                                                crossAxisCount: 5, childAspectRatio: 0.58, crossAxisSpacing: 6),
+                                            itemBuilder: (context, index) {
+                                              return MdCardItemView(
+                                                mdCard: rarity2CardsGroup[key]![index],
+                                                onTap: (card) => handleTapCardItem(rarity2CardsGroup[key]!, index),
+                                              );
+                                              // return Container(color: Colors.white,);
+                                            }),
+                                      ),
                                     )
                                   ],
                                 ))
@@ -136,7 +146,8 @@ class _PackDetailPageState extends State<PackDetailPage> {
                 ],
               ),
             ),
-            if (_pageStatus == PageStatus.loading) const Positioned(child: Center(child: Loading()))
+            if (_pageStatus == PageStatus.loading)
+              const Positioned(child: Center(child: Loading()))
           ],
         ),
       ),

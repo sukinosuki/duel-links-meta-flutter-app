@@ -1,10 +1,13 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:duel_links_meta/components/Loading.dart';
+import 'package:duel_links_meta/constant/colors.dart';
 import 'package:duel_links_meta/http/TierListApi.dart';
+import 'package:duel_links_meta/pages/deck_type_detail/index.dart';
 import 'package:duel_links_meta/pages/tier_list/components/TierListItemView.dart';
 import 'package:duel_links_meta/pages/tier_list/type/TierListGroup.dart';
 import 'package:duel_links_meta/pages/tier_list/type/TierListType.dart';
 import 'package:duel_links_meta/type/TierList_TopTier.dart';
+import 'package:duel_links_meta/type/deck_type/DeckType.dart';
 import 'package:duel_links_meta/type/deck_type/TierList_PowerRanking.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -32,6 +35,11 @@ class _TierListViewState extends State<TierListView> with AutomaticKeepAliveClie
 
   var _pageStatus = PageStatus.loading;
 
+  handleTapDeckTypeItem(TierList_TopTier deckType) async {
+    Navigator.push(context, MaterialPageRoute(builder: (context) => DeckTypeDetailPage(name: deckType.name,)));
+  }
+
+  //
   fetchTopTiers() async {
     var tierDescMap = {
       0: '',
@@ -80,7 +88,7 @@ class _TierListViewState extends State<TierListView> with AutomaticKeepAliveClie
 
     for (var item in list) {
       print('${item.name}, power: ${item.tournamentPower}');
-      if (item.tournamentPower > 37) {
+      if (item.tournamentPower > 45) {
         tier0.deckTypes.add(TierList_TopTier(name: item.name, tier: 0, oid: item.oid)..power = item.tournamentPower);
         continue;
       }
@@ -152,11 +160,11 @@ class _TierListViewState extends State<TierListView> with AutomaticKeepAliveClie
                                   SizedBox(
                                     width: 102,
                                     height: 25,
-                                    child: Image.asset('assets/images/tier_${group.tier}.webp', fit: BoxFit.cover),
+                                    child: Image.asset('assets/images/tier_${group.tier}.webp', fit: BoxFit.cover, ),
                                   ),
                                   Padding(
                                     padding: const EdgeInsets.symmetric(vertical: 8.0),
-                                    child: Text(group.desc??'', style: const TextStyle(color: Colors.white, fontSize: 12),),
+                                    child: Text(group.desc??'', style: const TextStyle( fontSize: 12),),
                                   ),
                                   GridView.builder(
                                     shrinkWrap: true,
@@ -171,6 +179,7 @@ class _TierListViewState extends State<TierListView> with AutomaticKeepAliveClie
                                       return TierListItemView(
                                         deckType: group.deckTypes[index],
                                         showPower: _tierListType != TierListType.topTires,
+                                        onTap: () => handleTapDeckTypeItem(group.deckTypes[index]),
                                       );
                                     },
                                   )

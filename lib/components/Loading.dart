@@ -18,7 +18,6 @@ class _LoadingState extends State<Loading> with TickerProviderStateMixin {
   late Animation<Offset> _animation;
   late Animation<double> _scaleAnimation;
   late AnimationController _animationController;
-  // late Timer loadingImgTimer;
 
   @override
   void dispose() {

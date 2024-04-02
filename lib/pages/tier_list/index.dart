@@ -21,17 +21,13 @@ class _TierListPageState extends State<TierListPage> with SingleTickerProviderSt
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        backgroundColor: BaColors.theme,
         appBar: AppBar(
-          backgroundColor: BaColors.main,
-          iconTheme: const IconThemeData(color: Colors.white),
-          centerTitle: true,
-          title: const Text('Tier List', style: TextStyle(color: Colors.white)),
-
+          // iconTheme: const IconThemeData(opticalSize: 12),
+          title: const Text('Tier List'),
           bottom: TabBar(
-            indicatorColor: Colors.transparent,
+            // indicatorColor: Colors.transparent,
             controller: _tabController,
-            dividerHeight: 0,
+            // dividerHeight: 0,
             tabs: const [
               Tab(text: 'TOP TIERS'),
               Tab(text: 'POWER RANKINGS'),

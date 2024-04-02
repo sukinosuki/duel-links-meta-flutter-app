@@ -1,6 +1,9 @@
+import 'package:duel_links_meta/constant/colors.dart';
 import 'package:duel_links_meta/pages/articles/index.dart';
+import 'package:duel_links_meta/pages/ban_list_change/index.dart';
 import 'package:duel_links_meta/pages/home/index.dart';
 import 'package:duel_links_meta/pages/packs/index.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 /// Flutter code sample for [BottomNavigationBar].
@@ -44,13 +47,11 @@ class _MainPageState extends State<MainPage> {
         controller: _pageController,
         onPageChanged: _onItemTapped,
         physics: const NeverScrollableScrollPhysics(),
-        children: [
-          const HomePage(),
-          const PacksPage(),
-          const ArticlesPage(),
-          Container(
-            color: Colors.purple,
-          )
+        children: const [
+          HomePage(),
+          PacksPage(),
+          ArticlesPage(),
+          BanListChangePage()
         ],
       ),
       // bottomNavigationBar: NavigationBar(
@@ -65,40 +66,25 @@ class _MainPageState extends State<MainPage> {
       //   onDestinationSelected: _onItemTapped,
       //   height: 70,
       // ),
-      bottomNavigationBar: Theme(
-        data: ThemeData(highlightColor: Colors.transparent, splashColor: Colors.transparent),
-        child: BottomNavigationBar(
-          currentIndex: _selectedIndex,
-          items: const <BottomNavigationBarItem>[
-            BottomNavigationBarItem(
-              icon: Icon(Icons.home),
-              backgroundColor: Color(0xFF001427),
-              label: 'Home',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.business),
-              backgroundColor: Color(0xFF001427),
-              label: 'Business',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.school),
-              label: 'School',
-              backgroundColor: Color(0xFF001427),
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.school),
-              label: 'School',
-              backgroundColor: Color(0xFF001427),
-            ),
-          ],
-          type: BottomNavigationBarType.fixed,
-          backgroundColor: const Color(0xFF001427),
-          selectedIconTheme: const IconThemeData(color: Colors.white),
-          selectedItemColor: Colors.white,
-          selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold),
-          unselectedItemColor: Colors.grey,
-          onTap: _onItemTapped,
-        ),
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _selectedIndex,
+        selectedFontSize: 12,
+        // useLegacyColorScheme: false,
+        // enableFeedback: true,
+        items: const <BottomNavigationBarItem>[
+          BottomNavigationBarItem(icon: Icon(Icons.home), backgroundColor: Colors.transparent, label: 'Home'),
+          BottomNavigationBarItem(icon: Icon(Icons.business), label: 'Packs'),
+          BottomNavigationBarItem(icon: Icon(Icons.school), label: 'Articles'),
+          BottomNavigationBarItem(icon: Icon(Icons.school), label: 'Ban list'),
+        ],
+
+        type: BottomNavigationBarType.fixed,
+        // backgroundColor: BaColors.main,
+        // selectedIconTheme: const IconThemeData(color: Colors.white),
+        selectedItemColor: Theme.of(context).colorScheme.secondary,
+        // selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold),
+        // unselectedItemColor: Colors.grey,
+        onTap: _onItemTapped,
       ),
     );
   }

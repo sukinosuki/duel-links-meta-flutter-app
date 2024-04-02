@@ -1,39 +1,96 @@
-import 'package:duel_links_meta/components/SkillModalView.dart';
-import 'package:duel_links_meta/pages/cards_viewpager/index.dart';
-import 'package:duel_links_meta/pages/characters/index.dart';
-import 'package:duel_links_meta/pages/deck_type_detail/index.dart';
-import 'package:duel_links_meta/pages/home/index.dart';
+import 'package:duel_links_meta/pages/ban_list_change/index.dart';
 import 'package:duel_links_meta/pages/main/index.dart';
-import 'package:duel_links_meta/pages/skill_stats/index.dart';
 import 'package:duel_links_meta/pages/splash/index.dart';
-import 'package:duel_links_meta/pages/tier_list/index.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
-void main() {
+void main() async{
+
   runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+    return GetMaterialApp(
+      title: 'Duel Links Meta',
+      themeMode: ThemeMode.light,
+      // themeMode: ThemeMode.dark,
+      darkTheme: ThemeData(
+        colorScheme: ColorScheme.dark(
+          // seedColor: BaColors.main,
+          // onPrimary: Colors.yellow,
+          // onSecondary: Colors.tealAccent,
+          // background: Colors.yellow,
+          primary: Colors.pinkAccent,
+          secondary: Colors.white,
+          // tertiary: Colors.orange,
+          // brightness: Brightness.dark,
+          // background: BaColors.main
+        ),
+        primaryColor: Colors.deepOrangeAccent,
+        primarySwatch: Colors.yellow,
+        // scaffoldBackgroundColor: BaColors.theme,
+        // textTheme: TextTheme(
+        // ),
         useMaterial3: true,
-        appBarTheme: AppBarTheme(
-          // iconTheme: IconThemeData(
-          //   // splashRadius: 1
-          //   // opticalSize: 10
-          //   color: Colors.white
-          // ),
-        )
+
+        // tabBarTheme: const TabBarTheme(labelColor: BaColors.theme, indicatorColor: BaColors.theme),
+        appBarTheme: const AppBarTheme(
+          elevation: 2,
+          shadowColor:  Color(0xff121212),
+          centerTitle: true,
+          surfaceTintColor: Colors.transparent,
+          // backgroundColor: BaColors.main
+        ),
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+
+
+      theme: ThemeData(
+        colorScheme: ColorScheme.light(
+          // seedColor: Colors.pink,
+          primary: Colors.blue,
+          secondary: Colors.black,
+          onSecondary: Colors.yellow,
+          onSurface: Colors.black87
+          // tertiary: Colors.orange,
+          // brightness: Brightness.dark,
+        ),
+        primaryColor: Colors.deepOrangeAccent,
+        // primaryColorDark: Colors.blue,
+        // scaffoldBackgroundColor: Colors.blueAccent,
+        // textTheme: TextTheme(
+        // ),
+        useMaterial3: true,
+
+        // tabBarTheme: const TabBarTheme(labelColor: BaColors.theme, indicatorColor: BaColors.theme),
+        appBarTheme: const AppBarTheme(
+          elevation: 2,
+          shadowColor: Colors.white24,
+          centerTitle: true,
+          surfaceTintColor: Colors.transparent,
+        ),
+      ),
+      // home: const MyHomePage(
+      //   title: 'Flutter Demo Home Page',
+      // ),
+      home: const SplashPage(),
+      // initialRoute: '/splash',
+      // routes: {
+      //   // '/splash': (context) => const SplashPage(),
+      //   // '/splash': (context) => const DeckTypeDetailPage(),
+      //   // '/splash': (context) => const SkillStatsPage(name: 'The Legend of the Heroes'),
+      //   // '/splash': (context) => const CharactersPage(),
+      //   // '/splash': (context) => const MainPage(),
+      //   '/splash': (context) => const BanListChangePage(),
+      //   // '/splash': (context) => const SkillStatsPage(name: 'Monster Move'),
+      //   // '/splash': (context) => const SkillModalView(name: 'Photon Dragon Advent'),
+      //   // '/splash': (context) => const CardsViewpagerPage(mdCards: [], index: 0,),
+      //   // '/home': (context) => const HomePage() // TODO: routes声明与不声明有什么区别
+      // },
     );
   }
 }
@@ -48,7 +105,6 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-
   init() {
     initializeDateFormatting();
   }
@@ -69,7 +125,8 @@ class _MyHomePageState extends State<MyHomePage> {
         // '/splash': (context) => const DeckTypeDetailPage(),
         // '/splash': (context) => const SkillStatsPage(name: 'The Legend of the Heroes'),
         // '/splash': (context) => const CharactersPage(),
-        '/splash': (context) => const MainPage(),
+        // '/splash': (context) => const MainPage(),
+        '/splash': (context) => const BanListChangePage(),
         // '/splash': (context) => const SkillStatsPage(name: 'Monster Move'),
         // '/splash': (context) => const SkillModalView(name: 'Photon Dragon Advent'),
         // '/splash': (context) => const CardsViewpagerPage(mdCards: [], index: 0,),

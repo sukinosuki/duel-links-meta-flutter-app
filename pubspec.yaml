@@ -42,6 +42,9 @@ dependencies:
   intl: ^0.19.0
   flutter_svg: ^2.0.10+1
   fl_chart: ^0.66.2
+  modal_bottom_sheet: ^3.0.0
+  rive: 0.11.11
+  shared_preferences: ^2.2.2
 
 dev_dependencies:
   flutter_test:
@@ -77,9 +80,10 @@ flutter:
    - assets/images/rarity_r.webp
    - assets/images/rarity_n.webp
    - assets/images/modal_bg.webp
-   - assets/images/icon_limited_1.svg
-   - assets/images/icon_limited_2.svg
-   - assets/images/icon_limited_3.svg
+   - assets/images/icon_forbidden.svg
+   - assets/images/icon_limited 1.svg
+   - assets/images/icon_limited 2.svg
+   - assets/images/icon_limited 3.svg
    - assets/images/icon_gem.webp
    - assets/images/icon_skill.webp
    - assets/images/icon_skill_2.webp
@@ -95,11 +99,13 @@ flutter:
    - assets/images/icon_card_race_field.png
    - assets/images/icon_card_race_normal.png
    - assets/images/icon_card_race_quick-play.png
+   - assets/images/icon_card_race_ritual.png
    - assets/images/icon_card_type_spell.png
    - assets/images/icon_card_type_trap.png
    - assets/images/icon_normal_level.png
    - assets/images/icon_normal_rank.png
    - assets/images/card_placeholder.webp
+   - assets/riv/kunai_on_target_ratings.riv
   #   - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see

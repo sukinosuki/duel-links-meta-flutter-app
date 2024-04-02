@@ -18,5 +18,6 @@ class BaColors {
   // static const int _blue = 0xFF3bc7ff;
 
   static const Color theme = Color(0xFF001b35);
+
   static const Color main = Color(0xFF001427);
 }

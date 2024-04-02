@@ -39,7 +39,8 @@ class _MdCardItemViewState extends State<MdCardItemView> {
               CachedNetworkImage(
                   placeholder: (context, url) => Image.asset('assets/images/card_placeholder.webp'),
                   errorWidget: (context, url, err) => Image.asset('assets/images/card_placeholder.webp'),
-                  fadeInDuration: const Duration(milliseconds: 100),
+                  fadeInDuration: const Duration(milliseconds: 0),
+                  fadeOutDuration: null,
                   fadeInCurve: Curves.linear,
                   imageUrl: 'https://s3.duellinksmeta.com/cards/${mdCard.oid}_w100.webp'),
               if (widget.bottomWidget != null)
@@ -54,9 +55,9 @@ class _MdCardItemViewState extends State<MdCardItemView> {
                     child: ClipRRect(
                   borderRadius: const BorderRadius.all(Radius.circular(10)),
                   child: SvgPicture.asset(
-                    'assets/images/icon_limited_1.svg',
-                    width: 15,
-                    height: 15,
+                    'assets/images/icon_${mdCard.banStatus!.toLowerCase()}.svg',
+                    width: 20,
+                    height: 20,
                   ),
                 )),
               if (widget.trend != null && widget.trend != '')
@@ -64,7 +65,10 @@ class _MdCardItemViewState extends State<MdCardItemView> {
                   top: 0,
                   right: 0,
                   child: Container(
-                    decoration: BoxDecoration(color: widget.trend == 'up' ? const Color(0xff008000) : const Color(0xffd10d0d), borderRadius: BorderRadius.all(Radius.circular(8))),
+                    decoration: BoxDecoration(
+                      color: widget.trend == 'up' ? const Color(0xff008000) : const Color(0xffd10d0d),
+                      borderRadius: const BorderRadius.all(Radius.circular(8)),
+                    ),
                     width: 16,
                     height: 16,
                     child: Center(
@@ -78,7 +82,7 @@ class _MdCardItemViewState extends State<MdCardItemView> {
                       ),
                     ),
                   ),
-                )
+                ),
             ],
           ),
         ],

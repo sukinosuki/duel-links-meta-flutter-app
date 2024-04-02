@@ -9,9 +9,9 @@ import 'package:flutter/scheduler.dart';
 import 'package:intl/intl.dart';
 
 class CardsViewpagerPage extends StatefulWidget {
-  const CardsViewpagerPage({super.key, required this.mdCards, required this.index});
+  const CardsViewpagerPage({super.key, required this.cards, required this.index});
 
-  final List<MdCard> mdCards;
+  final List<MdCard> cards;
   final int index;
 
   @override
@@ -19,7 +19,7 @@ class CardsViewpagerPage extends StatefulWidget {
 }
 
 class _CardsViewpagerPageState extends State<CardsViewpagerPage> {
-  List<MdCard> get mdCards => widget.mdCards;
+  List<MdCard> get mdCards => widget.cards;
 
   int get index => widget.index;
   late PageController _controller;

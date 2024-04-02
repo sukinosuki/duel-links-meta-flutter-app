@@ -18,7 +18,7 @@ MdCard _$MdCardFromJson(Map<String, dynamic> json) => MdCard()
   ..obtain =
       (json['obtain'] as List<dynamic>).map(MdCard_Obtain.fromJson).toList()
   ..race = json['race'] as String
-  ..rarity = json['rarity'] as String
+  ..rarity = json['rarity'] as String? ?? ''
   ..release =
       json['release'] == null ? null : DateTime.parse(json['release'] as String)
   ..type = json['type'] as String

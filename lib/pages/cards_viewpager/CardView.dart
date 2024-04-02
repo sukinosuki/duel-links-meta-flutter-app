@@ -1,5 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:duel_links_meta/constant/colors.dart';
 import 'package:duel_links_meta/type/MdCard.dart';
+import 'package:duel_links_meta/util/time_util.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -16,9 +18,10 @@ class CardView extends StatelessWidget {
       borderRadius: const BorderRadius.all(Radius.circular(14)),
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
-        decoration: const BoxDecoration(
+        decoration:  BoxDecoration(
           image: DecorationImage(image: AssetImage('assets/images/modal_bg.webp'), fit: BoxFit.fitWidth),
-          color: Colors.black87,
+          color: Theme.of(context).colorScheme.background,
+          // color: BaColors.main,
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -33,7 +36,6 @@ class CardView extends StatelessWidget {
                   ),
                   Container(
                     width: 200,
-                    color: Colors.white,
                     height: 200 * 1.46,
                     child: Stack(
                       children: [
@@ -72,7 +74,7 @@ class CardView extends StatelessWidget {
                               card.name,
                               overflow: TextOverflow.ellipsis,
                               maxLines: 2,
-                              style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600),
+                              style: const TextStyle( fontSize: 13, fontWeight: FontWeight.w600),
                             ),
                           ),
                           Row(
@@ -82,7 +84,7 @@ class CardView extends StatelessWidget {
                                   children: [
                                     Image.asset('assets/images/icon_attribute_${card.attribute!.toLowerCase()}.png', width: 12, height: 12),
                                     const SizedBox(width: 2),
-                                    Text(card.attribute!, style: const TextStyle(color: Colors.white, fontSize: 10)),
+                                    Text(card.attribute!, style: const TextStyle( fontSize: 10)),
                                     if (card.level != null)
                                       Row(
                                         children: [
@@ -92,7 +94,7 @@ class CardView extends StatelessWidget {
                                           else
                                             Image.asset('assets/images/icon_normal_level.png', width: 12, height: 12),
                                           const SizedBox(width: 2),
-                                          Text(card.level?.toString() ?? '', style: const TextStyle(color: Colors.white, fontSize: 10))
+                                          Text(card.level?.toString() ?? '', style: const TextStyle( fontSize: 10))
                                         ],
                                       )
                                   ],
@@ -102,11 +104,13 @@ class CardView extends StatelessWidget {
                                   children: [
                                     Image.asset('assets/images/icon_card_type_${card.type.toLowerCase()}.png', width: 12, height: 12),
                                     const SizedBox(width: 2),
-                                    Text(card.type, style: const TextStyle(color: Colors.white, fontSize: 10)),
+                                    Text(card.type, style: const TextStyle( fontSize: 10)),
                                     const SizedBox(width: 4),
                                     Image.asset('assets/images/icon_card_race_${card.race.toLowerCase()}.png', width: 12, height: 12),
+                                    // Image.asset('assets/images/icon_card_race_ritual.png', width: 12, height: 12),
                                     const SizedBox(width: 2),
-                                    Text(card.race, style: const TextStyle(color: Colors.white, fontSize: 10))
+
+                                    Text(card.race.toLowerCase(), style: const TextStyle( fontSize: 10))
                                   ],
                                 ),
                             ],
@@ -116,30 +120,30 @@ class CardView extends StatelessWidget {
                       if (card.monsterType.isNotEmpty) Row(
                         children: [
                           const SizedBox(height: 4),
-                          Text('[${card.monsterType.join('/')}]', style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w500)),
+                          Text('[${card.monsterType.join('/')}]', style: const TextStyle( fontSize: 12, fontWeight: FontWeight.w500)),
                         ],
                       ),
                       const SizedBox(height: 4),
-                      Text(card.description, style: const TextStyle(color: Colors.white, fontSize: 12)),
+                      Text(card.description, style: const TextStyle( fontSize: 12)),
                       const SizedBox(height: 4),
 
                       if (card.atk != null)
                         Row(
                           children: [
-                            const Text('ATK', style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600)),
-                            Text('/${card.atk}', style: const TextStyle(color: Colors.white, fontSize: 12)),
+                            const Text('ATK', style: TextStyle( fontSize: 12, fontWeight: FontWeight.w600)),
+                            Text('/${card.atk}', style: const TextStyle( fontSize: 12)),
                             const SizedBox(width: 4),
                             IfElseBox(
                               condition: card.monsterType.contains('Link'),
                               ifTure: Row(
                                 children: [
-                                  const Text('LINK', style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600)),
-                                  Text('/${card.linkRating ?? 0}', style: const TextStyle(color: Colors.white, fontSize: 12)),
+                                  const Text('LINK', style: TextStyle( fontSize: 12, fontWeight: FontWeight.w600)),
+                                  Text('/${card.linkRating ?? 0}', style: const TextStyle( fontSize: 12)),
                                 ],
                               ),
                               elseTrue: Row(children: [
-                                const Text('DEF', style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600)),
-                                Text('/${card.def ?? 0}', style: const TextStyle(color: Colors.white, fontSize: 12)),
+                                const Text('DEF', style: TextStyle( fontSize: 12, fontWeight: FontWeight.w600)),
+                                Text('/${card.def ?? 0}', style: const TextStyle( fontSize: 12)),
                               ]),
                             ),
                           ],
@@ -147,17 +151,15 @@ class CardView extends StatelessWidget {
                       const Text(
                         'How to Obtain',
                         style: TextStyle(
-                            color: Colors.white,
                             fontSize: 12,
                             decoration: TextDecoration.underline,
-                            decorationColor: Colors.white,
                             decorationStyle: TextDecorationStyle.solid),
                       ),
                       const SizedBox(height: 10),
                       if (card.release != null)
                         Text(
-                          'Released on ${DateFormat.yMMMMd().format(card.release!)}',
-                          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 12),
+                          'Released on ${TimeUtil.format(card.release)}',
+                          style: const TextStyle( fontWeight: FontWeight.w600, fontSize: 12),
                         )
                     ],
                   ),

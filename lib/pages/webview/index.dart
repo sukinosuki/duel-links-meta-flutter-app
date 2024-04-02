@@ -56,11 +56,8 @@ class _WebviewPageState extends State<WebviewPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: BaColors.theme,
       appBar: AppBar(
-        backgroundColor: BaColors.main,
-        iconTheme: const IconThemeData(color: Colors.white),
-        title: Text(title, style: const TextStyle(color: Colors.white)),
+        title: Text(title),
         actions: [
           Row(
             children: [

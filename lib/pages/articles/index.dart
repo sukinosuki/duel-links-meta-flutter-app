@@ -105,11 +105,13 @@ class _ArticlesPageState extends State<ArticlesPage> with AutomaticKeepAliveClie
     super.build(context);
 
     return Scaffold(
-      backgroundColor: BaColors.theme,
       appBar: AppBar(
-        backgroundColor: BaColors.main,
-        automaticallyImplyLeading: false,
-        title: const Text("Articles", style: TextStyle(color: Colors.white)),
+        // centerTitle: true,
+        // automaticallyImplyLeading: false,
+        // elevation: 2,
+        // surfaceTintColor: Colors.transparent,
+        // shadowColor: Colors.white24,
+        title: const Text("Articles"),
       ),
       body: Stack(
         children: [

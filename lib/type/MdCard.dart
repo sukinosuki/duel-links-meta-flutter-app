@@ -22,6 +22,7 @@ class MdCard {
 
   String race = '';
 
+  @JsonKey(defaultValue: '')
   String rarity = '';
 
   DateTime? release;

@@ -32,15 +32,20 @@ class _DeckTypeBreakdownGridViewState extends State<DeckTypeBreakdownGridView> {
       context: context,
       builder: (context) => Dialog.fullscreen(
         backgroundColor: Colors.black87.withOpacity(0.3),
-        child: CardsViewpagerPage(mdCards: _cards, index: index)
+        child: CardsViewpagerPage(cards: _cards, index: index)
       ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    return MdCardsBoxLayout(
-      child: Container(
+    return Card(
+      shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(6)
+      ),
+      margin: const EdgeInsets.all(0),
+      child: Padding(
+        padding: const EdgeInsets.only(left: 8, right: 8, top: 8),
         child: GridView.builder(
           padding: const EdgeInsets.all(0),
           shrinkWrap: true,

@@ -17,9 +17,8 @@ class _ListFooterState extends State<ListFooter> {
     PageStatus.fail: 'Fail',
   };
 
-
   String get loadMoreStatusText {
-    if (!widget.hasMore){
+    if (!widget.hasMore) {
       return 'Load Completed';
     }
 
@@ -28,26 +27,21 @@ class _ListFooterState extends State<ListFooter> {
 
   @override
   Widget build(BuildContext context) {
-    return  SizedBox(
+    return SizedBox(
       height: 50,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Text(
-            loadMoreStatusText,
-            style: const TextStyle(color: Colors.white),
-          ),
+          Text(loadMoreStatusText),
+          const SizedBox(width: 10),
           const SizedBox(
-            width: 10,
-          ),
-          const SizedBox(
-              height: 20,
-              width: 20,
-              child: CircularProgressIndicator(
-                strokeWidth: 2,
-                color: Colors.white,
-                semanticsLabel: '21',
-              ))
+            height: 20,
+            width: 20,
+            child: CircularProgressIndicator(
+              strokeWidth: 2,
+              semanticsLabel: '21',
+            ),
+          )
         ],
       ),
     );

@@ -55,7 +55,7 @@ class _CharacterPageState extends State<CharacterPage> {
   handleTapCardItem(List<MdCard> cards, int index) {
     showDialog(
       context: context,
-      builder: (context) => Dialog.fullscreen(backgroundColor: Colors.black87.withOpacity(0.3), child: CardsViewpagerPage(mdCards: cards, index: index)),
+      builder: (context) => Dialog.fullscreen(backgroundColor: Colors.black87.withOpacity(0.3), child: CardsViewpagerPage(cards: cards, index: index)),
     );
   }
 

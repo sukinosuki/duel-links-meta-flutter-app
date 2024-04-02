@@ -1,7 +1,10 @@
 import 'dart:async';
+import 'dart:developer';
 
 import 'package:duel_links_meta/pages/main/index.dart';
+import 'package:duel_links_meta/util/storage/LocalStorage.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 class SplashPage extends StatefulWidget {
   const SplashPage({super.key});
@@ -11,17 +14,22 @@ class SplashPage extends StatefulWidget {
 }
 
 class _SplashPageState extends State<SplashPage> {
-  var count = 1;
+  var count = 10;
 
   late Timer timer;
 
-  init() {
+  startCounterDown() {
     timer = Timer.periodic(const Duration(seconds: 1), (timer) async {
       if (count <= 0) {
         timer.cancel();
 
         Navigator.push(
-            context, MaterialPageRoute(builder: (context) => const MainPage()));
+          context,
+          MaterialPageRoute(
+            builder: (context) => const MainPage(),
+          ),
+        );
+
         return;
       }
 
@@ -29,6 +37,20 @@ class _SplashPageState extends State<SplashPage> {
         count -= 1;
       });
     });
+  }
+
+  initConfig() async {
+    var mode = await LocalStorage_DarkMode.get();
+    log('[initConfig] mode $mode');
+
+    if (mode == 'dark') {
+      Get.changeThemeMode(ThemeMode.dark);
+    }
+  }
+
+  init() {
+    initConfig();
+    startCounterDown();
   }
 
   @override
@@ -44,7 +66,7 @@ class _SplashPageState extends State<SplashPage> {
       body: Container(
         // color: BaColors.momo,
         child: Center(
-          child: Text("splash page"),
+          child: Text("splash page, $count"),
         ),
       ),
     );
