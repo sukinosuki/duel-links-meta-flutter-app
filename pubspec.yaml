@@ -72,9 +72,12 @@ flutter:
 
   # To add assets to your application, add an assets section, like this:
   assets:
-   - assets/images/tier_1.webp
-   - assets/images/tier_2.webp
-   - assets/images/tier_3.webp
+   - assets/images/tier_1.png
+   - assets/images/tier_2.png
+   - assets/images/tier_3.png
+   - assets/images/tier_1_dark.png
+   - assets/images/tier_2_dark.png
+   - assets/images/tier_3_dark.png
    - assets/images/rarity_ur.webp
    - assets/images/rarity_sr.webp
    - assets/images/rarity_r.webp

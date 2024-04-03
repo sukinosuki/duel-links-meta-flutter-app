@@ -49,7 +49,7 @@ class TierListItemView extends StatelessWidget {
                 children: [
                   const Text('Power:', style: TextStyle(fontSize: 12)),
                   const SizedBox(width: 2),
-                  Text(deckType.power.toString(), style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                  Text(deckType.power.toString(), style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
                 ],
               ),
             )

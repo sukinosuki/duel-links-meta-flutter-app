@@ -11,7 +11,7 @@ class Net extends GetConnect {
 
     httpClient.addRequestModifier<Object?>((request) async {
 
-      print("请求开始");
+      print("[Net] 请求开始");
 
       _logRequest(request);
 
@@ -81,6 +81,7 @@ class Net extends GetConnect {
 
   void _logRequest(Request request) async {
     var str = "---- 请求 ----\nmethod: ${request.method}\nurl: ${request.url}\nquery: ${request.url.queryParameters}";
+
     if (request.method != 'post' || request.headers['content-type'] != 'application/json') {
       log(str);
       return;

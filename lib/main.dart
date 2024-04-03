@@ -1,4 +1,5 @@
 import 'package:duel_links_meta/pages/ban_list_change/index.dart';
+import 'package:duel_links_meta/pages/farming_and_event/index.dart';
 import 'package:duel_links_meta/pages/main/index.dart';
 import 'package:duel_links_meta/pages/splash/index.dart';
 import 'package:flutter/material.dart';
@@ -77,7 +78,7 @@ class MyApp extends StatelessWidget {
       // home: const MyHomePage(
       //   title: 'Flutter Demo Home Page',
       // ),
-      home: const SplashPage(),
+      home: const MainPage(),
       // initialRoute: '/splash',
       // routes: {
       //   // '/splash': (context) => const SplashPage(),

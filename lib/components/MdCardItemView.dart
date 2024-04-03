@@ -41,7 +41,6 @@ class _MdCardItemViewState extends State<MdCardItemView> {
                   errorWidget: (context, url, err) => Image.asset('assets/images/card_placeholder.webp'),
                   fadeInDuration: const Duration(milliseconds: 0),
                   fadeOutDuration: null,
-                  fadeInCurve: Curves.linear,
                   imageUrl: 'https://s3.duellinksmeta.com/cards/${mdCard.oid}_w100.webp'),
               if (widget.bottomWidget != null)
                 Positioned(

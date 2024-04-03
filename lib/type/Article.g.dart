@@ -13,7 +13,7 @@ Article _$ArticleFromJson(Map<String, dynamic> json) => Article()
   ..category = json['category'] as String? ?? ''
   ..image = json['image'] as String
   ..subCategory = json['subCategory'] as String?
-  ..featured = json['featured'] as bool
+  ..featured = json['featured'] as bool? ?? false
   ..description = json['description'] as String
   ..date = json['date'] == null ? null : DateTime.parse(json['date'] as String);
 

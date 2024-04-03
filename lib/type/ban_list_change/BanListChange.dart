@@ -1,5 +1,7 @@
 import 'package:json_annotation/json_annotation.dart';
 
+import '../MdCard.dart';
+
 part 'BanListChange.g.dart';
 
 @JsonSerializable()
@@ -30,13 +32,16 @@ class BanListChange {
 
 @JsonSerializable()
 class BanListChange_Change {
-  @JsonKey(defaultValue: '')
-  String to = '';
+  // @JsonKey(defaultValue: '')
+  String? to = '';
 
   // @JsonKey(defaultValue: '')
   String? from = '';
 
   BanListChange_Change_Card? card;
+
+  @JsonKey(includeFromJson: false)
+  MdCard card2 = MdCard();
 
   BanListChange_Change();
 

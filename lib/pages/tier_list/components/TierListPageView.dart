@@ -12,6 +12,7 @@ import 'package:duel_links_meta/type/deck_type/TierList_PowerRanking.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:get/get.dart';
 
 import '../../../type/enum/PageStatus.dart';
 
@@ -138,8 +139,10 @@ class _TierListViewState extends State<TierListView> with AutomaticKeepAliveClie
   }
 
   @override
+  bool get wantKeepAlive => true;
+
+  @override
   Widget build(BuildContext context) {
-    print('TierListView build');
     return Stack(
       children: [
         AnimatedOpacity(
@@ -160,7 +163,7 @@ class _TierListViewState extends State<TierListView> with AutomaticKeepAliveClie
                                   SizedBox(
                                     width: 102,
                                     height: 25,
-                                    child: Image.asset('assets/images/tier_${group.tier}.webp', fit: BoxFit.cover, ),
+                                    child: Image.asset('assets/images/tier_${group.tier}${Get.isDarkMode ? '':'_dark'}.png', fit: BoxFit.cover, ),
                                   ),
                                   Padding(
                                     padding: const EdgeInsets.symmetric(vertical: 8.0),
@@ -169,11 +172,12 @@ class _TierListViewState extends State<TierListView> with AutomaticKeepAliveClie
                                   GridView.builder(
                                     shrinkWrap: true,
                                     physics: const NeverScrollableScrollPhysics(),
-                                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                                         crossAxisCount: 2,
                                         mainAxisSpacing: 8,
                                         crossAxisSpacing: 8,
-                                        childAspectRatio: 3),
+                                        childAspectRatio: _tierListType != TierListType.topTires ? 3 : 4),
+
                                     itemCount: group.deckTypes.length,
                                     itemBuilder: (BuildContext context, int index) {
                                       return TierListItemView(
@@ -197,7 +201,4 @@ class _TierListViewState extends State<TierListView> with AutomaticKeepAliveClie
       ],
     );
   }
-
-  @override
-  bool get wantKeepAlive => true;
 }

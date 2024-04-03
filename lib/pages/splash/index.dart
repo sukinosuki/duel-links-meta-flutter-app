@@ -14,7 +14,7 @@ class SplashPage extends StatefulWidget {
 }
 
 class _SplashPageState extends State<SplashPage> {
-  var count = 10;
+  var count = 3;
 
   late Timer timer;
 
@@ -23,11 +23,13 @@ class _SplashPageState extends State<SplashPage> {
       if (count <= 0) {
         timer.cancel();
 
-        Navigator.push(
+        Navigator.pushAndRemoveUntil(
           context,
           MaterialPageRoute(
             builder: (context) => const MainPage(),
           ),
+          (route) => false, //if you want to disable back feature set to false
+          // ModalRoute.withName('/')
         );
 
         return;
@@ -41,7 +43,6 @@ class _SplashPageState extends State<SplashPage> {
 
   initConfig() async {
     var mode = await LocalStorage_DarkMode.get();
-    log('[initConfig] mode $mode');
 
     if (mode == 'dark') {
       Get.changeThemeMode(ThemeMode.dark);
@@ -63,11 +64,8 @@ class _SplashPageState extends State<SplashPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        // color: BaColors.momo,
-        child: Center(
-          child: Text("splash page, $count"),
-        ),
+      body: Center(
+        child: Text("splash page, $count"),
       ),
     );
   }

@@ -127,7 +127,6 @@ class _MenuBoxBackground extends CustomPainter {
     final double triangleW = 10.0;
     final double width = size.width - 2;
     final double height = size.height;
-    log('height: $height, width: $width');
 
     final Path trianglePath = Path()
       ..moveTo(width, 0)

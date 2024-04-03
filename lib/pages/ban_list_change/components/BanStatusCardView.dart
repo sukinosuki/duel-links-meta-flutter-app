@@ -1,8 +1,10 @@
+import 'package:duel_links_meta/components/Loading.dart';
+import 'package:duel_links_meta/util/index.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
 import '../../../components/MdCardItemView.dart';
-import '../../../components/MdCardsBoxLayout.dart';
 import '../../../http/CardApi.dart';
 import '../../../type/MdCard.dart';
 import '../../../type/enum/PageStatus.dart';
@@ -37,8 +39,14 @@ class _BanStatusCardViewState extends State<BanStatusCardView> with AutomaticKee
       'rush[\$ne]': 'true',
     };
 
-    var res = await CardApi().list(params);
-    var list = res.body!.map((e) => MdCard.fromJson(e)).toList();
+    var (err, res) = await Util.toCatch(CardApi().list(params));
+    if (err != null) {
+      setState(() {
+        _pageStatus = PageStatus.fail;
+      });
+      return;
+    }
+    var list = res!.map((e) => MdCard.fromJson(e)).toList();
 
     Map<String, List<MdCard>> group = {
       'Forbidden': [],
@@ -65,52 +73,60 @@ class _BanStatusCardViewState extends State<BanStatusCardView> with AutomaticKee
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      padding: EdgeInsets.all(8),
-      child: Column(
-        children: banStatus2CardsGroup.keys.map((key) {
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 10),
-                  child: Row(
-                    children: [
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(20),
-                        child: SvgPicture.asset('assets/images/icon_${key.toLowerCase()}.svg', width: 20, height: 20),
+    return Stack(
+      children: [
+        AnimatedOpacity(
+          opacity: _pageStatus == PageStatus.success?1:0,
+          duration: const Duration(milliseconds: 400),
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(8),
+            child: Column(
+              children: banStatus2CardsGroup.keys.map((key) {
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 10),
+                      child: Row(
+                        children: [
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(20),
+                            child: SvgPicture.asset('assets/images/icon_${key.toLowerCase()}.svg', width: 20, height: 20),
+                          ),
+                          const SizedBox(width: 4),
+                          Text(key, style: const TextStyle(fontSize: 20)),
+                        ],
                       ),
-                      const SizedBox(width: 4),
-                      Text(key, style: const TextStyle(fontSize: 20)),
-                    ],
-                  ),
-                ),
-              ),
-              Card(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: Container(
-                  padding: const EdgeInsets.only(left: 8, right: 8, top: 8),
-                  child: GridView.builder(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      itemCount: banStatus2CardsGroup[key]!.length,
-                      gridDelegate:
-                          const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 5, childAspectRatio: 0.57, crossAxisSpacing: 6),
-                      itemBuilder: (context, index) {
-                        return MdCardItemView(
-                          mdCard: banStatus2CardsGroup[key]![index],
-                          onTap: (card) => handleTapCardItem(banStatus2CardsGroup[key]!, index),
-                        );
-                      }),
-                ),
-              ),
-            ],
-          );
-        }).toList(),
-      ),
+                    ),
+                    Card(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Container(
+                        padding: const EdgeInsets.only(left: 8, right: 8, top: 8),
+                        child: GridView.builder(
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            itemCount: banStatus2CardsGroup[key]!.length,
+                            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: 5, childAspectRatio: 0.57, crossAxisSpacing: 6),
+                            itemBuilder: (context, index) {
+                              return MdCardItemView(
+                                mdCard: banStatus2CardsGroup[key]![index],
+                                onTap: (card) => handleTapCardItem(banStatus2CardsGroup[key]!, index),
+                              );
+                            }),
+                      ),
+                    ),
+                  ],
+                );
+              }).toList(),
+            ),
+          ),
+        ),
+
+        if (_pageStatus == PageStatus.loading) const Positioned.fill(child: Center(child: Loading()))
+      ],
     );
   }
 

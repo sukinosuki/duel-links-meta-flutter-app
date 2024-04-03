@@ -7,10 +7,13 @@ import 'package:duel_links_meta/pages/articles/components/ArticleItem.dart';
 import 'package:duel_links_meta/pages/webview/index.dart';
 import 'package:duel_links_meta/type/Article.dart';
 import 'package:duel_links_meta/type/enum/PageStatus.dart';
+import 'package:duel_links_meta/util/index.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:intl/intl.dart';
+
+import '../../type/listViewData.dart';
 
 class ArticlesPage extends StatefulWidget {
   const ArticlesPage({super.key});
@@ -20,44 +23,53 @@ class ArticlesPage extends StatefulWidget {
 }
 
 class _ArticlesPageState extends State<ArticlesPage> with AutomaticKeepAliveClientMixin {
-  List<Article> _articles = [];
-  final format = DateFormat.yMMMMd();
+  // List<Article> _articles = [];
 
   final ScrollController _scrollController = ScrollController();
-  var _page = 1;
-  final _size = 8;
-  var _pageStatus = PageStatus.loading;
-  var _loadMoreStatus = PageStatus.success;
-  var _hasMore = true;
 
-  _handleTapArticleItem(Article article) {
+  // var _page = 1;
+  // final _size = 8;
+  // var _pageStatus = PageStatus.loading;
+  // var _loadMoreStatus = PageStatus.success;
+  // var _hasMore = true;
+
+  final _listViewData = ListViewData<Article>();
+
+  List<Article> get _articles => _listViewData.data;
+
+  handleTapArticleItem(Article article) {
     var title = article.title;
     var url = 'https://www.duellinksmeta.com/articles${article.url}';
 
-    print('url $url');
     Navigator.push(context, MaterialPageRoute(builder: (context) => WebviewPage(title: title, url: url)));
   }
 
   //
   fetchData({bool isLoadMore = false}) async {
     var params = <String, String>{};
-    params['limit'] = _size.toString();
-    params['page'] = _page.toString();
-    // params['field'] = '-markdown';
-    // params['sort'] = '-featured,-date';
-    // params['hidden[\$ne]'] = 'true';
-    // params['category[\$ne]'] = 'quick-news';
-    var res = await ArticleApi().list(params);
-    var list = res.body?.map((e) => Article.fromJson(e)).toList() ?? [];
+    params['limit'] = _listViewData.size.toString();
+    params['page'] = _listViewData.page.toString();
 
-    print("list 1 $list");
+    var (err, res) = await Util.toCatch(ArticleApi().articleList(params));
+    if (err != null) {
+      if (isLoadMore) {
+        setState(() {
+          _listViewData.loadMoreStatus = PageStatus.fail;
+        });
+      } else {
+        setState(() {
+          _listViewData.pageStatus = PageStatus.fail;
+        });
+      }
+    }
+    var list = res!.map((e) => Article.fromJson(e)).toList();
 
-    _page += 1;
+    _listViewData.page += 1;
     setState(() {
-      _articles = _articles..addAll(list);
-      _pageStatus = PageStatus.success;
-      _hasMore = list.length == _size;
-      _loadMoreStatus = PageStatus.success;
+      _listViewData.data.addAll(list);
+      _listViewData.pageStatus = PageStatus.success;
+      _listViewData.hasMore = list.length == _listViewData.size;
+      _listViewData.loadMoreStatus = PageStatus.success;
     });
   }
 
@@ -65,24 +77,19 @@ class _ArticlesPageState extends State<ArticlesPage> with AutomaticKeepAliveClie
     return _scrollController.position.maxScrollExtent - _scrollController.position.pixels <= 200;
   }
 
-  init() {
+  initScrollReachBottomListener() {
     _scrollController.addListener(() {
-      if (_pageStatus != PageStatus.success) {
-        print('页面未加载完成不可以加载更多');
-
+      if (_listViewData.pageStatus != PageStatus.success) {
         return;
       }
 
-      // print(
-      //     'offset ${_scrollController.offset}, position: ${_scrollController.position.pixels}, maxScrollExtent: ${_scrollController.position.maxScrollExtent}');
-
-      if (isReachBottom()) {
-        if (_loadMoreStatus == PageStatus.loading) {
-          print('到达底部，是加载更多中，不可执行 _loadMoreStatus $_loadMoreStatus, ${PageStatus.loading}');
+      if (_listViewData.hasMore && isReachBottom()) {
+        if (_listViewData.loadMoreStatus == PageStatus.loading) {
+          print('到达底部，是加载更多中，不可执行 _loadMoreStatus ${_listViewData.loadMoreStatus}, ${PageStatus.loading}');
           return;
         }
         setState(() {
-          _loadMoreStatus = PageStatus.loading;
+          _listViewData.loadMoreStatus = PageStatus.loading;
         });
 
         fetchData(isLoadMore: true);
@@ -94,7 +101,7 @@ class _ArticlesPageState extends State<ArticlesPage> with AutomaticKeepAliveClie
   void initState() {
     super.initState();
     fetchData();
-    init();
+    initScrollReachBottomListener();
   }
 
   @override
@@ -106,40 +113,35 @@ class _ArticlesPageState extends State<ArticlesPage> with AutomaticKeepAliveClie
 
     return Scaffold(
       appBar: AppBar(
-        // centerTitle: true,
-        // automaticallyImplyLeading: false,
-        // elevation: 2,
-        // surfaceTintColor: Colors.transparent,
-        // shadowColor: Colors.white24,
         title: const Text("Articles"),
       ),
       body: Stack(
         children: [
           AnimatedOpacity(
-            opacity: _pageStatus == PageStatus.success ? 1 : 0,
+            opacity: _listViewData.pageStatus == PageStatus.success ? 1 : 0,
             duration: const Duration(milliseconds: 300),
             child: ListView.separated(
               controller: _scrollController,
               padding: const EdgeInsets.only(top: 8),
-              itemCount: _articles.length >= _size ? _articles.length + 1 : _articles.length,
+              itemCount: _articles.length >= _listViewData.size ? _articles.length + 1 : _articles.length,
               itemBuilder: (context, index) {
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 5),
-                        child: _articles.length >= _size && index == _articles.length
-                            ? ListFooter(loadMoreStatus: _loadMoreStatus, hasMore: _hasMore)
-                            : ArticleItem(article: _articles[index], onTap: _handleTapArticleItem)),
+                        child: _articles.length >= _listViewData.size && index == _articles.length
+                            ? ListFooter(loadMoreStatus: _listViewData.loadMoreStatus, hasMore: _listViewData.hasMore)
+                            : ArticleItem(article: _articles[index], onTap: handleTapArticleItem)),
                   ],
                 );
               },
               separatorBuilder: (BuildContext context, int index) {
-                return const SizedBox(height: 10);
+                return const SizedBox(height: 8);
               },
             ),
           ),
-          if (_pageStatus != PageStatus.success) const Positioned(top: 0, bottom: 0, left: 0, right: 0, child: Center(child: Loading())),
+          if (_listViewData.pageStatus != PageStatus.success) const Positioned.fill(child: Center(child: Loading())),
         ],
       ),
     );

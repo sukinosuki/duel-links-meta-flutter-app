@@ -1,15 +1,19 @@
-import 'package:cached_network_image/cached_network_image.dart';
+import 'dart:developer';
+
+import 'package:duel_links_meta/components/Loading.dart';
+import 'package:duel_links_meta/http/CardApi.dart';
+import 'package:duel_links_meta/pages/ban_list_change/components/BanListChangeCardView.dart';
+import 'package:duel_links_meta/type/MdCard.dart';
 import 'package:duel_links_meta/type/enum/PageStatus.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:duel_links_meta/util/index.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:intl/intl.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
-import 'package:rive/rive.dart';
 
 import '../../../http/BanListChangeApi.dart';
 import '../../../type/ban_list_change/BanListChange.dart';
 import '../../../util/time_util.dart';
+import '../../cards_viewpager/index.dart';
 import '../type/DataGroup.dart';
 import 'BanListChangePickerView.dart';
 
@@ -23,9 +27,7 @@ class BanListChangeView extends StatefulWidget {
 class _BanListChangeViewState extends State<BanListChangeView> with AutomaticKeepAliveClientMixin {
   var _pageStatus = PageStatus.loading;
 
-  List<BanListChange> banListChanges = [];
-
-  List<DataGroup<BanListChange>> _yearsGroup2 = [];
+  List<DataGroup<BanListChange>> banListChangeGroup = [];
 
   BanListChange? currentBanListChange;
 
@@ -36,8 +38,17 @@ class _BanListChangeViewState extends State<BanListChangeView> with AutomaticKee
       'sort': '-date,-announced',
     };
 
-    var res = await BanListChangeApi().list(params: params);
-    var list = res.body!.map((e) => BanListChange.fromJson(e)).toList();
+    var (err, res) = await Util.toCatch(BanListChangeApi().list(params: params));
+    if (err != null) {
+      setState(() {
+        _pageStatus = PageStatus.fail;
+      });
+      return;
+    }
+
+    var list = res!.map((e) => BanListChange.fromJson(e)).toList();
+    var cardIds = list.map((e) => e.changes.map((e) => e.card!.oid).toList()).expand((element) => element).toSet().toList();
+
     var formatter = DateFormat('MM-dd');
 
     List<DataGroup<BanListChange>> dataGroupList = [];
@@ -60,15 +71,63 @@ class _BanListChangeViewState extends State<BanListChangeView> with AutomaticKee
     });
 
     setState(() {
-      _yearsGroup2 = dataGroupList;
+      banListChangeGroup = dataGroupList;
       currentBanListChange = dataGroupList[0].items[0];
-      banListChanges = list;
       _pageStatus = PageStatus.success;
+    });
+
+    fetchCards(cardIds);
+  }
+
+  fetchCards(List<String> cardIds) async {
+    List<MdCard> cards = [];
+
+    var size = 0;
+    while (size < cardIds.length) {
+      var ids = cardIds.sublist(size, size + 100 > cardIds.length ? cardIds.length : size + 100);
+      size += 100;
+
+      var (cardsErr, cardsRes) = await Util.toCatch(CardApi().getById(ids.join(',')));
+      if (cardsErr != null) {
+        return;
+      }
+      cards.addAll(cardsRes!.map((e) => MdCard.fromJson(e)).toList());
+
+      log('cards: ${cards.length}');
+    }
+
+    Map<String, MdCard> cardId2CardMap = {};
+
+    cards.forEach((card) {
+      cardId2CardMap[card.oid] = card;
+    });
+    log('cardId2CardMap: ${cardId2CardMap.length}');
+
+    banListChangeGroup.forEach((group) {
+      group.items.forEach((item) {
+        item.changes.forEach((change) {
+          if (cardId2CardMap[change.card?.oid] != null) {
+            change.card2 = cardId2CardMap[change.card?.oid]!;
+          }
+        });
+      });
     });
   }
 
-  _handlePickerConfirm(int yearIndex, int itemIndex) {
-    var banListChange = _yearsGroup2[yearIndex].items[itemIndex];
+  handleTapBanListCard(int index) {
+    List<MdCard> cards = currentBanListChange!.changes.map((e) => e.card2).toList();
+
+    showDialog(
+      context: context,
+      builder: (context) => Dialog.fullscreen(
+        backgroundColor: Colors.black87.withOpacity(0.3),
+        child: CardsViewpagerPage(cards: cards, index: index),
+      ),
+    );
+  }
+
+  handlePickerConfirm(int yearIndex, int itemIndex) {
+    var banListChange = banListChangeGroup[yearIndex].items[itemIndex];
 
     setState(() {
       currentBanListChange = banListChange;
@@ -77,11 +136,11 @@ class _BanListChangeViewState extends State<BanListChangeView> with AutomaticKee
     Navigator.pop(context);
   }
 
-  showChangePicker() {
+  showUpdatesDatePicker() {
     showMaterialModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
-      builder: (context) => BanListChangePicker(data: _yearsGroup2, onConfirm: _handlePickerConfirm),
+      builder: (context) => BanListChangePicker(data: banListChangeGroup, onConfirm: handlePickerConfirm),
     );
   }
 
@@ -95,10 +154,9 @@ class _BanListChangeViewState extends State<BanListChangeView> with AutomaticKee
   Widget build(BuildContext context) {
     return Stack(
       children: [
-
         AnimatedOpacity(
-          opacity: _pageStatus ==PageStatus.success?1:0,
-          duration: const Duration(milliseconds: 500),
+          opacity: _pageStatus == PageStatus.success ? 1 : 0,
+          duration: const Duration(milliseconds: 400),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -110,7 +168,7 @@ class _BanListChangeViewState extends State<BanListChangeView> with AutomaticKee
                     children: [
                       const Text('Updates'),
                       GestureDetector(
-                        onTap: showChangePicker,
+                        onTap: showUpdatesDatePicker,
                         child: Row(
                           children: [
                             Text(TimeUtil.format(currentBanListChange?.date ?? currentBanListChange?.announced)),
@@ -125,51 +183,9 @@ class _BanListChangeViewState extends State<BanListChangeView> with AutomaticKee
                 child: ListView.builder(
                   itemCount: currentBanListChange?.changes.length ?? 0,
                   itemBuilder: (context, index) {
-                    return Column(
-                      children: [
-                        InkWell(
-                          onTap: () {},
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                CachedNetworkImage(
-                                    width: 45,
-                                    height: 45 * 1.46,
-                                    fit: BoxFit.cover,
-                                    imageUrl:
-                                        'https://s3.duellinksmeta.com/cards/${currentBanListChange!.changes[index].card?.oid}_w100.webp'),
-                                const SizedBox(width: 8),
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      currentBanListChange!.changes[index].card?.name ?? '',
-                                    ),
-                                    Row(
-                                      children: [
-                                        const Text('From: ', style: TextStyle(fontSize: 11)),
-                                        Text(
-                                          currentBanListChange!.changes[index].from ?? '—',
-                                        )
-                                      ],
-                                    ),
-                                    Row(
-                                      children: [
-                                        const Text('To: ', style: TextStyle(fontSize: 11)),
-                                        Text(
-                                          currentBanListChange!.changes[index].to ?? '—',
-                                        )
-                                      ],
-                                    ),
-                                  ],
-                                )
-                              ],
-                            ),
-                          ),
-                        ),
-                      ],
+                    return BanListChangeCardView(
+                      change: currentBanListChange!.changes[index],
+                      onTap: () => handleTapBanListCard(index),
                     );
                   },
                 ),
@@ -177,14 +193,12 @@ class _BanListChangeViewState extends State<BanListChangeView> with AutomaticKee
             ],
           ),
         ),
-
         if (_pageStatus == PageStatus.loading)
           const Positioned.fill(
-              child: Center(
-            child: CircularProgressIndicator(
-              strokeWidth: 3,
+            child: Center(
+              child: Loading(),
             ),
-          ))
+          )
       ],
     );
   }

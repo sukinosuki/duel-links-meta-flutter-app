@@ -6,18 +6,26 @@ part 'Article.g.dart';
 class Article {
   @JsonKey(name: '_id')
   String id = '';
+
   String url = '';
+
   String title = '';
+
   @JsonKey(defaultValue: '')
   String category = '';
+
   String image = '';
+
   String? subCategory = '';
+
+  @JsonKey(defaultValue: false)
   bool featured = false;
+
   String description = '';
+
   DateTime? date;
 
   Article();
-
 
   // factory Article.fromJson(Map<String, dynamic> json) => _$ArticleFromJson(json);
   factory Article.fromJson(dynamic json) => _$ArticleFromJson(json);
