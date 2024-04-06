@@ -48,7 +48,6 @@ class _PackListViewState extends State<PackListView> with AutomaticKeepAliveClie
                       borderRadius: const BorderRadius.all(Radius.circular(6)),
                       child: Container(
                         color: Colors.pink,
-                        // height: 120,
                         child: Column(
                           children: [
                             Stack(
@@ -61,6 +60,7 @@ class _PackListViewState extends State<PackListView> with AutomaticKeepAliveClie
                                     imageUrl: 'https://s3.duellinksmeta.com${_packs[index].bannerImage}',
                                     fit: BoxFit.cover,
                                     height: 110,
+                                    fadeOutDuration: const Duration(milliseconds: 0),
                                     width: double.infinity,
                                   ),
                                 ),

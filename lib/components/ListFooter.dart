@@ -15,6 +15,7 @@ class _ListFooterState extends State<ListFooter> {
   var loadMoreStatusTextMap = <PageStatus, String>{
     PageStatus.loading: 'Loading',
     PageStatus.fail: 'Fail',
+    PageStatus.success: 'Loading',
   };
 
   String get loadMoreStatusText {

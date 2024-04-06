@@ -1,7 +1,11 @@
+import 'dart:developer';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:duel_links_meta/components/ListFooter.dart';
 import 'package:duel_links_meta/components/Loading.dart';
 import 'package:duel_links_meta/constant/colors.dart';
+import 'package:duel_links_meta/extension/Function.dart';
+import 'package:duel_links_meta/extension/Future.dart';
 import 'package:duel_links_meta/http/ArticleApi.dart';
 import 'package:duel_links_meta/pages/articles/components/ArticleItem.dart';
 import 'package:duel_links_meta/pages/webview/index.dart';
@@ -50,7 +54,7 @@ class _ArticlesPageState extends State<ArticlesPage> with AutomaticKeepAliveClie
     params['limit'] = _listViewData.size.toString();
     params['page'] = _listViewData.page.toString();
 
-    var (err, res) = await Util.toCatch(ArticleApi().articleList(params));
+    var (err, res) = await ArticleApi().articleList(params).toCatch;
     if (err != null) {
       if (isLoadMore) {
         setState(() {
@@ -74,16 +78,20 @@ class _ArticlesPageState extends State<ArticlesPage> with AutomaticKeepAliveClie
   }
 
   bool isReachBottom() {
+    log('bottom: ${_scrollController.position.maxScrollExtent - _scrollController.position.pixels}');
     return _scrollController.position.maxScrollExtent - _scrollController.position.pixels <= 200;
   }
 
   initScrollReachBottomListener() {
-    _scrollController.addListener(() {
+       var fn = () {
+      log('滚动中。。。');
       if (_listViewData.pageStatus != PageStatus.success) {
+        log('不是加载成功，return');
         return;
       }
 
       if (_listViewData.hasMore && isReachBottom()) {
+        log('hasMore && 到达底部');
         if (_listViewData.loadMoreStatus == PageStatus.loading) {
           print('到达底部，是加载更多中，不可执行 _loadMoreStatus ${_listViewData.loadMoreStatus}, ${PageStatus.loading}');
           return;
@@ -93,8 +101,12 @@ class _ArticlesPageState extends State<ArticlesPage> with AutomaticKeepAliveClie
         });
 
         fetchData(isLoadMore: true);
+      } else{
+        log('没有更多或者没到达底部');
       }
-    });
+    }.throttle(1000);
+
+    _scrollController.addListener(fn);
   }
 
   @override

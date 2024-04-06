@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:developer';
 
+import 'package:duel_links_meta/extension/Function.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -65,10 +66,16 @@ class _BanListChangePickerState extends State<BanListChangePicker>{
                       useMagnifier: true,
                       itemExtent: 32,
                       scrollController: FixedExtentScrollController(initialItem: selectedYearKey),
+                      // onSelectedItemChanged: (int selectedItem) {
+                      //   log('change, int: ${selectedItem}');
+                      // }.debounce(1000),
                       onSelectedItemChanged: (int selectedItem) {
+                        log('change $int');
+
                         if (yearPickerTimer?.isActive ?? false) yearPickerTimer!.cancel();
 
                         yearPickerTimer = Timer(const Duration(milliseconds: 500), () {
+                        log('execute');
 
                           setState(() {
                             selectedYearKey = selectedItem;

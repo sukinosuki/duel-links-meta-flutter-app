@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:developer';
 
 import 'package:duel_links_meta/pages/main/index.dart';
 import 'package:duel_links_meta/util/storage/LocalStorage.dart';
@@ -52,6 +51,8 @@ class _SplashPageState extends State<SplashPage> {
   init() {
     initConfig();
     startCounterDown();
+    //
+    // Db.init();
   }
 
   @override

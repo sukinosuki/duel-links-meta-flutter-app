@@ -36,7 +36,7 @@ Map<String, dynamic> _$BanListChangeToJson(BanListChange instance) =>
 BanListChange_Change _$BanListChange_ChangeFromJson(
         Map<String, dynamic> json) =>
     BanListChange_Change()
-      ..to = json['to'] as String? ?? ''
+      ..to = json['to'] as String?
       ..from = json['from'] as String?
       ..card = json['card'] == null
           ? null

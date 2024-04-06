@@ -1,14 +1,15 @@
 import 'dart:developer';
 
 import 'package:duel_links_meta/components/Loading.dart';
+import 'package:duel_links_meta/extension/Future.dart';
 import 'package:duel_links_meta/http/CardApi.dart';
 import 'package:duel_links_meta/pages/ban_list_change/components/BanListChangeCardView.dart';
 import 'package:duel_links_meta/type/MdCard.dart';
 import 'package:duel_links_meta/type/enum/PageStatus.dart';
 import 'package:duel_links_meta/util/index.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get_connect/connect.dart';
 import 'package:intl/intl.dart';
-import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 
 import '../../../http/BanListChangeApi.dart';
 import '../../../type/ban_list_change/BanListChange.dart';
@@ -38,7 +39,8 @@ class _BanListChangeViewState extends State<BanListChangeView> with AutomaticKee
       'sort': '-date,-announced',
     };
 
-    var (err, res) = await Util.toCatch(BanListChangeApi().list(params: params));
+    var (err, res) = await BanListChangeApi().list(params: params).toCatch;
+
     if (err != null) {
       setState(() {
         _pageStatus = PageStatus.fail;
@@ -87,7 +89,7 @@ class _BanListChangeViewState extends State<BanListChangeView> with AutomaticKee
       var ids = cardIds.sublist(size, size + 100 > cardIds.length ? cardIds.length : size + 100);
       size += 100;
 
-      var (cardsErr, cardsRes) = await Util.toCatch(CardApi().getById(ids.join(',')));
+      var (cardsErr, cardsRes) = await CardApi().getById(ids.join(',')).toCatch;
       if (cardsErr != null) {
         return;
       }
@@ -137,9 +139,9 @@ class _BanListChangeViewState extends State<BanListChangeView> with AutomaticKee
   }
 
   showUpdatesDatePicker() {
-    showMaterialModalBottomSheet(
+    showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.transparent,
+      backgroundColor: Colors.black12,
       builder: (context) => BanListChangePicker(data: banListChangeGroup, onConfirm: handlePickerConfirm),
     );
   }

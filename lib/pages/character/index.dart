@@ -32,6 +32,7 @@ class _CharacterPageState extends State<CharacterPage> {
   final GlobalKey<RefreshIndicatorState> _refreshIndicatorKey = GlobalKey<RefreshIndicatorState>();
 
   Character get character => widget.character;
+
   var _pageStatus = PageStatus.loading;
   List<Skill> _skills = [];
   List<MdCard> _cards = [];

@@ -9,3 +9,4 @@ class TimeUtil {
     return _formatter.format(time);
   }
 }
+

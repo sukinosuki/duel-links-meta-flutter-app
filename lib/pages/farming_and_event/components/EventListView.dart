@@ -1,4 +1,5 @@
 import 'package:duel_links_meta/components/Loading.dart';
+import 'package:duel_links_meta/extension/Future.dart';
 import 'package:duel_links_meta/http/ArticleApi.dart';
 import 'package:duel_links_meta/pages/articles/components/ArticleItem.dart';
 import 'package:duel_links_meta/pages/farming_and_event/type/TabType.dart';
@@ -44,13 +45,13 @@ class _EventListViewState extends State<EventListView> with AutomaticKeepAliveCl
     List<dynamic>? res;
 
     if (type == TabType.active) {
-      (err, res) = await Util.toCatch(ArticleApi().activeEventLst(DateTime.now()));
+      (err, res) = await ArticleApi().activeEventLst(DateTime.now()).toCatch;
     }
     if (type == TabType.past) {
-      (err, res) = await Util.toCatch(ArticleApi().pastEventLst(DateTime.now(), _listViewData.page));
+      (err, res) = await ArticleApi().pastEventLst(DateTime.now(), _listViewData.page).toCatch;
     }
     if (type == TabType.general) {
-      (err, res) = await Util.toCatch(ArticleApi().pinnedFarmingEvent());
+      (err, res) = await ArticleApi().pinnedFarmingEvent().toCatch;
     }
 
     if (err != null) {

@@ -1,22 +1,23 @@
 import 'dart:developer';
 
-import 'package:cached_network_image/cached_network_image.dart';
-import 'package:duel_links_meta/components/Loading.dart';
+import 'package:duel_links_meta/db/Table_NavTab.dart';
+import 'package:duel_links_meta/db/index.dart';
+import 'package:duel_links_meta/extension/Future.dart';
 import 'package:duel_links_meta/http/NavTabApi.dart';
 import 'package:duel_links_meta/pages/farming_and_event/index.dart';
+import 'package:duel_links_meta/pages/home/components/NavItemCard.dart';
 import 'package:duel_links_meta/pages/home/type/NavTabType.dart';
 import 'package:duel_links_meta/pages/tier_list/index.dart';
 import 'package:duel_links_meta/pages/webview/index.dart';
 import 'package:duel_links_meta/store/AppStore.dart';
 import 'package:duel_links_meta/type/NavTab.dart';
 import 'package:duel_links_meta/type/enum/PageStatus.dart';
+import 'package:duel_links_meta/util/index.dart';
 import 'package:duel_links_meta/util/storage/LocalStorage.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:get/get.dart';
-import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
-
-import '../../constant/colors.dart';
+import 'package:sqflite/sqflite.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -28,24 +29,24 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin {
   var _pageStatus = PageStatus.loading;
 
+  final _refreshIndicatorKey = GlobalKey<RefreshIndicatorState>();
+
   final AppStore appStore = Get.put(AppStore());
 
-  var id2TitleMap = {
-    0: 'TIER LIST',
-    1: 'TOP DECKS: SPEED',
-    2: 'TOP DECKS: RUSH',
-    3: 'FRAMING & EVENTS',
-    4: 'LEAKS & UPDATES',
-    5: 'GEM GUIDE',
-    6: 'DECK BUILDER',
-    7: 'TOURNAMENTS',
-    8: 'DUEL ASSIST',
-    9: 'PACK OPENER',
-    10: 'DLM SHOP',
-  };
+  List<NavTab> _navTabs = [
+    NavTab(id: NavTabType.tierList.value, title: 'TIER LIST'),
+    NavTab(id: NavTabType.topDecksSpeed.value, title: 'TOP DECK: SPEED'),
+    NavTab(id: NavTabType.topDecksRush.value, title: 'TOP DECKS: RUSH'),
+    NavTab(id: NavTabType.farmingAndEvents.value, title: 'FARMING & EVENTS'),
+    NavTab(id: NavTabType.leaksAndUpdates.value, title: 'LEAKS & UPDATES'),
+    NavTab(id: NavTabType.genGuide.value, title: 'GEM GUIDE'),
+    NavTab(id: NavTabType.deckBuilder.value, title: 'DECK BUILDER'),
+    NavTab(id: NavTabType.tournaments.value, title: 'TOURNAMENTS'),
+    NavTab(id: NavTabType.duelAssist.value, title: 'DUEL ASSIST'),
+    NavTab(id: NavTabType.packOpener.value, title: 'PACK OPENER'),
+  ];
 
-  List<NavTab> _navTabs = [];
-
+  //
   handleTapNav(NavTab nav) {
     if (nav.id == NavTabType.tierList.value) {
       Navigator.push(context, MaterialPageRoute(builder: (context) => const TierListPage()));
@@ -70,8 +71,10 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
     }
   }
 
+  //
   toggleDarkMode() async {
-    var mode = await LocalStorage_DarkMode.get();
+    log('Table_NavTab.instance ${Table_NavTab.instance.hashCode}, is equal: ${Table_NavTab.instance == Table_NavTab.instance}');
+    // Db.deleteDatabase();
 
     if (Get.isDarkMode) {
       LocalStorage_DarkMode.save('light');
@@ -84,30 +87,61 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
     }
   }
 
-  void fetchData() async {
-    var res = await NavTabApi().list();
-    var list = res.body?.map((e) => NavTab.fromJson(e)).toList() ?? [];
+  Future<void> fetchData() async {
+    Table_NavTab.instance.query().then((value) {
+      if (value.isNotEmpty) {
+        setState(() {
+          _pageStatus = PageStatus.success;
+          _navTabs = value.map((e) => NavTab.fromJson(e)).toList();
+        });
+      }
+    });
+
+    var (err, res) = await NavTabApi().list().toCatch;
+    if (err != null) {
+      setState(() {
+        _pageStatus = PageStatus.fail;
+      });
+      return;
+    }
+
+    var list = res!.map((e) => NavTab.fromJson(e)).toList();
 
     var id2NavTabMap = {};
     for (var element in list) {
       id2NavTabMap[element.id] = element;
     }
-    list.sort((a, b) => a.id.compareTo(b.id));
 
-    list.forEach((element) {
-      element.title = id2TitleMap[element.id] ?? '';
+    _navTabs.forEach((item) {
+      item.image = id2NavTabMap[item.id].image ?? '';
     });
 
     setState(() {
-      _navTabs = list;
+      _navTabs = _navTabs;
       _pageStatus = PageStatus.success;
     });
+
+    //
+    await Table_NavTab.instance.delete();
+
+    _navTabs.forEach((element) async {
+      await Table_NavTab.instance.insert(element.toJson());
+    });
+  }
+
+  Future handleRefresh() async {
+    if (_pageStatus == PageStatus.success) return;
+
+    await fetchData();
   }
 
   @override
   void initState() {
     super.initState();
-    fetchData();
+
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      _refreshIndicatorKey.currentState?.show(atTop: true);
+    });
   }
 
   @override
@@ -126,77 +160,40 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
           )
         ],
       ),
-      body: Stack(
-        children: [
-          AnimatedOpacity(
-            opacity: _pageStatus == PageStatus.success ? 1 : 0,
-            duration: const Duration(milliseconds: 400),
-            child: GridView.builder(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                mainAxisSpacing: 8,
-                crossAxisSpacing: 8,
-                childAspectRatio: 2,
+      body: RefreshIndicator(
+        onRefresh: handleRefresh,
+        key: _refreshIndicatorKey,
+        child: Stack(
+          children: [
+            AnimatedOpacity(
+              opacity: _pageStatus == PageStatus.success ? 1 : 0,
+              duration: const Duration(milliseconds: 400),
+              child: GridView.builder(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  mainAxisSpacing: 8,
+                  crossAxisSpacing: 8,
+                  childAspectRatio: 2,
+                ),
+                itemCount: _navTabs.length,
+                itemBuilder: (BuildContext context, int index) {
+                  return GestureDetector(
+                      onTap: () {
+                        handleTapNav(_navTabs[index]);
+                      },
+                      child: NavItemCard(navTab: _navTabs[index]));
+                },
               ),
-              itemCount: _navTabs.length,
-              itemBuilder: (BuildContext context, int index) {
-                return GestureDetector(
-                  onTap: () {
-                    handleTapNav(_navTabs[index]);
-                  },
-                  child: Card(
-                    margin: const EdgeInsets.all(0),
-                    child: ClipRRect(
-                      borderRadius: const BorderRadius.all(Radius.circular(6)),
-                      child: Stack(
-                        fit: StackFit.expand,
-                        children: [
-                          CachedNetworkImage(
-                            fit: BoxFit.cover,
-                            fadeOutDuration: null,
-                            fadeInDuration: const Duration(milliseconds: 0),
-                            imageUrl:
-                                'https://wsrv.nl/?url=https://s3.duellinksmeta.com${_navTabs[index].image}&w=360&output=webp&we&n=-1&maxage=7d',
-                          ),
-                          Positioned(
-                            bottom: 0,
-                            left: 0,
-                            right: 0,
-                            child: Container(
-                              decoration: const BoxDecoration(
-                                  gradient: LinearGradient(
-                                begin: Alignment.centerRight,
-                                end: Alignment.centerLeft,
-                                colors: [Colors.black12, Colors.black87],
-                              )),
-                              height: 30,
-                              padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 4),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    _navTabs[index].title,
-                                    style: const TextStyle(color: Colors.white, fontSize: 12),
-                                  )
-                                ],
-                              ),
-                            ),
-                          )
-                        ],
-                      ),
-                    ),
-                  ),
-                );
-              },
             ),
-          ),
-          if (_pageStatus == PageStatus.loading)
-            const Positioned.fill(
-                child: Center(
-              child: Loading(),
-            ))
-        ],
+            // if (_pageStatus == PageStatus.loading)
+            //   const Positioned.fill(
+            //     child: Center(
+            //       child: Loading(),
+            //     ),
+            //   )
+          ],
+        ),
       ),
     );
   }

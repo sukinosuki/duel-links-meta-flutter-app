@@ -1,9 +1,6 @@
-import 'dart:developer';
-
 import 'package:duel_links_meta/components/SkillModalView.dart';
 import 'package:duel_links_meta/constant/colors.dart';
 import 'package:duel_links_meta/http/SkillStatsApi.dart';
-import 'package:duel_links_meta/pages/skill_stats/components/SampleBarChart.dart';
 import 'package:duel_links_meta/type/skill_stats/SkillStats.dart';
 import 'package:flutter/material.dart';
 
@@ -60,12 +57,12 @@ class _SkillStatsState extends State<SkillStatsPage> {
               const Text('Usage Statistics', style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w500)),
               const SizedBox(height: 30),
 
-              Container(
-                child: AspectRatio(
-                  aspectRatio: 1.6,
-                  child: SampleBarChart(_skillStats),
-                ),
-              )
+              // Container(
+              //   child: AspectRatio(
+              //     aspectRatio: 1.6,
+              //     child: SampleBarChart(_skillStats),
+              //   ),
+              // )
             ],
           ),
         ));

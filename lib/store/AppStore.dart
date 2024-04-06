@@ -5,5 +5,4 @@ class AppStore  extends GetxController{
   var themeMode = ThemeMode.light.obs;
 
   changeThemeMode(ThemeMode mode) => themeMode.value = mode;
-
 }

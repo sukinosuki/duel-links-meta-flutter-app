@@ -1,4 +1,5 @@
 import 'package:duel_links_meta/components/Loading.dart';
+import 'package:duel_links_meta/extension/Future.dart';
 import 'package:duel_links_meta/util/index.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -39,7 +40,7 @@ class _BanStatusCardViewState extends State<BanStatusCardView> with AutomaticKee
       'rush[\$ne]': 'true',
     };
 
-    var (err, res) = await Util.toCatch(CardApi().list(params));
+    var (err, res) = await CardApi().list(params).toCatch;
     if (err != null) {
       setState(() {
         _pageStatus = PageStatus.fail;

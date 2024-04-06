@@ -7,11 +7,11 @@ import 'package:get/get.dart';
 import 'package:get/get_connect/http/src/request/request.dart';
 
 class Net extends GetConnect {
+
   Net() : super(timeout: const Duration(seconds: 30), userAgent: 'Sesame-Client') {
 
     httpClient.addRequestModifier<Object?>((request) async {
-
-      print("[Net] 请求开始");
+      log('[Net] 请求开始');
 
       _logRequest(request);
 
@@ -67,7 +67,7 @@ class Net extends GetConnect {
   // }
 
   Future _setupHeader(Request request) async {
-    print("[_setupHeader]");
+    print("[Net] _setupHeader");
     // request.headers['Sesame-Platform'] = _platform;
     // final token = await StoreToken.getToken();
 
@@ -83,7 +83,11 @@ class Net extends GetConnect {
     var str = "---- 请求 ----\nmethod: ${request.method}\nurl: ${request.url}\nquery: ${request.url.queryParameters}";
 
     if (request.method != 'post' || request.headers['content-type'] != 'application/json') {
-      log(str);
+      log("""
+        method: ${request.method}
+         url: ${request.url}
+      """.trim(), zone: Zone.current,
+      time: DateTime.now());
       return;
     }
 
@@ -93,9 +97,10 @@ class Net extends GetConnect {
 
     request.bodyBytes.asBroadcastStream(onListen: (subscribe) {
       subscribe.onData((data) => bodyBytes.add(data));
+
       subscribe.onDone(() {
         str += '\nbody: ${(bodyBytes.map((e) => decoder.convert(e)).join())}';
-        log(str);
+        // log('[Net] done: $str');
       });
     });
   }

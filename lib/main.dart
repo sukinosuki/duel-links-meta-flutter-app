@@ -1,12 +1,17 @@
+import 'package:duel_links_meta/db/index.dart';
 import 'package:duel_links_meta/pages/ban_list_change/index.dart';
-import 'package:duel_links_meta/pages/farming_and_event/index.dart';
-import 'package:duel_links_meta/pages/main/index.dart';
 import 'package:duel_links_meta/pages/splash/index.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
 void main() async{
+
+  // Avoid errors caused by flutter upgrade.
+  // Importing 'package:flutter/widgets.dart' is required.
+  WidgetsFlutterBinding.ensureInitialized();
+
+  await Db.init();
 
   runApp(const MyApp());
 }
@@ -78,7 +83,7 @@ class MyApp extends StatelessWidget {
       // home: const MyHomePage(
       //   title: 'Flutter Demo Home Page',
       // ),
-      home: const MainPage(),
+      home: const SplashPage(),
       // initialRoute: '/splash',
       // routes: {
       //   // '/splash': (context) => const SplashPage(),

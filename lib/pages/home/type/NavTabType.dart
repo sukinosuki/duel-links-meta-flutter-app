@@ -9,8 +9,7 @@ enum NavTabType {
   tournaments(7),
   duelAssist(8),
   packOpener(9),
-  dlmShop(10),
-  ;
+  dlmShop(10);
 
   final int value;
 

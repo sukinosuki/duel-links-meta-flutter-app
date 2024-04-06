@@ -1,11 +1,9 @@
-import 'dart:developer';
-
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:duel_links_meta/extension/DateTime.dart';
 import 'package:duel_links_meta/pages/articles/type/ArticleCategoryColorMap.dart';
 import 'package:duel_links_meta/type/Article.dart';
-import 'package:duel_links_meta/util/time_util.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
+
 
 class ArticleItem extends StatefulWidget {
   const ArticleItem({super.key, required this.article, this.onTap});
@@ -66,7 +64,8 @@ class _ArticleItemState extends State<ArticleItem> {
                               style: const TextStyle(color: Colors.white, fontSize: 16),
                             ),
                             Text(
-                              'Published ${TimeUtil.format(widget.article.date)}',
+                              // 'Published ${TimeUtil.format(widget.article.date)}',
+                              'Published ${widget.article.date?.format}',
                               overflow: TextOverflow.ellipsis,
                               style: const TextStyle(color: Colors.white, fontSize: 12),
                             )
