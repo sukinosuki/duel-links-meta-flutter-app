@@ -3,15 +3,13 @@ import 'dart:developer';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:duel_links_meta/components/Loading.dart';
 import 'package:duel_links_meta/components/MdCardItemView.dart';
-import 'package:duel_links_meta/components/MdCardsBoxLayout.dart';
-import 'package:duel_links_meta/constant/colors.dart';
+import 'package:duel_links_meta/hive/MyHive.dart';
 import 'package:duel_links_meta/http/CardApi.dart';
 import 'package:duel_links_meta/pages/cards_viewpager/index.dart';
 import 'package:duel_links_meta/type/MdCard.dart';
+import 'package:duel_links_meta/type/enum/PageStatus.dart';
 import 'package:duel_links_meta/type/pack_set/PackSet.dart';
 import 'package:flutter/material.dart';
-
-import '../../type/enum/PageStatus.dart';
 
 class PackDetailPage extends StatefulWidget {
   const PackDetailPage({super.key, required this.pack});
@@ -40,13 +38,49 @@ class _PackDetailPageState extends State<PackDetailPage> {
 
   //
   fetchData() async {
+    var sourceKey = 'pack_card_ids:${pack.oid}';
+    var cardsIds = MyHive.box.get(sourceKey) as List<String>?;
+    if (cardsIds != null) {
+      await Future.delayed(Duration(milliseconds: 300));
+      log('从本地获取到card, sourceKey: ${sourceKey}');
+      var cards = cardsIds.map((id) {
+        var card = MyHive.box.get('card:${id}') as MdCard;
+
+        return card;
+      }).toList();
+
+      log('从本地获取到card, length: ${cards.length}');
+
+      final rarityGroup = <String, List<MdCard>>{};
+
+      cards.forEach((item) {
+        MyHive.box.put('card:${item.oid}', item);
+
+        if (rarityGroup[item.rarity] == null) {
+          rarityGroup[item.rarity] = [item];
+        } else {
+          rarityGroup[item.rarity]!.add(item);
+        }
+      });
+
+      setState(() {
+        rarity2CardsGroup = rarityGroup;
+        _cards = cards;
+        _pageStatus = PageStatus.success;
+      });
+
+      return;
+    }
+
     var res = await CardApi().getObtainSourceId(pack.oid);
 
     var list = res.body!.map((e) => MdCard.fromJson(e)).toList();
-
+    MyHive.box.put(sourceKey, list.map((e) => e.oid).toList());
     Map<String, List<MdCard>> rarityGroup = {};
 
     list.forEach((item) {
+      MyHive.box.put('card:${item.oid}', item);
+
       if (rarityGroup[item.rarity] == null) {
         rarityGroup[item.rarity] = [item];
       } else {
@@ -88,7 +122,7 @@ class _PackDetailPageState extends State<PackDetailPage> {
                         ),
                         Positioned.fill(
                           child: Container(
-                            decoration:  BoxDecoration(
+                            decoration: BoxDecoration(
                               gradient: LinearGradient(
                                 begin: Alignment.bottomCenter,
                                 end: Alignment.topCenter,
@@ -115,9 +149,7 @@ class _PackDetailPageState extends State<PackDetailPage> {
                                       children: [Image.asset('assets/images/rarity_${key.toLowerCase()}.webp', height: 20)],
                                     ),
                                     Card(
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(6)
-                                      ),
+                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
                                       margin: const EdgeInsets.all(0),
                                       child: Padding(
                                         padding: const EdgeInsets.only(left: 6, right: 6, top: 6),
@@ -146,8 +178,7 @@ class _PackDetailPageState extends State<PackDetailPage> {
                 ],
               ),
             ),
-            if (_pageStatus == PageStatus.loading)
-              const Positioned(child: Center(child: Loading()))
+            if (_pageStatus == PageStatus.loading) const Positioned(child: Center(child: Loading()))
           ],
         ),
       ),

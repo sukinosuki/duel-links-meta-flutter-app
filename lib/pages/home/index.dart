@@ -1,7 +1,6 @@
 import 'dart:developer';
 
 import 'package:duel_links_meta/db/Table_NavTab.dart';
-import 'package:duel_links_meta/db/index.dart';
 import 'package:duel_links_meta/extension/Future.dart';
 import 'package:duel_links_meta/http/NavTabApi.dart';
 import 'package:duel_links_meta/pages/farming_and_event/index.dart';
@@ -12,12 +11,11 @@ import 'package:duel_links_meta/pages/webview/index.dart';
 import 'package:duel_links_meta/store/AppStore.dart';
 import 'package:duel_links_meta/type/NavTab.dart';
 import 'package:duel_links_meta/type/enum/PageStatus.dart';
-import 'package:duel_links_meta/util/index.dart';
 import 'package:duel_links_meta/util/storage/LocalStorage.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:get/get.dart';
-import 'package:sqflite/sqflite.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -47,7 +45,7 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
   ];
 
   //
-  handleTapNav(NavTab nav) {
+  void handleTapNav(NavTab nav) {
     if (nav.id == NavTabType.tierList.value) {
       Navigator.push(context, MaterialPageRoute(builder: (context) => const TierListPage()));
       return;
@@ -59,12 +57,12 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
     }
 
     if (nav.id == NavTabType.leaksAndUpdates.value) {
-      var url = 'https://www.duellinksmeta.com/leaks-and-updates';
+      const url = 'https://www.duellinksmeta.com/leaks-and-updates';
 
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => WebviewPage(url: url, title: 'Leaks & Updates'),
+          builder: (context) => const WebviewPage(url: url, title: 'Leaks & Updates'),
         ),
       );
       return;
@@ -72,18 +70,18 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
   }
 
   //
-  toggleDarkMode() async {
+  Future<void> toggleDarkMode() async {
     log('Table_NavTab.instance ${Table_NavTab.instance.hashCode}, is equal: ${Table_NavTab.instance == Table_NavTab.instance}');
     // Db.deleteDatabase();
 
     if (Get.isDarkMode) {
-      LocalStorage_DarkMode.save('light');
       Get.changeThemeMode(ThemeMode.light);
       appStore.changeThemeMode(ThemeMode.light);
+      await LocalStorage_DarkMode.save('light');
     } else {
-      LocalStorage_DarkMode.save('dark');
       Get.changeThemeMode(ThemeMode.dark);
       appStore.changeThemeMode(ThemeMode.dark);
+      await LocalStorage_DarkMode.save('dark');
     }
   }
 
@@ -97,7 +95,7 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
       }
     });
 
-    var (err, res) = await NavTabApi().list().toCatch;
+    final (err, res) = await NavTabApi().list().toCatch;
     if (err != null) {
       setState(() {
         _pageStatus = PageStatus.fail;
@@ -105,15 +103,15 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
       return;
     }
 
-    var list = res!.map((e) => NavTab.fromJson(e)).toList();
+    final list = res!.map(NavTab.fromJson).toList();
 
-    var id2NavTabMap = {};
-    for (var element in list) {
+    final id2NavTabMap = <int, NavTab>{};
+    for (final element in list) {
       id2NavTabMap[element.id] = element;
     }
 
     _navTabs.forEach((item) {
-      item.image = id2NavTabMap[item.id].image ?? '';
+      item.image = id2NavTabMap[item.id]?.image ?? '';
     });
 
     setState(() {
@@ -129,7 +127,7 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
     });
   }
 
-  Future handleRefresh() async {
+  Future<void> handleRefresh() async {
     if (_pageStatus == PageStatus.success) return;
 
     await fetchData();
@@ -152,7 +150,7 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        title: const Text('Home'),
+        title: const Text('Duel Link Meta'),
         actions: [
           IconButton(
             onPressed: toggleDarkMode,
@@ -163,36 +161,27 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
       body: RefreshIndicator(
         onRefresh: handleRefresh,
         key: _refreshIndicatorKey,
-        child: Stack(
-          children: [
-            AnimatedOpacity(
-              opacity: _pageStatus == PageStatus.success ? 1 : 0,
-              duration: const Duration(milliseconds: 400),
-              child: GridView.builder(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  mainAxisSpacing: 8,
-                  crossAxisSpacing: 8,
-                  childAspectRatio: 2,
-                ),
-                itemCount: _navTabs.length,
-                itemBuilder: (BuildContext context, int index) {
-                  return GestureDetector(
-                      onTap: () {
-                        handleTapNav(_navTabs[index]);
-                      },
-                      child: NavItemCard(navTab: _navTabs[index]));
-                },
-              ),
+        child: AnimatedOpacity(
+          opacity: _pageStatus == PageStatus.success ? 1 : 0,
+          duration: const Duration(milliseconds: 400),
+          child: GridView.builder(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              mainAxisSpacing: 8,
+              crossAxisSpacing: 8,
+              childAspectRatio: 2,
             ),
-            // if (_pageStatus == PageStatus.loading)
-            //   const Positioned.fill(
-            //     child: Center(
-            //       child: Loading(),
-            //     ),
-            //   )
-          ],
+            itemCount: _navTabs.length,
+            itemBuilder: (BuildContext context, int index) {
+              return GestureDetector(
+                onTap: () {
+                  handleTapNav(_navTabs[index]);
+                },
+                child: NavItemCard(navTab: _navTabs[index]),
+              );
+            },
+          ),
         ),
       ),
     );

@@ -3,6 +3,94 @@
 part of 'PackSet.dart';
 
 // **************************************************************************
+// TypeAdapterGenerator
+// **************************************************************************
+
+class PackSetAdapter extends TypeAdapter<PackSet> {
+  @override
+  final int typeId = 5;
+
+  @override
+  PackSet read(BinaryReader reader) {
+    final numOfFields = reader.readByte();
+    final fields = <int, dynamic>{
+      for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
+    };
+    return PackSet()
+      ..oid = fields[0] as String
+      ..type = fields[1] as String
+      ..release = fields[2] as DateTime?
+      ..name = fields[3] as String
+      ..bannerImage = fields[4] as String
+      ..icon = fields[5] as PackSet_Icon?;
+  }
+
+  @override
+  void write(BinaryWriter writer, PackSet obj) {
+    writer
+      ..writeByte(6)
+      ..writeByte(0)
+      ..write(obj.oid)
+      ..writeByte(1)
+      ..write(obj.type)
+      ..writeByte(2)
+      ..write(obj.release)
+      ..writeByte(3)
+      ..write(obj.name)
+      ..writeByte(4)
+      ..write(obj.bannerImage)
+      ..writeByte(5)
+      ..write(obj.icon);
+  }
+
+  @override
+  int get hashCode => typeId.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is PackSetAdapter &&
+          runtimeType == other.runtimeType &&
+          typeId == other.typeId;
+}
+
+class PackSetIconAdapter extends TypeAdapter<PackSet_Icon> {
+  @override
+  final int typeId = 6;
+
+  @override
+  PackSet_Icon read(BinaryReader reader) {
+    final numOfFields = reader.readByte();
+    final fields = <int, dynamic>{
+      for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
+    };
+    return PackSet_Icon()
+      ..name = fields[0] as String
+      ..oid = fields[1] as String;
+  }
+
+  @override
+  void write(BinaryWriter writer, PackSet_Icon obj) {
+    writer
+      ..writeByte(2)
+      ..writeByte(0)
+      ..write(obj.name)
+      ..writeByte(1)
+      ..write(obj.oid);
+  }
+
+  @override
+  int get hashCode => typeId.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is PackSetIconAdapter &&
+          runtimeType == other.runtimeType &&
+          typeId == other.typeId;
+}
+
+// **************************************************************************
 // JsonSerializableGenerator
 // **************************************************************************
 

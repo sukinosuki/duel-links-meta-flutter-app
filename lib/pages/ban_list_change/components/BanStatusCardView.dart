@@ -22,8 +22,8 @@ class _BanStatusCardViewState extends State<BanStatusCardView> with AutomaticKee
   Map<String, List<MdCard>> banStatus2CardsGroup = {};
   var _pageStatus = PageStatus.loading;
 
-  handleTapCardItem(List<MdCard> cards, int index) {
-    showDialog(
+  void handleTapCardItem(List<MdCard> cards, int index) {
+    showDialog<void>(
       context: context,
       builder: (context) => Dialog.fullscreen(
         backgroundColor: Colors.black87.withOpacity(0.3),
@@ -32,24 +32,24 @@ class _BanStatusCardViewState extends State<BanStatusCardView> with AutomaticKee
     );
   }
 
-  fetchCards() async {
-    Map<String, String> params = {
+  Future<void> fetchCards() async {
+    final params = <String, String>{
       'limit': '0',
-      'banStatus[\$exists]': 'true',
-      'alternateArt[\$ne]': 'true',
-      'rush[\$ne]': 'true',
+      r'banStatus[$exists]': 'true',
+      r'alternateArt[$ne]': 'true',
+      r'rush[$ne]': 'true',
     };
 
-    var (err, res) = await CardApi().list(params).toCatch;
+    final (err, res) = await CardApi().list(params).toCatch;
     if (err != null) {
       setState(() {
         _pageStatus = PageStatus.fail;
       });
       return;
     }
-    var list = res!.map((e) => MdCard.fromJson(e)).toList();
+    final list = res!.map(MdCard.fromJson).toList();
 
-    Map<String, List<MdCard>> group = {
+    final group = <String, List<MdCard>>{
       'Forbidden': [],
       'Limited 1': [],
       'Limited 2': [],
@@ -74,6 +74,8 @@ class _BanStatusCardViewState extends State<BanStatusCardView> with AutomaticKee
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
+
     return Stack(
       children: [
         AnimatedOpacity(

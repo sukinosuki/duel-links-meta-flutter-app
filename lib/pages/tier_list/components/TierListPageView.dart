@@ -1,28 +1,32 @@
-import 'package:cached_network_image/cached_network_image.dart';
+import 'dart:developer';
+
 import 'package:duel_links_meta/components/Loading.dart';
-import 'package:duel_links_meta/constant/colors.dart';
+import 'package:duel_links_meta/extension/DateTime.dart';
+import 'package:duel_links_meta/extension/Future.dart';
+import 'package:duel_links_meta/extension/String.dart';
+import 'package:duel_links_meta/hive/MyHive.dart';
 import 'package:duel_links_meta/http/TierListApi.dart';
 import 'package:duel_links_meta/pages/deck_type_detail/index.dart';
 import 'package:duel_links_meta/pages/tier_list/components/TierListItemView.dart';
 import 'package:duel_links_meta/pages/tier_list/type/TierListGroup.dart';
 import 'package:duel_links_meta/pages/tier_list/type/TierListType.dart';
-import 'package:duel_links_meta/type/TierList_TopTier.dart';
-import 'package:duel_links_meta/type/deck_type/DeckType.dart';
 import 'package:duel_links_meta/type/deck_type/TierList_PowerRanking.dart';
+import 'package:duel_links_meta/type/deck_type/TierList_PowerRanking_Expire.dart';
+import 'package:duel_links_meta/type/tier_list_top_tier/TierList_TopTier.dart';
+import 'package:duel_links_meta/type/tier_list_top_tier/TierList_TopTier_Expire.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter/widgets.dart';
 import 'package:get/get.dart';
 
-import '../../../type/enum/PageStatus.dart';
+import 'package:duel_links_meta/type/enum/PageStatus.dart';
 
 class TierListView extends StatefulWidget {
-  const TierListView({
-    super.key,
-    required this.tierListType,
-  });
+  const TierListView({super.key, required this.tierListType, this.minHeight});
 
   final TierListType tierListType;
+  final double? minHeight;
 
   @override
   State<TierListView> createState() => _TierListViewState();
@@ -30,29 +34,87 @@ class TierListView extends StatefulWidget {
 
 class _TierListViewState extends State<TierListView> with AutomaticKeepAliveClientMixin {
   List<TierListGroup> _tierListGroup = [];
+  final _refreshIndicatorKey = GlobalKey<RefreshIndicatorState>();
 
-  // @override
-  get _tierListType => widget.tierListType;
-
+  TierListType get _tierListType => widget.tierListType;
+  bool initFlag = false;
   var _pageStatus = PageStatus.loading;
 
-  handleTapDeckTypeItem(TierList_TopTier deckType) async {
-    Navigator.push(context, MaterialPageRoute(builder: (context) => DeckTypeDetailPage(name: deckType.name,)));
+  Future<void> navigateToDeckTypeDetailPage(TierList_TopTier deckType) async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute<void>(
+        builder: (context) => DeckTypeDetailPage(
+          name: deckType.name,
+        ),
+      ),
+    );
   }
 
-  //
-  fetchTopTiers() async {
-    var tierDescMap = {
-      0: '',
-      1: 'Expected to be a large percentage of the top cut in a competitive tournament.*',
-      2: 'Expected to be in the top cut of a competitive tournament, but not a large percentage.*',
-      3: 'Expected to be played in a competitive tournament, with the possibility of being in the top cut.*',
-    };
-    var res = await TierListApi().getTopTiers();
-    var list = res.body?.map((e) => TierList_TopTier.fromJson(e)).toList() ?? [];
+  final tierDescMap = {
+    0: '',
+    1: 'Expected to be a large percentage of the top cut in a competitive tournament.*',
+    2: 'Expected to be in the top cut of a competitive tournament, but not a large percentage.*',
+    3: 'Expected to be played in a competitive tournament, with the possibility of being in the top cut.*',
+    4: 'Decks acknowledged by the Top Player Council as having potential for being on the Tier List and which should be further explored. Without established results, it is not recommended to invest in these decks.',
+  };
 
-    var tier2DeckTypesMap = <int, List<TierList_TopTier>>{};
-    for (var item in list) {
+  //
+  Future<bool> fetchTopTiers({bool force = false}) async {
+    var list = <TierList_TopTier>[];
+    // TODO
+    const hiveBoxKey = 'tier_list:top_tier';
+
+    var reRefreshFlag = false;
+
+    final hiveValue = MyHive.box.get(hiveBoxKey);
+    log('[fetchTopTiers] box取值，value: $hiveValue, value == null ${hiveValue == null}, value type: ${hiveValue.runtimeType}');
+
+    if (hiveValue == null || force) {
+      if (hiveValue == null) {
+        log('[fetchTopTiers] box值为空');
+      } else {
+        log('需要强制刷新');
+      }
+
+      final (err, res) = await TierListApi().getTopTiers().toCatch;
+
+      if (err != null) {
+        setState(() {
+          _pageStatus = PageStatus.fail;
+        });
+        return false;
+      }
+
+      list = res?.map(TierList_TopTier.fromJson).toList() ?? [];
+      await MyHive.box.put(hiveBoxKey, TierList_TopTier_Expire(data: list, expire: DateTime.now().add(const Duration(hours: 6))));
+
+      await Future<void>.delayed(const Duration(milliseconds: 300)).then((value) {
+        '已刷新'.toast;
+      });
+    } else {
+      try {
+        final value = hiveValue as TierList_TopTier_Expire;
+
+        log('相差ms: ${DateTime.now().difference(value.expire).inSeconds}');
+
+        if (value.expire.isBefore(DateTime.now())) {
+          log('已过期， 需要渲染本地数据后再重新请求数据');
+          reRefreshFlag = true;
+        }
+
+        list = hiveValue.data;
+        log('转换成功');
+      } catch (e) {
+        log('[fetchTopTiers] 转换失败: $e');
+        await MyHive.box.delete(hiveBoxKey);
+        return true;
+      }
+    }
+
+    final tier2DeckTypesMap = <int, List<TierList_TopTier>>{};
+
+    for (final item in list) {
       if (tier2DeckTypesMap[item.tier] != null) {
         tier2DeckTypesMap[item.tier]?.add(item);
       } else {
@@ -60,7 +122,7 @@ class _TierListViewState extends State<TierListView> with AutomaticKeepAliveClie
       }
     }
 
-    List<TierListGroup> _list = [];
+    final _list = <TierListGroup>[];
     tier2DeckTypesMap.forEach((key, value) {
       _list.add(TierListGroup(tier: key, deckTypes: value, desc: tierDescMap[key] ?? ''));
     });
@@ -70,34 +132,63 @@ class _TierListViewState extends State<TierListView> with AutomaticKeepAliveClie
       _tierListGroup = _list;
       _pageStatus = PageStatus.success;
     });
+
+    return reRefreshFlag;
   }
 
-  fetchPowerRankings(bool rush) async {
-    var res = await (rush ? TierListApi().getRushRankings() : TierListApi().getPowerRankings());
+  Future<bool> fetchPowerRankings(bool rush, {bool force = false}) async {
+    var list = <TierList_PowerRanking>[];
+    final boxKey = 'tier_list:power_ranking:${rush ? 'rush' : ''}';
+    var reRefreshFlag = false;
 
-    var list = res.body?.map((e) => TierList_PowerRanking.fromJson(e)).toList() ?? [];
-    TierListGroup tier0 = TierListGroup(
-        tier: 0,
-        deckTypes: [],
-        desc: 'The most successful Tournament Topping Decks, with power levels of at least 37.');
-    TierListGroup tier1 = TierListGroup(
-        tier: 1,
-        deckTypes: [],
-        desc: 'The most successful Tournament Topping Decks, with power levels of at least 27.');
-    TierListGroup tier2 = TierListGroup(tier: 2, deckTypes: [], desc: 'Decks with power levels between 16 and 27.');
-    TierListGroup tier3 = TierListGroup(tier: 3, deckTypes: [], desc: 'Decks with power levels between 6 and 16.');
+    final  hiveValue = MyHive.box.get(boxKey);
+
+    if (hiveValue == null || force) {
+      final (err, res) = await (rush ? TierListApi().getRushRankings() : TierListApi().getPowerRankings()).toCatch;
+      if (err != null) {
+        setState(() {
+          _pageStatus = PageStatus.fail;
+        });
+        return false;
+      }
+
+      list = res?.map(TierList_PowerRanking.fromJson).toList() ?? [];
+      await MyHive.box.put(boxKey, TierList_PowerRanking_Expire(data: list, expire: DateTime.now().add(const Duration(hours: 6))));
+
+      await Future<void>.delayed(const Duration(milliseconds: 300)).then((value) {
+        '已刷新'.toast;
+      });
+    } else {
+      try {
+        final _value = hiveValue as TierList_PowerRanking_Expire;
+        if (_value.expire.isBefore(DateTime.now())) {
+          reRefreshFlag = true;
+        }
+
+        list = hiveValue.data ;
+      } catch (e) {
+        await MyHive.box.delete(boxKey);
+        return true;
+      }
+    }
+
+    final tier0 =
+        TierListGroup(tier: 0, deckTypes: [], desc: 'The most successful Tournament Topping Decks, with power levels of at least 37.');
+    final tier1 =
+        TierListGroup(tier: 1, deckTypes: [], desc: 'The most successful Tournament Topping Decks, with power levels of at least 27.');
+    final tier2 = TierListGroup(tier: 2, deckTypes: [], desc: 'Decks with power levels between 16 and 27.');
+    final tier3 = TierListGroup(tier: 3, deckTypes: [], desc: 'Decks with power levels between 6 and 16.');
 
     for (var item in list) {
-      print('${item.name}, power: ${item.tournamentPower}');
-      if (item.tournamentPower > 45) {
+      if (item.tournamentPower >= 45) {
         tier0.deckTypes.add(TierList_TopTier(name: item.name, tier: 0, oid: item.oid)..power = item.tournamentPower);
         continue;
       }
-      if (item.tournamentPower > 27) {
+      if (item.tournamentPower >= 27) {
         tier1.deckTypes.add(TierList_TopTier(name: item.name, tier: 1, oid: item.oid)..power = item.tournamentPower);
         continue;
       }
-      if (item.tournamentPower > 16) {
+      if (item.tournamentPower >= 16) {
         tier2.deckTypes.add(TierList_TopTier(name: item.name, tier: 2, oid: item.oid)..power = item.tournamentPower);
         continue;
       }
@@ -105,7 +196,7 @@ class _TierListViewState extends State<TierListView> with AutomaticKeepAliveClie
       tier3.deckTypes.add(TierList_TopTier(name: item.name, tier: 3, oid: item.oid)..power = item.tournamentPower);
     }
 
-    List<TierListGroup> group = [];
+    final List<TierListGroup> group = [];
     if (tier0.deckTypes.isNotEmpty) {
       group.add(tier0);
     }
@@ -122,20 +213,44 @@ class _TierListViewState extends State<TierListView> with AutomaticKeepAliveClie
       _tierListGroup = group;
       _pageStatus = PageStatus.success;
     });
+
+    return reRefreshFlag;
   }
 
-  fetchData() async {
-    if (_tierListType == TierListType.topTires) return fetchTopTiers();
+  Future<void> fetchData({bool force = false}) async {
+    if (_tierListType == TierListType.topTires) {
+      final needReRefresh = await fetchTopTiers(force: force);
+      if (needReRefresh) {
+        await fetchTopTiers(force: true);
+        return;
+      }
+    }
 
-    if (_tierListType == TierListType.powerRankings) return fetchPowerRankings(false);
-
-    if (_tierListType == TierListType.rushRankings) return fetchPowerRankings(true);
+    var needReRefresh = await fetchPowerRankings(_tierListType == TierListType.rushRankings);
+    if (needReRefresh) {
+      await fetchPowerRankings(_tierListType == TierListType.rushRankings, force: true);
+    }
   }
+
+  Future<void> _handleRefresh() async {
+    print('[_handleRefresh] 开始 $initFlag');
+    await fetchData(force: initFlag);
+
+    print('[_handleRefresh] 完成');
+
+    if (!initFlag) {
+      initFlag = true;
+    }
+  }
+
 
   @override
   void initState() {
     super.initState();
-    fetchData();
+
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      _refreshIndicatorKey.currentState?.show(atTop: true);
+    });
   }
 
   @override
@@ -143,62 +258,95 @@ class _TierListViewState extends State<TierListView> with AutomaticKeepAliveClie
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        AnimatedOpacity(
-          opacity: _pageStatus == PageStatus.success ? 1 : 0,
-          duration: const Duration(milliseconds: 300),
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(8),
-            child: Column(
-              children: [
-                Column(
-                  children: _tierListGroup
-                      .map((group) => Column(
-                            children: [
-                              const SizedBox(height: 20),
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  SizedBox(
-                                    width: 102,
-                                    height: 25,
-                                    child: Image.asset('assets/images/tier_${group.tier}${Get.isDarkMode ? '':'_dark'}.png', fit: BoxFit.cover, ),
-                                  ),
-                                  Padding(
-                                    padding: const EdgeInsets.symmetric(vertical: 8.0),
-                                    child: Text(group.desc??'', style: const TextStyle( fontSize: 12),),
-                                  ),
-                                  GridView.builder(
-                                    shrinkWrap: true,
-                                    physics: const NeverScrollableScrollPhysics(),
-                                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                                        crossAxisCount: 2,
-                                        mainAxisSpacing: 8,
-                                        crossAxisSpacing: 8,
-                                        childAspectRatio: _tierListType != TierListType.topTires ? 3 : 4),
+    return RefreshIndicator(
+      key: _refreshIndicatorKey,
+      onRefresh: _handleRefresh,
+      notificationPredicate: (_) => _pageStatus != PageStatus.loading,
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        child: Column(
+          children: [
 
-                                    itemCount: group.deckTypes.length,
-                                    itemBuilder: (BuildContext context, int index) {
-                                      return TierListItemView(
-                                        deckType: group.deckTypes[index],
-                                        showPower: _tierListType != TierListType.topTires,
-                                        onTap: () => handleTapDeckTypeItem(group.deckTypes[index]),
-                                      );
-                                    },
-                                  )
-                                ],
-                              )
-                            ],
-                          ))
+            AnimatedOpacity(
+              opacity: _pageStatus == PageStatus.success ? 1 : 0,
+              duration: const Duration(milliseconds: 400),
+              child: Padding(
+                padding: const EdgeInsets.all(8),
+                child: Column(
+                  children: _tierListGroup
+                      .map(
+                        (group) => Column(
+                          children: [
+                            const SizedBox(height: 20),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                SizedBox(
+                                  width: 102,
+                                  height: 25,
+                                  child: Image.asset(
+                                    'assets/images/tier_${group.tier}${Get.isDarkMode ? '' : '_dark'}.png',
+                                    fit: BoxFit.contain,
+                                  ),
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(vertical: 8),
+                                  child: Text(
+                                    group.desc,
+                                    style: const TextStyle(fontSize: 12),
+                                  ),
+                                ),
+                                GridView.builder(
+                                  shrinkWrap: true,
+                                  physics: const NeverScrollableScrollPhysics(),
+                                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                                    crossAxisCount: 2,
+                                    mainAxisSpacing: 8,
+                                    crossAxisSpacing: 8,
+                                    childAspectRatio: _tierListType != TierListType.topTires ? 3 : 4,
+                                  ),
+                                  itemCount: group.deckTypes.length,
+                                  itemBuilder: (BuildContext context, int index) {
+                                    return TierListItemView(
+                                      deckType: group.deckTypes[index],
+                                      showPower: _tierListType != TierListType.topTires,
+                                      onTap: () => navigateToDeckTypeDetailPage(group.deckTypes[index]),
+                                    );
+                                  },
+                                )
+                              ],
+                            )
+                          ],
+                        ),
+                      )
                       .toList(),
                 ),
-              ],
+              ),
             ),
-          ),
+            // if (_pageStatus == PageStatus.loading)
+            //   ConstrainedBox(
+            //     constraints: BoxConstraints(
+            //       minHeight: widget.minHeight ?? 0,
+            //     ),
+            //     child: const Center(
+            //       child: Loading(),
+            //     ),
+            //   ),
+
+            if (_pageStatus == PageStatus.fail)
+              ConstrainedBox(
+                constraints: BoxConstraints(
+                  minHeight: widget.minHeight ?? 0,
+                ),
+                child: const Center(
+                  child: Text(
+                    '加载失败',
+                  ),
+                ),
+              ),
+          ],
         ),
-        if (_pageStatus == PageStatus.loading) const Positioned.fill(child: Center(child: Loading()))
-      ],
+      ),
     );
   }
 }

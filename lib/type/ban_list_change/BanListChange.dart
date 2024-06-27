@@ -21,7 +21,7 @@ class BanListChange {
   BanListChange_LinkedArticle? linkedArticle;
 
   @JsonKey(defaultValue: [])
-  List<BanListChange_Change> changes = [];
+  List<BanListChange_Change> changes = [] ;
 
   BanListChange();
 

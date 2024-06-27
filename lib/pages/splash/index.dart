@@ -13,7 +13,7 @@ class SplashPage extends StatefulWidget {
 }
 
 class _SplashPageState extends State<SplashPage> {
-  var count = 3;
+  var count = 1;
 
   late Timer timer;
 

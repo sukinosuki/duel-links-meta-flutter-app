@@ -3,6 +3,55 @@
 part of 'TierList_PowerRanking.dart';
 
 // **************************************************************************
+// TypeAdapterGenerator
+// **************************************************************************
+
+class TierListPowerRankingAdapter extends TypeAdapter<TierList_PowerRanking> {
+  @override
+  final int typeId = 2;
+
+  @override
+  TierList_PowerRanking read(BinaryReader reader) {
+    final numOfFields = reader.readByte();
+    final fields = <int, dynamic>{
+      for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
+    };
+    return TierList_PowerRanking()
+      ..name = fields[0] as String
+      ..rush = fields[1] as bool?
+      ..tournamentPower = fields[2] as double
+      ..tournamentPowerTrend = fields[3] as String
+      ..oid = fields[4] as String;
+  }
+
+  @override
+  void write(BinaryWriter writer, TierList_PowerRanking obj) {
+    writer
+      ..writeByte(5)
+      ..writeByte(0)
+      ..write(obj.name)
+      ..writeByte(1)
+      ..write(obj.rush)
+      ..writeByte(2)
+      ..write(obj.tournamentPower)
+      ..writeByte(3)
+      ..write(obj.tournamentPowerTrend)
+      ..writeByte(4)
+      ..write(obj.oid);
+  }
+
+  @override
+  int get hashCode => typeId.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is TierListPowerRankingAdapter &&
+          runtimeType == other.runtimeType &&
+          typeId == other.typeId;
+}
+
+// **************************************************************************
 // JsonSerializableGenerator
 // **************************************************************************
 

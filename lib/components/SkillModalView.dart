@@ -7,6 +7,8 @@ import 'package:duel_links_meta/type/enum/PageStatus.dart';
 import 'package:duel_links_meta/type/skill/Skill.dart';
 import 'package:flutter/material.dart';
 
+import '../gen/assets.gen.dart';
+
 class SkillModalView extends StatefulWidget {
   const SkillModalView({super.key, required this.name, this.skill});
 

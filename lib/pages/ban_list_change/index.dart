@@ -1,4 +1,3 @@
-import 'dart:developer';
 
 import 'package:duel_links_meta/pages/ban_list_change/components/BanListChangeView.dart';
 import 'package:duel_links_meta/pages/ban_list_change/components/BanStatusCardView.dart';

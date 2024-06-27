@@ -21,24 +21,47 @@ class _TierListPageState extends State<TierListPage> with SingleTickerProviderSt
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
-          // iconTheme: const IconThemeData(opticalSize: 12),
-          title: const Text('Tier List'),
-          bottom: TabBar(
-            // indicatorColor: Colors.transparent,
-            controller: _tabController,
-            // dividerHeight: 0,
-            tabs: const [
-              Tab(text: 'TOP TIERS'),
-              Tab(text: 'POWER RANKINGS'),
-              Tab(text: 'RUSH RANKINGS'),
-            ],
-          ),
+      appBar: AppBar(
+        // iconTheme: const IconThemeData(opticalSize: 12),
+        title: const Text('Tier List'),
+        bottom: TabBar(
+          // indicatorColor: Colors.transparent,
+          controller: _tabController,
+          // dividerHeight: 0,
+          tabs: const [
+            Tab(text: 'TOP TIERS'),
+            Tab(text: 'POWER RANKINGS'),
+            Tab(text: 'RUSH RANKINGS'),
+          ],
         ),
-        body: TabBarView(controller: _tabController, children: const [
-          TierListView(tierListType: TierListType.topTires),
-          TierListView(tierListType: TierListType.powerRankings),
-          TierListView(tierListType: TierListType.rushRankings),
-        ]));
+      ),
+      body: Column(
+        children: [
+          Expanded(
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                return TabBarView(
+                  controller: _tabController,
+                  children: [
+                    TierListView(
+                      tierListType: TierListType.topTires,
+                      minHeight: constraints.minHeight,
+                    ),
+                    TierListView(
+                      tierListType: TierListType.powerRankings,
+                      minHeight: constraints.minHeight,
+                    ),
+                    TierListView(
+                      tierListType: TierListType.rushRankings,
+                      minHeight: constraints.minHeight,
+                    ),
+                  ],
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

@@ -66,14 +66,14 @@ class _ArticlesPageState extends State<ArticlesPage> with AutomaticKeepAliveClie
         });
       }
     }
-    var list = res!.map((e) => Article.fromJson(e)).toList();
+    final list = res!.map(Article.fromJson).toList();
 
     _listViewData.page += 1;
     setState(() {
       _listViewData.data.addAll(list);
-      _listViewData.pageStatus = PageStatus.success;
-      _listViewData.hasMore = list.length == _listViewData.size;
-      _listViewData.loadMoreStatus = PageStatus.success;
+      _listViewData..pageStatus = PageStatus.success
+      ..hasMore = list.length == _listViewData.size
+      ..loadMoreStatus = PageStatus.success;
     });
   }
 
@@ -82,8 +82,8 @@ class _ArticlesPageState extends State<ArticlesPage> with AutomaticKeepAliveClie
     return _scrollController.position.maxScrollExtent - _scrollController.position.pixels <= 200;
   }
 
-  initScrollReachBottomListener() {
-       var fn = () {
+  void initScrollReachBottomListener() {
+    _scrollController.addListener(() {
       log('滚动中。。。');
       if (_listViewData.pageStatus != PageStatus.success) {
         log('不是加载成功，return');
@@ -93,7 +93,7 @@ class _ArticlesPageState extends State<ArticlesPage> with AutomaticKeepAliveClie
       if (_listViewData.hasMore && isReachBottom()) {
         log('hasMore && 到达底部');
         if (_listViewData.loadMoreStatus == PageStatus.loading) {
-          print('到达底部，是加载更多中，不可执行 _loadMoreStatus ${_listViewData.loadMoreStatus}, ${PageStatus.loading}');
+          log('到达底部，是加载更多中，不可执行 _loadMoreStatus ${_listViewData.loadMoreStatus}, ${PageStatus.loading}');
           return;
         }
         setState(() {
@@ -104,9 +104,7 @@ class _ArticlesPageState extends State<ArticlesPage> with AutomaticKeepAliveClie
       } else{
         log('没有更多或者没到达底部');
       }
-    }.throttle(1000);
-
-    _scrollController.addListener(fn);
+    });
   }
 
   @override

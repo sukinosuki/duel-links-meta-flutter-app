@@ -15,7 +15,7 @@ class Skill {
   String source = '';
 
   @JsonKey(name: '_id')
-  String oid = '';
+  String  oid='';
 
   String name = '';
   String description = '';

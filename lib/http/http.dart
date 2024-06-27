@@ -3,13 +3,13 @@ import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
 
+import 'package:duel_links_meta/http/httpCache.dart';
 import 'package:get/get.dart';
 import 'package:get/get_connect/http/src/request/request.dart';
 
 class Net extends GetConnect {
-
   Net() : super(timeout: const Duration(seconds: 30), userAgent: 'Sesame-Client') {
-
+    var start = DateTime.now();
     httpClient.addRequestModifier<Object?>((request) async {
       log('[Net] 请求开始');
 
@@ -18,6 +18,17 @@ class Net extends GetConnect {
       await _setupHeader(request);
 
       return request;
+    });
+
+    httpClient.addResponseModifier((request, response) {
+      log('[Net] 请求结束, take: ${DateTime.now().difference(start).inMilliseconds}ms');
+
+      // var key = "${request.method}:${request.url}:${request.url.queryParameters}";
+      //
+      // if (response.statusCode == 200 && response.body != null) {
+      //   HttpCache.set(key, response.body);
+      // }
+      return response;
     });
   }
 
@@ -83,11 +94,14 @@ class Net extends GetConnect {
     var str = "---- 请求 ----\nmethod: ${request.method}\nurl: ${request.url}\nquery: ${request.url.queryParameters}";
 
     if (request.method != 'post' || request.headers['content-type'] != 'application/json') {
-      log("""
+      log(
+          """
         method: ${request.method}
          url: ${request.url}
-      """.trim(), zone: Zone.current,
-      time: DateTime.now());
+      """
+              .trim(),
+          zone: Zone.current,
+          time: DateTime.now());
       return;
     }
 

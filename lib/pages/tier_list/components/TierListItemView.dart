@@ -1,5 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:duel_links_meta/type/TierList_TopTier.dart';
+import 'package:duel_links_meta/type/tier_list_top_tier/TierList_TopTier.dart';
 import 'package:flutter/material.dart';
 
 class TierListItemView extends StatelessWidget {

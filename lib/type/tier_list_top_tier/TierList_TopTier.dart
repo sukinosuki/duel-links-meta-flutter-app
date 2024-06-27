@@ -1,16 +1,23 @@
+import 'package:duel_links_meta/hive/MyHive.dart';
+import 'package:hive/hive.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'TierList_TopTier.g.dart';
 
 @JsonSerializable()
+@HiveType(typeId: MyHive.tier_list_top_tier)
 class TierList_TopTier {
+  @HiveField(0)
   String name;
 
+  @HiveField(1)
   int tier;
 
+  @HiveField(2)
   @JsonKey(name: '_id')
   String oid;
 
+  @HiveField(3)
   @JsonKey(includeFromJson: false)
   double power = 0;
 

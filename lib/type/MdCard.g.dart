@@ -3,6 +3,82 @@
 part of 'MdCard.dart';
 
 // **************************************************************************
+// TypeAdapterGenerator
+// **************************************************************************
+
+class MdCardAdapter extends TypeAdapter<MdCard> {
+  @override
+  final int typeId = 7;
+
+  @override
+  MdCard read(BinaryReader reader) {
+    final numOfFields = reader.readByte();
+    final fields = <int, dynamic>{
+      for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
+    };
+    return MdCard()
+      ..atk = fields[0] as int?
+      ..attribute = fields[1] as String?
+      ..def = fields[2] as int?
+      ..description = fields[3] as String
+      ..level = fields[4] as int?
+      ..monsterType = (fields[5] as List).cast<String>()
+      ..name = fields[6] as String
+      ..race = fields[8] as String
+      ..rarity = fields[9] as String
+      ..release = fields[10] as DateTime?
+      ..type = fields[11] as String
+      ..banStatus = fields[12] as String?
+      ..linkRating = fields[13] as int?
+      ..oid = fields[14] as String;
+  }
+
+  @override
+  void write(BinaryWriter writer, MdCard obj) {
+    writer
+      ..writeByte(14)
+      ..writeByte(0)
+      ..write(obj.atk)
+      ..writeByte(1)
+      ..write(obj.attribute)
+      ..writeByte(2)
+      ..write(obj.def)
+      ..writeByte(3)
+      ..write(obj.description)
+      ..writeByte(4)
+      ..write(obj.level)
+      ..writeByte(5)
+      ..write(obj.monsterType)
+      ..writeByte(6)
+      ..write(obj.name)
+      ..writeByte(8)
+      ..write(obj.race)
+      ..writeByte(9)
+      ..write(obj.rarity)
+      ..writeByte(10)
+      ..write(obj.release)
+      ..writeByte(11)
+      ..write(obj.type)
+      ..writeByte(12)
+      ..write(obj.banStatus)
+      ..writeByte(13)
+      ..write(obj.linkRating)
+      ..writeByte(14)
+      ..write(obj.oid);
+  }
+
+  @override
+  int get hashCode => typeId.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is MdCardAdapter &&
+          runtimeType == other.runtimeType &&
+          typeId == other.typeId;
+}
+
+// **************************************************************************
 // JsonSerializableGenerator
 // **************************************************************************
 

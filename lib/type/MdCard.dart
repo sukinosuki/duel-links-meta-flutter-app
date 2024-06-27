@@ -1,38 +1,56 @@
-import 'package:flutter/material.dart';
+import 'package:duel_links_meta/hive/MyHive.dart';
+import 'package:hive/hive.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'MdCard.g.dart';
 
 @JsonSerializable(includeIfNull: false)
+@HiveType(typeId: MyHive.md_card)
 class MdCard {
+  @HiveField(0)
   int? atk = 0;
+
+  @HiveField(1)
   String? attribute = '';
 
+  @HiveField(2)
   int? def = 0;
 
+  @HiveField(3)
   String description = '';
 
-  int? level = 0;
+  @HiveField(4)
+  int? level  =  0;
 
+  @HiveField(5)
   List<String> monsterType = [];
 
+  @HiveField(6)
   String name = '';
 
+  // @HiveField(7)
   List<MdCard_Obtain> obtain = [];
 
+  @HiveField(8)
   String race = '';
 
+  @HiveField(9)
   @JsonKey(defaultValue: '')
   String rarity = '';
 
+  @HiveField(10)
   DateTime? release;
 
+  @HiveField(11)
   String type = '';
 
+  @HiveField(12)
   String? banStatus;
 
+  @HiveField(13)
   int? linkRating;
 
+  @HiveField(14)
   @JsonKey(name: '_id')
   String oid = '';
 
