@@ -18,6 +18,7 @@ class BanListChangeCardView extends StatelessWidget {
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        // height: 60,
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -28,28 +29,18 @@ class BanListChangeCardView extends StatelessWidget {
               imageUrl: 'https://s3.duellinksmeta.com/cards/${change.card?.oid}_w100.webp',
             ),
             const SizedBox(width: 8),
-            Column(
+            Expanded(
+                child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Container(
-                //   height: 10,
-                //   child: Row(
-                //     children: [
-                //       Flexible(child: Text(
-                //         change.card?.name ?? '',
-                //         style: TextStyle(overflow: TextOverflow.clip),
-                //         maxLines: 1,
-                //       ),)
-                //     ],
-                //   ),
-                // ),
                 Text(
                   change.card?.name ?? '',
-                  // style: TextStyle(overflow: TextOverflow.clip),
+                  style: TextStyle(
+                    overflow: TextOverflow.ellipsis,
+                  ),
                   // maxLines: 1,
                   textAlign: TextAlign.left,
                 ),
-
                 Row(
                   children: [
                     const Text('From: ', style: TextStyle(fontSize: 11)),
@@ -67,7 +58,7 @@ class BanListChangeCardView extends StatelessWidget {
                   ],
                 ),
               ],
-            )
+            ))
           ],
         ),
       ),

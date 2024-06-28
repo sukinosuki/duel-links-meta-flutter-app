@@ -1,5 +1,5 @@
 import 'package:duel_links_meta/constant/colors.dart';
-import 'package:duel_links_meta/pages/tier_list/components/TierListPageView.dart';
+import 'package:duel_links_meta/pages/tier_list/components/TierListView.dart';
 import 'package:duel_links_meta/pages/tier_list/type/TierListType.dart';
 import 'package:flutter/material.dart';
 
@@ -22,7 +22,6 @@ class _TierListPageState extends State<TierListPage> with SingleTickerProviderSt
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        // iconTheme: const IconThemeData(opticalSize: 12),
         title: const Text('Tier List'),
         bottom: TabBar(
           // indicatorColor: Colors.transparent,

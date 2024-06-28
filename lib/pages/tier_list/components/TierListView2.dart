@@ -62,7 +62,7 @@ class _TierListViewState extends State<TierListView> with AutomaticKeepAliveClie
   //
   Future<bool> fetchTopTiers({bool force = false}) async {
     var list = <TierList_TopTier>[];
-    // TODO
+
     const hiveBoxKey = 'tier_list:top_tier';
 
     var reRefreshFlag = false;
@@ -88,10 +88,6 @@ class _TierListViewState extends State<TierListView> with AutomaticKeepAliveClie
 
       list = res?.map(TierList_TopTier.fromJson).toList() ?? [];
       await MyHive.box.put(hiveBoxKey, TierList_TopTier_Expire(data: list, expire: DateTime.now().add(const Duration(hours: 6))));
-
-      await Future<void>.delayed(const Duration(milliseconds: 300)).then((value) {
-        '已刷新'.toast;
-      });
     } else {
       try {
         final value = hiveValue as TierList_TopTier_Expire;
@@ -128,6 +124,10 @@ class _TierListViewState extends State<TierListView> with AutomaticKeepAliveClie
     });
 
     _list.sort((a, b) => a.tier.compareTo(b.tier));
+    _list.forEach((element) {
+      log(element.desc);
+    });
+
     setState(() {
       _tierListGroup = _list;
       _pageStatus = PageStatus.success;
@@ -224,6 +224,8 @@ class _TierListViewState extends State<TierListView> with AutomaticKeepAliveClie
         await fetchTopTiers(force: true);
         return;
       }
+
+      return;
     }
 
     var needReRefresh = await fetchPowerRankings(_tierListType == TierListType.rushRankings);
@@ -242,7 +244,6 @@ class _TierListViewState extends State<TierListView> with AutomaticKeepAliveClie
       initFlag = true;
     }
   }
-
 
   @override
   void initState() {
@@ -266,7 +267,6 @@ class _TierListViewState extends State<TierListView> with AutomaticKeepAliveClie
         physics: const AlwaysScrollableScrollPhysics(),
         child: Column(
           children: [
-
             AnimatedOpacity(
               opacity: _pageStatus == PageStatus.success ? 1 : 0,
               duration: const Duration(milliseconds: 400),
@@ -323,27 +323,7 @@ class _TierListViewState extends State<TierListView> with AutomaticKeepAliveClie
                 ),
               ),
             ),
-            // if (_pageStatus == PageStatus.loading)
-            //   ConstrainedBox(
-            //     constraints: BoxConstraints(
-            //       minHeight: widget.minHeight ?? 0,
-            //     ),
-            //     child: const Center(
-            //       child: Loading(),
-            //     ),
-            //   ),
 
-            if (_pageStatus == PageStatus.fail)
-              ConstrainedBox(
-                constraints: BoxConstraints(
-                  minHeight: widget.minHeight ?? 0,
-                ),
-                child: const Center(
-                  child: Text(
-                    '加载失败',
-                  ),
-                ),
-              ),
           ],
         ),
       ),

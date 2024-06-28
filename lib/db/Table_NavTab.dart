@@ -1,4 +1,3 @@
-import 'dart:developer';
 
 import 'package:duel_links_meta/db/index.dart';
 import 'package:sqflite/sqflite.dart';

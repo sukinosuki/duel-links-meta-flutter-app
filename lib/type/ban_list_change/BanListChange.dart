@@ -1,25 +1,33 @@
+import 'package:duel_links_meta/hive/MyHive.dart';
+import 'package:hive/hive.dart';
 import 'package:json_annotation/json_annotation.dart';
 
-import '../MdCard.dart';
+import 'package:duel_links_meta/type/MdCard.dart';
 
 part 'BanListChange.g.dart';
 
 @JsonSerializable()
+@HiveType(typeId: MyHive.ban_list_chnage)
 class BanListChange {
+  @HiveField(0)
   DateTime? announced;
+  @HiveField(1)
   DateTime? date;
 
   @JsonKey(includeFromJson: false)
   String formattedMonthDay = '';
 
+  @HiveField(2)
   @JsonKey(defaultValue: false)
   bool rush = false;
 
+  @HiveField(3)
   @JsonKey(defaultValue: '')
   String oid = '';
 
-  BanListChange_LinkedArticle? linkedArticle;
+  // BanListChange_LinkedArticle? linkedArticle;
 
+  @HiveField(4)
   @JsonKey(defaultValue: [])
   List<BanListChange_Change> changes = [] ;
 
@@ -31,13 +39,15 @@ class BanListChange {
 }
 
 @JsonSerializable()
+@HiveType(typeId: MyHive.ban_list_chnage_changes)
 class BanListChange_Change {
-  // @JsonKey(defaultValue: '')
+  @HiveField(0)
   String? to = '';
 
-  // @JsonKey(defaultValue: '')
+  @HiveField(1)
   String? from = '';
 
+  @HiveField(2)
   BanListChange_Change_Card? card;
 
   @JsonKey(includeFromJson: false)
@@ -51,10 +61,13 @@ class BanListChange_Change {
 }
 
 @JsonSerializable()
+@HiveType(typeId: MyHive.ban_list_chnage_changes_card)
 class BanListChange_Change_Card {
   @JsonKey(name: '_id', defaultValue: '')
+  @HiveField(0)
   String oid = '';
 
+  @HiveField(1)
   @JsonKey(defaultValue: '')
   String name = '';
 

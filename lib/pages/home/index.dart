@@ -2,6 +2,7 @@ import 'dart:developer';
 
 import 'package:duel_links_meta/db/Table_NavTab.dart';
 import 'package:duel_links_meta/extension/Future.dart';
+import 'package:duel_links_meta/hive/MyHive.dart';
 import 'package:duel_links_meta/http/NavTabApi.dart';
 import 'package:duel_links_meta/pages/farming_and_event/index.dart';
 import 'package:duel_links_meta/pages/home/components/NavItemCard.dart';
@@ -12,7 +13,6 @@ import 'package:duel_links_meta/store/AppStore.dart';
 import 'package:duel_links_meta/type/NavTab.dart';
 import 'package:duel_links_meta/type/enum/PageStatus.dart';
 import 'package:duel_links_meta/util/storage/LocalStorage.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:get/get.dart';
@@ -71,39 +71,57 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
 
   //
   Future<void> toggleDarkMode() async {
-    log('Table_NavTab.instance ${Table_NavTab.instance.hashCode}, is equal: ${Table_NavTab.instance == Table_NavTab.instance}');
-    // Db.deleteDatabase();
+    MyHive.box.clear();
+    MyHive.box2.clear();
 
     if (Get.isDarkMode) {
       Get.changeThemeMode(ThemeMode.light);
       appStore.changeThemeMode(ThemeMode.light);
-      await LocalStorage_DarkMode.save('light');
+      MyHive.box.put('dark_mode', 'light');
     } else {
       Get.changeThemeMode(ThemeMode.dark);
       appStore.changeThemeMode(ThemeMode.dark);
-      await LocalStorage_DarkMode.save('dark');
+      MyHive.box.put('dark_mode', 'dark');
     }
   }
 
-  Future<void> fetchData() async {
-    Table_NavTab.instance.query().then((value) {
-      if (value.isNotEmpty) {
+  Future<bool> fetchData({bool force = false}) async {
+    const navTabKey = 'nav_tab:list';
+    const navTabFetchDateKey = 'nav_tab:fetch_date';
+    final hiveData = MyHive.box.get(navTabKey) as List?;
+    final expireTime = MyHive.box.get(navTabFetchDateKey) as DateTime?;
+    var list = <NavTab>[];
+
+    var refreshFlag = false;
+    if (hiveData == null || force) {
+      log('需要强制刷新');
+      final (err, res) = await NavTabApi().list().toCatch;
+      if (err != null) {
         setState(() {
-          _pageStatus = PageStatus.success;
-          _navTabs = value.map((e) => NavTab.fromJson(e)).toList();
+          _pageStatus = PageStatus.fail;
         });
+        return false;
       }
-    });
 
-    final (err, res) = await NavTabApi().list().toCatch;
-    if (err != null) {
-      setState(() {
-        _pageStatus = PageStatus.fail;
-      });
-      return;
+      list = res!.map(NavTab.fromJson).toList();
+      MyHive.box.put(navTabKey, list);
+      MyHive.box.put(navTabFetchDateKey, DateTime.now());
+    } else {
+      log('本地获取到数据');
+      try {
+        list = hiveData.cast<NavTab>();
+        if (expireTime != null && expireTime.add(Duration(hours: 12)).isBefore(DateTime.now())) {
+          log('已过期');
+          refreshFlag = true;
+        }
+      } catch (e) {
+        log('解析失败');
+
+        MyHive.box.delete(navTabKey);
+        MyHive.box.delete(navTabFetchDateKey);
+        return true;
+      }
     }
-
-    final list = res!.map(NavTab.fromJson).toList();
 
     final id2NavTabMap = <int, NavTab>{};
     for (final element in list) {
@@ -119,27 +137,30 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
       _pageStatus = PageStatus.success;
     });
 
-    //
-    await Table_NavTab.instance.delete();
-
-    _navTabs.forEach((element) async {
-      await Table_NavTab.instance.insert(element.toJson());
-    });
+    return refreshFlag;
   }
 
   Future<void> handleRefresh() async {
-    if (_pageStatus == PageStatus.success) return;
+    // if (_pageStatus == PageStatus.success) return;
 
-    await fetchData();
+    await fetchData(force: true);
+  }
+
+  Future<void> init() async {
+    final flag = await fetchData();
+    if (flag) {
+      _refreshIndicatorKey.currentState?.show(atTop: true);
+    }
   }
 
   @override
   void initState() {
     super.initState();
 
-    SchedulerBinding.instance.addPostFrameCallback((_) {
-      _refreshIndicatorKey.currentState?.show(atTop: true);
-    });
+    init();
+    // SchedulerBinding.instance.addPostFrameCallback((_) {
+    //   _refreshIndicatorKey.currentState?.show(atTop: true);
+    // });
   }
 
   @override
@@ -162,7 +183,8 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
         onRefresh: handleRefresh,
         key: _refreshIndicatorKey,
         child: AnimatedOpacity(
-          opacity: _pageStatus == PageStatus.success ? 1 : 0,
+          // opacity: _pageStatus == PageStatus.success ? 1 : 0,
+          opacity: 1,
           duration: const Duration(milliseconds: 400),
           child: GridView.builder(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),

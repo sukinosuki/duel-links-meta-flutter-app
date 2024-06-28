@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:duel_links_meta/hive/MyHive.dart';
 import 'package:duel_links_meta/pages/main/index.dart';
 import 'package:duel_links_meta/util/storage/LocalStorage.dart';
 import 'package:flutter/material.dart';
@@ -13,18 +14,18 @@ class SplashPage extends StatefulWidget {
 }
 
 class _SplashPageState extends State<SplashPage> {
-  var count = 1;
+  int _count = 1;
 
-  late Timer timer;
+  late Timer _timer;
 
-  startCounterDown() {
-    timer = Timer.periodic(const Duration(seconds: 1), (timer) async {
-      if (count <= 0) {
+  void startCounterDown() {
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) async {
+      if (_count <= 0) {
         timer.cancel();
 
-        Navigator.pushAndRemoveUntil(
+        await Navigator.pushAndRemoveUntil(
           context,
-          MaterialPageRoute(
+          MaterialPageRoute<void>(
             builder: (context) => const MainPage(),
           ),
           (route) => false, //if you want to disable back feature set to false
@@ -35,21 +36,23 @@ class _SplashPageState extends State<SplashPage> {
       }
 
       setState(() {
-        count -= 1;
+        _count -= 1;
       });
     });
   }
 
-  initConfig() async {
-    var mode = await LocalStorage_DarkMode.get();
+  Future<void> initDarkMode() async {
+    // final mode = await LocalStorage_DarkMode.get();
+    final mode = MyHive.box.get('dark_mode');
 
+    // if (mode == 'dark') {
     if (mode == 'dark') {
       Get.changeThemeMode(ThemeMode.dark);
     }
   }
 
-  init() {
-    initConfig();
+  void init() {
+    initDarkMode();
     startCounterDown();
     //
     // Db.init();
@@ -66,7 +69,7 @@ class _SplashPageState extends State<SplashPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Center(
-        child: Text("splash page, $count"),
+        child: Text('splash page, $_count'),
       ),
     );
   }
