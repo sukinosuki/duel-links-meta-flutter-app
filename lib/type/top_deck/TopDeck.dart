@@ -1,3 +1,5 @@
+import 'package:duel_links_meta/hive/MyHive.dart';
+import 'package:hive/hive.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 import '../MdCard.dart';
@@ -5,24 +7,65 @@ import '../MdCard.dart';
 part 'TopDeck.g.dart';
 
 @JsonSerializable()
+@HiveType(typeId: MyHive.top_deck)
 class TopDeck {
+  @JsonKey(defaultValue: '')
   dynamic author;
+
+  @HiveField(0)
   DateTime? created;
+
+  String? customTournamentName;
+
+  @HiveField(1)
+  TopDeck_DeckType deckType = TopDeck_DeckType();
+
+  @HiveField(2)
   int dollarsPrice = 0;
+
+  @JsonKey(defaultValue: [])
   List<TopDeck_MainCard> extra = [];
+
+  @HiveField(3)
   int gemsPrice = 0;
 
+  @JsonKey(defaultValue: [])
   List<TopDeck_MainCard> main = [];
+
   bool? rush;
-  TopDeck_Skill skill = TopDeck_Skill();
+
+  @HiveField(4)
+  TopDeck_Skill? skill = TopDeck_Skill();
+
   String? tournamentNumber;
+
   String? tournamentPlacement;
+
+  @HiveField(5)
+  TopDeck_RankedType? rankedType;
+
+  @HiveField(6)
   TopDeck_TournamentType? tournamentType;
 
   TopDeck();
 
   factory TopDeck.fromJson(dynamic json) => _$TopDeckFromJson(json);
   dynamic toJson() => _$TopDeckToJson(this);
+}
+
+@JsonSerializable()
+@HiveType(typeId: MyHive.top_deck_deck_type)
+class TopDeck_DeckType {
+  @HiveField(0)
+  String name = '';
+
+  @HiveField(1)
+  int? tier;
+
+  TopDeck_DeckType();
+
+  factory TopDeck_DeckType.fromJson(dynamic json) => _$TopDeck_DeckTypeFromJson(json);
+  dynamic toJson() => _$TopDeck_DeckTypeToJson(this);
 }
 
 @JsonSerializable()
@@ -53,13 +96,17 @@ class TopDeck_MainCard_Card {
 }
 
 @JsonSerializable()
+@HiveType(typeId: MyHive.top_deck_skill)
 class TopDeck_Skill {
+  @HiveField(0)
   String name = '';
 
+  @HiveField(1)
   @JsonKey(name: '_id')
   String oid = '';
 
-  bool archive = false;
+  @HiveField(2)
+  bool? archive;
 
   TopDeck_Skill();
 
@@ -68,11 +115,22 @@ class TopDeck_Skill {
 }
 
 @JsonSerializable()
+@HiveType(typeId: MyHive.top_deck_tournament_type)
 class TopDeck_TournamentType {
+  @HiveField(0)
   String enumSuffix = '';
+
+  @HiveField(1)
   String icon = '';
+
+  @HiveField(2)
   String name = '';
+
+  @HiveField(3)
   String shortName = '';
+
+  @HiveField(4)
+  @JsonKey(defaultValue: 0)
   int statsWeight = 0;
 
   TopDeck_TournamentType();
@@ -80,3 +138,26 @@ class TopDeck_TournamentType {
   factory TopDeck_TournamentType.fromJson(dynamic json) => _$TopDeck_TournamentTypeFromJson(json);
   dynamic toJson() => _$TopDeck_TournamentTypeToJson(this);
 }
+
+
+@JsonSerializable()
+@HiveType(typeId: MyHive.top_deck_ranked_type)
+class TopDeck_RankedType {
+  @HiveField(0)
+  String icon = '';
+
+  @HiveField(1)
+  String name = '';
+
+  @HiveField(2)
+  String shortName = '';
+
+  @HiveField(3)
+  int? statsWeight;
+
+  TopDeck_RankedType();
+
+  factory TopDeck_RankedType.fromJson(dynamic json) => _$TopDeck_RankedTypeFromJson(json);
+  dynamic toJson() => _$TopDeck_RankedTypeToJson(this);
+}
+

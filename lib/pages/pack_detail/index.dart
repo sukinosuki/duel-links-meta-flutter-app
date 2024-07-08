@@ -9,6 +9,7 @@ import 'package:duel_links_meta/pages/cards_viewpager/index.dart';
 import 'package:duel_links_meta/type/MdCard.dart';
 import 'package:duel_links_meta/type/enum/PageStatus.dart';
 import 'package:duel_links_meta/type/pack_set/PackSet.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class PackDetailPage extends StatefulWidget {
@@ -39,22 +40,28 @@ class _PackDetailPageState extends State<PackDetailPage> {
   //
   fetchData() async {
     var sourceKey = 'pack_card_ids:${pack.oid}';
-    var cardsIds = MyHive.box.get(sourceKey) as List<String>?;
+    var cardsIds = await MyHive.box2.get(sourceKey) as List<String>?;
     if (cardsIds != null) {
-      await Future.delayed(Duration(milliseconds: 300));
+      // await Future.delayed(Duration(milliseconds: 300));
       log('从本地获取到card, sourceKey: ${sourceKey}');
-      var cards = cardsIds.map((id) {
-        var card = MyHive.box.get('card:${id}') as MdCard;
+      final cards = <MdCard>[];
+      for (var i=0; i<cardsIds.length;i++) {
+          var card = await MyHive.box2.get('card:${cardsIds[i]}') as MdCard?;
 
-        return card;
-      }).toList();
+          cards.add(card?? MdCard()..oid= cardsIds[i]);
+      }
+      // var cards = cardsIds.map((id) {
+      //   var card = MyHive.box2.get('card:${id}') as MdCard;
+      //
+      //   return card;
+      // }).toList();
 
       log('从本地获取到card, length: ${cards.length}');
 
       final rarityGroup = <String, List<MdCard>>{};
 
       cards.forEach((item) {
-        MyHive.box.put('card:${item.oid}', item);
+        // MyHive.box2.put('card:${item.oid}', item);
 
         if (rarityGroup[item.rarity] == null) {
           rarityGroup[item.rarity] = [item];
@@ -75,11 +82,11 @@ class _PackDetailPageState extends State<PackDetailPage> {
     var res = await CardApi().getObtainSourceId(pack.oid);
 
     var list = res.body!.map((e) => MdCard.fromJson(e)).toList();
-    MyHive.box.put(sourceKey, list.map((e) => e.oid).toList());
+    MyHive.box2.put(sourceKey, list.map((e) => e.oid).toList());
     Map<String, List<MdCard>> rarityGroup = {};
 
     list.forEach((item) {
-      MyHive.box.put('card:${item.oid}', item);
+      MyHive.box2.put('card:${item.oid}', item);
 
       if (rarityGroup[item.rarity] == null) {
         rarityGroup[item.rarity] = [item];
@@ -112,26 +119,32 @@ class _PackDetailPageState extends State<PackDetailPage> {
                 children: [
                   Hero(
                     tag: pack.name,
-                    child: Stack(
-                      children: [
-                        CachedNetworkImage(
-                          imageUrl: 'https://s3.duellinksmeta.com${pack.bannerImage}',
-                          width: double.infinity,
-                          height: 200,
-                          fit: BoxFit.cover,
-                        ),
-                        Positioned.fill(
-                          child: Container(
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                begin: Alignment.bottomCenter,
-                                end: Alignment.topCenter,
-                                colors: [Theme.of(context).colorScheme.background, Colors.transparent],
+                    child: SizedBox(
+                      height: 200,
+                      child: Stack(
+                        children: [
+                          CachedNetworkImage(
+                            imageUrl: 'https://s3.duellinksmeta.com${pack.bannerImage}',
+                            width: double.infinity,
+                            height: double.infinity,
+                            fit: BoxFit.cover,
+                          ),
+                          Positioned.fill(
+                            // top: 100,
+                            bottom: -1,
+                            child: Container(
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  begin: Alignment.bottomCenter,
+                                  end: Alignment.topCenter,
+                                  colors: [Theme.of(context).colorScheme.background, Colors.transparent],
+                                  // colors: [Colors.white, Colors.transparent],
+                                ),
                               ),
                             ),
-                          ),
-                        )
-                      ],
+                          )
+                        ],
+                      ),
                     ),
                   ),
                   AnimatedOpacity(
@@ -143,7 +156,7 @@ class _PackDetailPageState extends State<PackDetailPage> {
                         children: rarity2CardsGroup.keys
                             .map((key) => Column(
                                   children: [
-                                    const SizedBox(height: 20),
+                                    // const SizedBox(height: 20),
                                     Row(
                                       mainAxisAlignment: MainAxisAlignment.end,
                                       children: [Image.asset('assets/images/rarity_${key.toLowerCase()}.webp', height: 20)],

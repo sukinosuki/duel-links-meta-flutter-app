@@ -9,6 +9,7 @@ import 'package:duel_links_meta/type/pack_set/ExpireData.dart';
 import 'package:duel_links_meta/type/pack_set/PackSet.dart';
 import 'package:duel_links_meta/type/tier_list_top_tier/TierList_TopTier.dart';
 import 'package:duel_links_meta/type/tier_list_top_tier/TierList_TopTier_Expire.dart';
+import 'package:duel_links_meta/type/top_deck/TopDeck.dart';
 import 'package:hive_flutter/adapters.dart';
 
 const boxName = 'todo_box';
@@ -31,12 +32,17 @@ class MyHive {
   static const int deck_type_deck_breakdown = 14;
   static const int deck_type_deck_breakdown_skill = 15;
   static const int deck_type_deck_breakdown_card = 16;
+  static const int top_deck = 17;
+  static const int top_deck_deck_type = 18;
+  static const int top_deck_skill = 19;
+  static const int top_deck_ranked_type = 20;
+  static const int top_deck_tournament_type = 21;
 
   // static const int expire_data = 10;
 
   // static late Box<List<TierList_TopTier>> box;
-  static late Box box;
-  static late LazyBox box2;
+  static late Box<dynamic> box;
+  static late LazyBox<dynamic> box2;
 
   MyHive._();
 
@@ -59,7 +65,13 @@ class MyHive {
       ..registerAdapter(DeckTypeAdapter())
       ..registerAdapter(DeckTypeDeckBreakdownAdapter())
       ..registerAdapter(DeckTypeDeckBreakdownSkillAdapter())
-      ..registerAdapter(DeckTypeDeckBreakdownCardsAdapter());
+      ..registerAdapter(DeckTypeDeckBreakdownCardsAdapter())
+      ..registerAdapter(TopDeckAdapter())
+      ..registerAdapter(TopDeckDeckTypeAdapter())
+      ..registerAdapter(TopDeckSkillAdapter())
+      ..registerAdapter(TopDeckRankedTypeAdapter())
+      ..registerAdapter(TopDeckTournamentTypeAdapter());
+
     // Hive.registerAdapter(TLoginFormAdapter());
     box = await Hive.openBox(boxName);
     box2 = await Hive.openLazyBox(boxName2);

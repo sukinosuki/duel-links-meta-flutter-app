@@ -384,7 +384,7 @@ class _DeckTypeDetailPageState extends State<DeckTypeDetailPage> {
                                           children: [
                                             Assets.images.iconSkill2.image(width: 15, height: 15),
                                             const SizedBox(width: 2),
-                                            Text(_topDeck?.skill.name ?? '',
+                                            Text(_topDeck?.skill?.name ?? '',
                                                 style: const TextStyle(color: Color(0xff0a87bb), fontSize: 12)),
                                           ],
                                         ),

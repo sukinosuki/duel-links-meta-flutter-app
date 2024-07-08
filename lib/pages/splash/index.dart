@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:duel_links_meta/hive/MyHive.dart';
 import 'package:duel_links_meta/pages/main/index.dart';
+import 'package:duel_links_meta/pages/top_decks/index.dart';
 import 'package:duel_links_meta/util/storage/LocalStorage.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -27,6 +28,7 @@ class _SplashPageState extends State<SplashPage> {
           context,
           MaterialPageRoute<void>(
             builder: (context) => const MainPage(),
+            // builder: (context) => const TopDecksPage(isRush: false,),
           ),
           (route) => false, //if you want to disable back feature set to false
           // ModalRoute.withName('/')
@@ -45,7 +47,6 @@ class _SplashPageState extends State<SplashPage> {
     // final mode = await LocalStorage_DarkMode.get();
     final mode = MyHive.box.get('dark_mode');
 
-    // if (mode == 'dark') {
     if (mode == 'dark') {
       Get.changeThemeMode(ThemeMode.dark);
     }

@@ -1,6 +1,5 @@
 import 'dart:developer';
 
-import 'package:duel_links_meta/db/Table_NavTab.dart';
 import 'package:duel_links_meta/extension/Future.dart';
 import 'package:duel_links_meta/hive/MyHive.dart';
 import 'package:duel_links_meta/http/NavTabApi.dart';
@@ -8,13 +7,12 @@ import 'package:duel_links_meta/pages/farming_and_event/index.dart';
 import 'package:duel_links_meta/pages/home/components/NavItemCard.dart';
 import 'package:duel_links_meta/pages/home/type/NavTabType.dart';
 import 'package:duel_links_meta/pages/tier_list/index.dart';
+import 'package:duel_links_meta/pages/top_decks/index.dart';
 import 'package:duel_links_meta/pages/webview/index.dart';
 import 'package:duel_links_meta/store/AppStore.dart';
 import 'package:duel_links_meta/type/NavTab.dart';
 import 'package:duel_links_meta/type/enum/PageStatus.dart';
-import 'package:duel_links_meta/util/storage/LocalStorage.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/scheduler.dart';
 import 'package:get/get.dart';
 
 class HomePage extends StatefulWidget {
@@ -25,8 +23,6 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin {
-  var _pageStatus = PageStatus.loading;
-
   final _refreshIndicatorKey = GlobalKey<RefreshIndicatorState>();
 
   final AppStore appStore = Get.put(AppStore());
@@ -47,12 +43,22 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
   //
   void handleTapNav(NavTab nav) {
     if (nav.id == NavTabType.tierList.value) {
-      Navigator.push(context, MaterialPageRoute(builder: (context) => const TierListPage()));
+      Navigator.push(context, MaterialPageRoute<void>(builder: (context) => const TierListPage()));
       return;
     }
 
     if (nav.id == NavTabType.farmingAndEvents.value) {
-      Navigator.push(context, MaterialPageRoute(builder: (context) => const FarmingAndEventPage()));
+      Navigator.push(context, MaterialPageRoute<void>(builder: (context) => const FarmingAndEventPage()));
+      return;
+    }
+
+    if (nav.id == NavTabType.topDecksRush.value) {
+      Navigator.push(context, MaterialPageRoute<void>(builder: (context) => const TopDecksPage(isRush: true)));
+      return;
+    }
+
+    if (nav.id == NavTabType.topDecksSpeed.value) {
+      Navigator.push(context, MaterialPageRoute<void>(builder: (context) => const TopDecksPage(isRush: false)));
       return;
     }
 
@@ -61,7 +67,7 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
 
       Navigator.push(
         context,
-        MaterialPageRoute(
+        MaterialPageRoute<void>(
           builder: (context) => const WebviewPage(url: url, title: 'Leaks & Updates'),
         ),
       );
@@ -88,8 +94,8 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
   Future<bool> fetchData({bool force = false}) async {
     const navTabKey = 'nav_tab:list';
     const navTabFetchDateKey = 'nav_tab:fetch_date';
-    final hiveData = MyHive.box.get(navTabKey) as List?;
-    final expireTime = MyHive.box.get(navTabFetchDateKey) as DateTime?;
+    final hiveData = await MyHive.box2.get(navTabKey) as List?;
+    final expireTime = await MyHive.box2.get(navTabFetchDateKey) as DateTime?;
     var list = <NavTab>[];
 
     var refreshFlag = false;
@@ -98,27 +104,28 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
       final (err, res) = await NavTabApi().list().toCatch;
       if (err != null) {
         setState(() {
-          _pageStatus = PageStatus.fail;
+          // _pageStatus = PageStatus.fail;
         });
         return false;
       }
 
       list = res!.map(NavTab.fromJson).toList();
-      MyHive.box.put(navTabKey, list);
-      MyHive.box.put(navTabFetchDateKey, DateTime.now());
+      MyHive.box2.put(navTabKey, list);
+      MyHive.box2.put(navTabFetchDateKey, DateTime.now());
     } else {
       log('本地获取到数据');
+
       try {
         list = hiveData.cast<NavTab>();
-        if (expireTime != null && expireTime.add(Duration(hours: 12)).isBefore(DateTime.now())) {
+        if (expireTime != null && expireTime.add(const Duration(hours: 12)).isBefore(DateTime.now())) {
           log('已过期');
           refreshFlag = true;
         }
       } catch (e) {
         log('解析失败');
 
-        MyHive.box.delete(navTabKey);
-        MyHive.box.delete(navTabFetchDateKey);
+        MyHive.box2.delete(navTabKey);
+        MyHive.box2.delete(navTabFetchDateKey);
         return true;
       }
     }
@@ -134,15 +141,13 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
 
     setState(() {
       _navTabs = _navTabs;
-      _pageStatus = PageStatus.success;
+      // _pageStatus = PageStatus.success;
     });
 
     return refreshFlag;
   }
 
   Future<void> handleRefresh() async {
-    // if (_pageStatus == PageStatus.success) return;
-
     await fetchData(force: true);
   }
 
