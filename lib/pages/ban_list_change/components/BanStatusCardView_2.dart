@@ -38,7 +38,7 @@ class _BanStatusCardViewState extends State<BanStatusCardView> with AutomaticKee
     var banStatusCardIdsKey = 'ban_status:card_ids';
     var banStatusCardIdsFetchDateKey = 'ban_status:card_ids';
 
-    var cardIds = MyHive.box.get(banStatusCardIdsKey);
+    var cardIds = await MyHive.box2.get(banStatusCardIdsKey);
 
     var refreshFlag = false;
 
@@ -61,7 +61,7 @@ class _BanStatusCardViewState extends State<BanStatusCardView> with AutomaticKee
         return false;
       }
       list = res!.map(BanStatusCard.fromJson).toList();
-      MyHive.box.put(banStatusCardIdsKey, list);
+      MyHive.box2.put(banStatusCardIdsKey, list);
     } else {
       log('本地有数据');
       await Future.delayed(Duration(milliseconds: 300));
@@ -70,7 +70,8 @@ class _BanStatusCardViewState extends State<BanStatusCardView> with AutomaticKee
         list = (cardIds as List<dynamic>).map((e) => e as BanStatusCard).toList();
 
         list.forEach((element) {
-          var card = MyHive.box.get('card:${element.oid}');
+          // TODO
+          var card =  MyHive.box2.get('card:${element.oid}');
         });
       } catch (e) {
         return true;

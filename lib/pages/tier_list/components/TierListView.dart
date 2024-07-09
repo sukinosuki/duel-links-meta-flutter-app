@@ -67,7 +67,7 @@ class _TierListViewState extends State<TierListView> with AutomaticKeepAliveClie
 
     var reRefreshFlag = false;
 
-    final hiveValue = MyHive.box.get(hiveBoxKey);
+    final hiveValue = await MyHive.box2.get(hiveBoxKey);
     log('[fetchTopTiers] box取值，value: $hiveValue, value == null ${hiveValue == null}, value type: ${hiveValue.runtimeType}');
 
     if (hiveValue == null || force) {
@@ -87,7 +87,7 @@ class _TierListViewState extends State<TierListView> with AutomaticKeepAliveClie
       }
 
       list = res?.map(TierList_TopTier.fromJson).toList() ?? [];
-      await MyHive.box.put(hiveBoxKey, TierList_TopTier_Expire(data: list, expire: DateTime.now().add(const Duration(hours: 6))));
+      await MyHive.box2.put(hiveBoxKey, TierList_TopTier_Expire(data: list, expire: DateTime.now().add(const Duration(hours: 6))));
     } else {
       try {
         final value = hiveValue as TierList_TopTier_Expire;
@@ -103,7 +103,7 @@ class _TierListViewState extends State<TierListView> with AutomaticKeepAliveClie
         log('转换成功');
       } catch (e) {
         log('[fetchTopTiers] 转换失败: $e');
-        await MyHive.box.delete(hiveBoxKey);
+        await MyHive.box2.delete(hiveBoxKey);
         return true;
       }
     }
@@ -142,7 +142,7 @@ class _TierListViewState extends State<TierListView> with AutomaticKeepAliveClie
     final boxKey = 'tier_list:power_ranking:${rush ? 'rush' : ''}';
     var reRefreshFlag = false;
 
-    final hiveValue = MyHive.box.get(boxKey);
+    final hiveValue = await MyHive.box2.get(boxKey);
 
     if (hiveValue == null || force) {
       final (err, res) = await (rush ? TierListApi().getRushRankings() : TierListApi().getPowerRankings()).toCatch;
@@ -154,7 +154,7 @@ class _TierListViewState extends State<TierListView> with AutomaticKeepAliveClie
       }
 
       list = res?.map(TierList_PowerRanking.fromJson).toList() ?? [];
-      await MyHive.box.put(boxKey, TierList_PowerRanking_Expire(data: list, expire: DateTime.now().add(const Duration(hours: 6))));
+      await MyHive.box2.put(boxKey, TierList_PowerRanking_Expire(data: list, expire: DateTime.now().add(const Duration(hours: 6))));
 
       await Future<void>.delayed(const Duration(milliseconds: 300)).then((value) {
         '已刷新'.toast;
@@ -168,7 +168,7 @@ class _TierListViewState extends State<TierListView> with AutomaticKeepAliveClie
 
         list = hiveValue.data;
       } catch (e) {
-        await MyHive.box.delete(boxKey);
+        await MyHive.box2.delete(boxKey);
         return true;
       }
     }

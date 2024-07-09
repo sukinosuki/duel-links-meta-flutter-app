@@ -45,7 +45,7 @@ class _SplashPageState extends State<SplashPage> {
 
   Future<void> initDarkMode() async {
     // final mode = await LocalStorage_DarkMode.get();
-    final mode = MyHive.box.get('dark_mode');
+    final mode = await MyHive.box2.get('dark_mode');
 
     if (mode == 'dark') {
       Get.changeThemeMode(ThemeMode.dark);

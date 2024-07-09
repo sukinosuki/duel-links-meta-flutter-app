@@ -38,8 +38,8 @@ class _BanListChangeViewState extends State<BanListChangeView> with AutomaticKee
 
     List<BanListChange> list = [];
 
-    var hiveData = MyHive.box.get(banListChangeKey);
-    final lastFetchDate = MyHive.box.get(banListChangeFetchDateKey);
+    var hiveData = await MyHive.box2.get(banListChangeKey);
+    final lastFetchDate = await MyHive.box2.get(banListChangeFetchDateKey);
 
     if (hiveData == null || force) {
       final params = {r'rush[$ne]': 'true', 'sort': '-date,-announced', 'fields': '-linkedArticle'};
@@ -54,8 +54,8 @@ class _BanListChangeViewState extends State<BanListChangeView> with AutomaticKee
         return true;
       }
       list = res!.map(BanListChange.fromJson).toList();
-      MyHive.box.put(banListChangeKey, list);
-      MyHive.box.put(banListChangeFetchDateKey, DateTime.now());
+      MyHive.box2.put(banListChangeKey, list);
+      MyHive.box2.put(banListChangeFetchDateKey, DateTime.now());
       log('本地保存数据');
 
     } else {
@@ -74,8 +74,8 @@ class _BanListChangeViewState extends State<BanListChangeView> with AutomaticKee
         }
         log('转换成功');
       }catch (e) {
-        await MyHive.box.delete(banListChangeKey);
-        await MyHive.box.delete(banListChangeFetchDateKey);
+        await MyHive.box2.delete(banListChangeKey);
+        await MyHive.box2.delete(banListChangeFetchDateKey);
         return true;
       }
 
@@ -150,24 +150,26 @@ class _BanListChangeViewState extends State<BanListChangeView> with AutomaticKee
   //   });
   // }
 
-  void handleTapBanListCard(int index) {
+  void handleTapBanListCard(int index) async{
     // final cards = currentBanListChange!.changes.map((e) => e.).toList();
-   var cards =  currentBanListChange!.changes.map((e) {
+    List<MdCard> cards = [];
 
-      var card = MyHive.box.get('card:${e.card!.oid}') as MdCard?;
-      if (card == null) {
-        var _card =  MdCard();
-        _card.oid = e.card!.oid;
-        _card.name = e.card!.name;
-
-        return _card;
-      }
+    for (var i =0; i <currentBanListChange!.changes.length; i++) {
+      var item  = currentBanListChange!.changes[i];
+      var card = await MyHive.box2.get('card:${item.card!.oid}') as MdCard?;
+      card ??= MdCard()
+        ..oid = item.card!.oid
+        ..name = item.card!.name;
 
       log('本地获取到card');
-      return card as MdCard;
-    }).toList();
+      // return card as MdCard;
+      cards.add(card);
+    }
+   // var cards = currentBanListChange!.changes.map((e) async{
+   //
+   //  }).toList();
 
-    showDialog<void>(
+    await showDialog<void>(
       context: context,
       builder: (context) => Dialog.fullscreen(
         backgroundColor: Colors.black87.withOpacity(0.3),

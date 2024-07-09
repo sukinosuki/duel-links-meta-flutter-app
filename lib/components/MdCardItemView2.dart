@@ -28,32 +28,24 @@ class _MdCardItemViewState extends State<MdCardItemView2> {
 
   String get cardId => widget.id;
 
-  MdCard? _mdCard = null;
+  MdCard? _mdCard;
 
-  init() async {
-    // await Future.delayed(Duration(milliseconds: 100));
-    // if (widget.mdCard != null) return;
+  //
+  Future<void> init() async {
+    if (widget.mdCard != null && widget.mdCard?.type != '') return;
 
-    var hiveData = MyHive.box.get('card:$cardId');
-    MdCard? card = null;
-    if (hiveData == null) {
-      var (err, res) = await CardApi().getById(cardId).toCatch;
-      if (err != null) return;
-      if (res!.length == 0) return;
+    var card = await MyHive.box2.get('card:$cardId') as MdCard?;
 
-      card = MdCard.fromJson(res[0]);
-      MyHive.box.put('card:$cardId', card);
-    } else {
-      log('本地获取到数据');
-      try {
-        card = hiveData as MdCard;
-      } catch (e) {
-        MyHive.box.delete('card:$cardId');
-        return;
-      }
+    if (card == null) {
+      final (err, res) = await CardApi().getById(cardId).toCatch;
+      if (err != null || res!.isEmpty) return;
+
+      card = res[0];
+      MyHive.box2.put('card:$cardId', card);
     }
+
     setState(() {
-      _mdCard = card as MdCard;
+      _mdCard = card;
     });
   }
 
@@ -74,16 +66,18 @@ class _MdCardItemViewState extends State<MdCardItemView2> {
             children: [
               SizedBox(
                 height: 8,
-                child: mdCard?.rarity != "" ? Image.asset('assets/images/rarity_${mdCard?.rarity.toLowerCase()}.webp') : null,
+                child: (mdCard != null && mdCard?.rarity != '')
+                    ? Image.asset('assets/images/rarity_${mdCard?.rarity.toLowerCase()}.webp')
+                    : null,
               ),
             ],
           ),
           Stack(
             children: [
               CachedNetworkImage(
-                  placeholder: (context, url) => Image.asset('assets/images/card_placeholder.webp'),
-                  // placeholder: (context, url) => Assets.images.cardPlaceholder,
-                  errorWidget: (context, url, err) => Image.asset('assets/images/card_placeholder.webp'),
+                  // placeholder: (context, url) => Image.asset('assets/images/card_placeholder.webp'),
+                  placeholder: (context, url) => Assets.images.cardPlaceholder.image(),
+                  errorWidget: (context, url, err) => Assets.images.cardPlaceholder.image(),
                   fadeInDuration: const Duration(milliseconds: 0),
                   fadeOutDuration: null,
                   imageUrl: 'https://s3.duellinksmeta.com/cards/${cardId}_w100.webp'),
@@ -96,14 +90,15 @@ class _MdCardItemViewState extends State<MdCardItemView2> {
                 ),
               if (widget.showBanStatus && mdCard?.banStatus != null)
                 Positioned(
-                    child: ClipRRect(
-                  borderRadius: const BorderRadius.all(Radius.circular(10)),
-                  child: SvgPicture.asset(
-                    'assets/images/icon_${mdCard?.banStatus?.toLowerCase()}.svg',
-                    width: 20,
-                    height: 20,
+                  child: ClipRRect(
+                    borderRadius: const BorderRadius.all(Radius.circular(10)),
+                    child: SvgPicture.asset(
+                      'assets/images/icon_${mdCard?.banStatus?.toLowerCase()}.svg',
+                      width: 20,
+                      height: 20,
+                    ),
                   ),
-                )),
+                ),
               if (widget.trend != null && widget.trend != '')
                 Positioned(
                   top: 0,

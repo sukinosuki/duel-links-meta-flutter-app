@@ -6,6 +6,7 @@ import 'package:duel_links_meta/components/TopDeckItem.dart';
 import 'package:duel_links_meta/extension/Future.dart';
 import 'package:duel_links_meta/hive/MyHive.dart';
 import 'package:duel_links_meta/http/TopDeckApi.dart';
+import 'package:duel_links_meta/pages/deck_detail/index.dart';
 import 'package:duel_links_meta/pages/top_decks/components/TopDeckListView.dart';
 import 'package:duel_links_meta/pages/top_decks/type/Group.dart';
 import 'package:duel_links_meta/type/enum/PageStatus.dart';
@@ -30,7 +31,7 @@ class _TopDecksPageState extends State<TopDecksPage> {
   List<Group<TopDeck>> _tournamentTypeTopDeckGroups = [];
   final _refreshIndicatorKey = GlobalKey<RefreshIndicatorState>();
 
-  var _init  = false;
+  var _init = false;
 
   int? selectedTournamentType;
 
@@ -43,8 +44,10 @@ class _TopDecksPageState extends State<TopDecksPage> {
     1: const Color(0xff1d3e67),
     2: const Color(0xff446e96),
     3: const Color(0xff7b95b1),
+    4: const Color(0xffbd5a44),
   };
 
+  //
   void _handleTapTopDeckItem(Group<TopDeck> group) {
     showModalBottomSheet<void>(
       shape: const RoundedRectangleBorder(
@@ -52,11 +55,15 @@ class _TopDecksPageState extends State<TopDecksPage> {
       ),
       // backgroundColor: Colors.transparent,
       context: context,
-      builder: (context) => TopDeckListView(topDecks: group.data),
+      builder: (context) => TopDeckListView(
+        topDecks: group.data,
+        onTap: (topDeck) => {
+          Navigator.push(context, MaterialPageRoute<void>(builder: (context) => DeckDetailPage(topDeck: topDeck))),
+        },
+      ),
     );
   }
 
-  //
   Future<bool> fetchData({bool force = false}) async {
     final hiveDataKey = 'top_deck:list:${_isRush ? 'rush' : 'speed'}';
     final hiveRefreshKey = 'top_deck:list:${_isRush ? 'rush' : 'speed'}:refresh';
@@ -70,7 +77,7 @@ class _TopDecksPageState extends State<TopDecksPage> {
     if (hiveData == null || force) {
       final params = <String, dynamic>{
         r'created[$gte]': '(days-28)',
-        'fields': 'rankedType,deckType,created,tournamentType,gemsPrice,dollarsPrice',
+        'fields': 'rankedType,deckType,created,tournamentType,gemsPrice,dollarsPrice,url,skill',
         // 'fields': '-',
         'limit': '0',
         // r'rush[$ne]': _isRush ? 'true' : 'false',
@@ -85,6 +92,7 @@ class _TopDecksPageState extends State<TopDecksPage> {
 
         return false;
       }
+
       topDecks = res!;
       MyHive.box2.put(hiveDataKey, topDecks);
       MyHive.box2.put(hiveRefreshKey, DateTime.now());
@@ -124,8 +132,9 @@ class _TopDecksPageState extends State<TopDecksPage> {
       return b.data.length - a.data.length;
     });
 
-    var tournamentTypeMap = <String, List<TopDeck>>{};
-    List<Group<TopDeck>> tournamentTypeGroups = [];
+    final tournamentTypeMap = <String, List<TopDeck>>{};
+    final tournamentTypeGroups = <Group<TopDeck>>[];
+
     //
     topDecks.forEach((element) {
       if (element.rankedType != null) {
@@ -166,10 +175,10 @@ class _TopDecksPageState extends State<TopDecksPage> {
       return _topDeckGroups;
     }
 
-    var res = _tournamentTypeTopDeckGroups[selectedTournamentType!].data;
+    final res = _tournamentTypeTopDeckGroups[selectedTournamentType!].data;
 
     final countMap = <String, List<TopDeck>>{};
-    res!.forEach((item) {
+    res.forEach((item) {
       if (countMap.containsKey(item.deckType.name)) {
         countMap[item.deckType.name]?.add(item);
       } else {
@@ -204,7 +213,7 @@ class _TopDecksPageState extends State<TopDecksPage> {
     log('init ${_refreshIndicatorKey.currentState}');
     await Future.delayed(Duration(milliseconds: 10));
 
-    _refreshIndicatorKey.currentState?.show(atTop: true);
+    await _refreshIndicatorKey.currentState?.show();
   }
 
   @override
@@ -219,7 +228,6 @@ class _TopDecksPageState extends State<TopDecksPage> {
 
     await fetchData(force: _init);
     _init = true;
-
   }
 
   @override
@@ -233,7 +241,7 @@ class _TopDecksPageState extends State<TopDecksPage> {
         ],
       ),
       body: Builder(builder: (context) {
-       return RefreshIndicator(
+        return RefreshIndicator(
           onRefresh: _handleRefresh,
           key: _refreshIndicatorKey,
           // notificationPredicate: (_) => _pageStatus != PageStatus.loading,
@@ -274,7 +282,7 @@ class _TopDecksPageState extends State<TopDecksPage> {
                                 ),
                               ),
                               coverUrl:
-                              'https://wsrv.nl/?url=https://s3.duellinksmeta.com${_tournamentTypeTopDeckGroups[index].data[0].tournamentType?.icon ?? _tournamentTypeTopDeckGroups[index].data[0].rankedType?.icon}&w=100&output=webp&we&n=-1&maxage=7d',
+                                  'https://wsrv.nl/?url=https://s3.duellinksmeta.com${_tournamentTypeTopDeckGroups[index].data[0].tournamentType?.icon ?? _tournamentTypeTopDeckGroups[index].data[0].rankedType?.icon}&w=100&output=webp&we&n=-1&maxage=7d',
                               onTap: () => _handleFilter(index),
                             );
                           },
@@ -312,22 +320,22 @@ class _TopDecksPageState extends State<TopDecksPage> {
                                   isNew: now.difference(_showTopDecks[index].data[0].created!.toLocal()).inHours < 72,
                                   topLeft: _showTopDecks[index].data[0].deckType.tier != null
                                       ? Container(
-                                    width: 20,
-                                    height: 19,
-                                    decoration: BoxDecoration(
-                                      color: _tier2colorMap[_showTopDecks[index].data[0].deckType.tier!] ?? Colors.white,
-                                      borderRadius: const BorderRadius.only(bottomRight: Radius.circular(4)),
-                                    ),
-                                    child: Center(
-                                      child: SizedBox(
-                                        width: 13,
-                                        child: Image.asset(
-                                          'assets/images/tier_m_${_showTopDecks[index].data[0].deckType.tier}.webp',
-                                          fit: BoxFit.contain,
-                                        ),
-                                      ),
-                                    ),
-                                  )
+                                          width: 20,
+                                          height: 19,
+                                          decoration: BoxDecoration(
+                                            color: _tier2colorMap[_showTopDecks[index].data[0].deckType.tier!] ?? Colors.white,
+                                            borderRadius: const BorderRadius.only(bottomRight: Radius.circular(4)),
+                                          ),
+                                          child: Center(
+                                            child: SizedBox(
+                                              width: 13,
+                                              child: Image.asset(
+                                                'assets/images/tier_m_${_showTopDecks[index].data[0].deckType.tier}.webp',
+                                                fit: BoxFit.contain,
+                                              ),
+                                            ),
+                                          ),
+                                        )
                                       : null,
                                 ),
                               ],
@@ -339,7 +347,7 @@ class _TopDecksPageState extends State<TopDecksPage> {
                     Opacity(
                       opacity: _pageStatus == PageStatus.fail ? 1 : 0,
                       child: SizedBox(
-                        height: MediaQuery.of(context).size.height - (Scaffold.of(context)?.appBarMaxHeight ?? 0),
+                        height: MediaQuery.of(context).size.height - (Scaffold.of(context).appBarMaxHeight ?? 0),
                         child: const Center(child: Text('加载失败')),
                       ),
                     )

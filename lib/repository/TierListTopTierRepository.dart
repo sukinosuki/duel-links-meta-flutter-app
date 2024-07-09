@@ -10,7 +10,7 @@ class TierListTopTierRepository {
 
     const hiveBoxKey = 'tier_list:top_tier';
     // if (!force) {
-    var hiveValue = MyHive.box.get(hiveBoxKey);
+    var hiveValue = await MyHive.box2.get(hiveBoxKey);
     print('[fetchTopTiers] box取值，value: $hiveValue, value == null ${hiveValue == null}, value type: ${hiveValue.runtimeType}');
     // }
 

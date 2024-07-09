@@ -83,11 +83,11 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
     if (Get.isDarkMode) {
       Get.changeThemeMode(ThemeMode.light);
       appStore.changeThemeMode(ThemeMode.light);
-      MyHive.box.put('dark_mode', 'light');
+      MyHive.box2.put('dark_mode', 'light');
     } else {
       Get.changeThemeMode(ThemeMode.dark);
       appStore.changeThemeMode(ThemeMode.dark);
-      MyHive.box.put('dark_mode', 'dark');
+      MyHive.box2.put('dark_mode', 'dark');
     }
   }
 

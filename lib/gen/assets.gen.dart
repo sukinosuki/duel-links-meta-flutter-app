@@ -202,6 +202,10 @@ class $AssetsImagesGen {
   AssetGenImage get tierM3 =>
       const AssetGenImage('assets/images/tier_m_3.webp');
 
+  /// File path: assets/images/tier_m_4.webp
+  AssetGenImage get tierM4 =>
+      const AssetGenImage('assets/images/tier_m_4.webp');
+
   /// List of all assets
   List<dynamic> get values => [
         cardPlaceholder,
@@ -251,7 +255,8 @@ class $AssetsImagesGen {
         tier4Dark,
         tierM1,
         tierM2,
-        tierM3
+        tierM3,
+        tierM4
       ];
 }
 

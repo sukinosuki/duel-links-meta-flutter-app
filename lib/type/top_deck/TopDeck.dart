@@ -1,8 +1,7 @@
 import 'package:duel_links_meta/hive/MyHive.dart';
+import 'package:duel_links_meta/type/MdCard.dart';
 import 'package:hive/hive.dart';
 import 'package:json_annotation/json_annotation.dart';
-
-import '../MdCard.dart';
 
 part 'TopDeck.g.dart';
 
@@ -46,6 +45,9 @@ class TopDeck {
 
   @HiveField(6)
   TopDeck_TournamentType? tournamentType;
+
+  @HiveField(7)
+  String? url;
 
   TopDeck();
 

@@ -41,7 +41,7 @@ class _CardViewState extends State<CardView> {
 
     if (widget.card.rarity != '') {
     } else {
-      var hiveData = MyHive.box.get('card:${widget.card.oid}');
+      var hiveData = await MyHive.box2.get('card:${widget.card.oid}');
 
       if (hiveData != null) {
         log('本地获取到card111');
@@ -55,11 +55,12 @@ class _CardViewState extends State<CardView> {
           return;
         }
 
-        var card = MdCard.fromJson(res![0]);
+        // var card = MdCard.fromJson(res![0]);
+        var card = res![0];
         setState(() {
           _card = card;
         });
-        MyHive.box.put('card:${card.oid}', card);
+        MyHive.box2.put('card:${card.oid}', card);
       }
     }
   }

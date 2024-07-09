@@ -27,6 +27,7 @@ extension FutureEx<T> on Future<Response<T>> {
       } catch (err) {
         log('[toCatch] err: $err');
 
+        // toast error
         err.toString().toast();
 
         return (HttpException(err.toString()), null);

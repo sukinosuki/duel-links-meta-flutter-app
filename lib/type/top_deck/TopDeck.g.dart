@@ -23,13 +23,14 @@ class TopDeckAdapter extends TypeAdapter<TopDeck> {
       ..gemsPrice = fields[3] as int
       ..skill = fields[4] as TopDeck_Skill?
       ..rankedType = fields[5] as TopDeck_RankedType?
-      ..tournamentType = fields[6] as TopDeck_TournamentType?;
+      ..tournamentType = fields[6] as TopDeck_TournamentType?
+      ..url = fields[7] as String?;
   }
 
   @override
   void write(BinaryWriter writer, TopDeck obj) {
     writer
-      ..writeByte(7)
+      ..writeByte(8)
       ..writeByte(0)
       ..write(obj.created)
       ..writeByte(1)
@@ -43,7 +44,9 @@ class TopDeckAdapter extends TypeAdapter<TopDeck> {
       ..writeByte(5)
       ..write(obj.rankedType)
       ..writeByte(6)
-      ..write(obj.tournamentType);
+      ..write(obj.tournamentType)
+      ..writeByte(7)
+      ..write(obj.url);
   }
 
   @override
@@ -248,7 +251,8 @@ TopDeck _$TopDeckFromJson(Map<String, dynamic> json) => TopDeck()
       : TopDeck_RankedType.fromJson(json['rankedType'])
   ..tournamentType = json['tournamentType'] == null
       ? null
-      : TopDeck_TournamentType.fromJson(json['tournamentType']);
+      : TopDeck_TournamentType.fromJson(json['tournamentType'])
+  ..url = json['url'] as String?;
 
 Map<String, dynamic> _$TopDeckToJson(TopDeck instance) => <String, dynamic>{
       'author': instance.author,
@@ -265,6 +269,7 @@ Map<String, dynamic> _$TopDeckToJson(TopDeck instance) => <String, dynamic>{
       'tournamentPlacement': instance.tournamentPlacement,
       'rankedType': instance.rankedType,
       'tournamentType': instance.tournamentType,
+      'url': instance.url,
     };
 
 TopDeck_DeckType _$TopDeck_DeckTypeFromJson(Map<String, dynamic> json) =>

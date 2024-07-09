@@ -38,18 +38,22 @@ class _PackDetailPageState extends State<PackDetailPage> {
   }
 
   //
-  fetchData() async {
-    var sourceKey = 'pack_card_ids:${pack.oid}';
-    var cardsIds = await MyHive.box2.get(sourceKey) as List<String>?;
+  Future<void> fetchData() async {
+    final sourceKey = 'pack_card_ids:${pack.oid}';
+    final cardsIds = await MyHive.box2.get(sourceKey) as List<String>?;
+
     if (cardsIds != null) {
       // await Future.delayed(Duration(milliseconds: 300));
       log('从本地获取到card, sourceKey: ${sourceKey}');
+
       final cards = <MdCard>[];
+
       for (var i=0; i<cardsIds.length;i++) {
-          var card = await MyHive.box2.get('card:${cardsIds[i]}') as MdCard?;
+          final card = await MyHive.box2.get('card:${cardsIds[i]}') as MdCard?;
 
           cards.add(card?? MdCard()..oid= cardsIds[i]);
       }
+      await Future.delayed(Duration(milliseconds: 200));
       // var cards = cardsIds.map((id) {
       //   var card = MyHive.box2.get('card:${id}') as MdCard;
       //
@@ -79,11 +83,11 @@ class _PackDetailPageState extends State<PackDetailPage> {
       return;
     }
 
-    var res = await CardApi().getObtainSourceId(pack.oid);
+    final res = await CardApi().getObtainSourceId(pack.oid);
 
-    var list = res.body!.map((e) => MdCard.fromJson(e)).toList();
+    final list = res.body!.map(MdCard.fromJson).toList();
     MyHive.box2.put(sourceKey, list.map((e) => e.oid).toList());
-    Map<String, List<MdCard>> rarityGroup = {};
+    final rarityGroup = <String, List<MdCard>>{};
 
     list.forEach((item) {
       MyHive.box2.put('card:${item.oid}', item);
@@ -111,89 +115,86 @@ class _PackDetailPageState extends State<PackDetailPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        child: Stack(
-          children: [
-            SingleChildScrollView(
-              child: Column(
-                children: [
-                  Hero(
-                    tag: pack.name,
-                    child: SizedBox(
-                      height: 200,
-                      child: Stack(
-                        children: [
-                          CachedNetworkImage(
-                            imageUrl: 'https://s3.duellinksmeta.com${pack.bannerImage}',
-                            width: double.infinity,
-                            height: double.infinity,
-                            fit: BoxFit.cover,
-                          ),
-                          Positioned.fill(
-                            // top: 100,
-                            bottom: -1,
-                            child: Container(
-                              decoration: BoxDecoration(
-                                gradient: LinearGradient(
-                                  begin: Alignment.bottomCenter,
-                                  end: Alignment.topCenter,
-                                  colors: [Theme.of(context).colorScheme.background, Colors.transparent],
-                                  // colors: [Colors.white, Colors.transparent],
-                                ),
+      body: Stack(
+        children: [
+          SingleChildScrollView(
+            child: Column(
+              children: [
+                Hero(
+                  tag: pack.name,
+                  child: SizedBox(
+                    height: 200,
+                    child: Stack(
+                      children: [
+                        CachedNetworkImage(
+                          imageUrl: 'https://s3.duellinksmeta.com${pack.bannerImage}',
+                          width: double.infinity,
+                          height: double.infinity,
+                          fit: BoxFit.cover,
+                        ),
+                        Positioned.fill(
+                          bottom: -1,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.bottomCenter,
+                                end: Alignment.topCenter,
+                                colors: [Theme.of(context).colorScheme.background, Colors.transparent],
+                                // colors: [Colors.white, Colors.transparent],
                               ),
                             ),
-                          )
-                        ],
-                      ),
+                          ),
+                        )
+                      ],
                     ),
                   ),
-                  AnimatedOpacity(
-                    opacity: _pageStatus == PageStatus.success ? 1 : 0,
-                    duration: const Duration(milliseconds: 500),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-                      child: Column(
-                        children: rarity2CardsGroup.keys
-                            .map((key) => Column(
-                                  children: [
-                                    // const SizedBox(height: 20),
-                                    Row(
-                                      mainAxisAlignment: MainAxisAlignment.end,
-                                      children: [Image.asset('assets/images/rarity_${key.toLowerCase()}.webp', height: 20)],
+                ),
+                AnimatedOpacity(
+                  opacity: _pageStatus == PageStatus.success ? 1 : 0,
+                  duration: const Duration(milliseconds: 500),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                    child: Column(
+                      children: rarity2CardsGroup.keys
+                          .map((key) => Column(
+                                children: [
+                                  const SizedBox(height: 20),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.end,
+                                    children: [Image.asset('assets/images/rarity_${key.toLowerCase()}.webp', height: 20)],
+                                  ),
+                                  Card(
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+                                    margin: const EdgeInsets.all(0),
+                                    child: Padding(
+                                      padding: const EdgeInsets.only(left: 6, right: 6, top: 6),
+                                      child: GridView.builder(
+                                          padding: const EdgeInsets.all(0),
+                                          shrinkWrap: true,
+                                          itemCount: rarity2CardsGroup[key]!.length,
+                                          physics: const NeverScrollableScrollPhysics(),
+                                          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                                              crossAxisCount: 5, childAspectRatio: 0.58, crossAxisSpacing: 6),
+                                          itemBuilder: (context, index) {
+                                            return MdCardItemView(
+                                              mdCard: rarity2CardsGroup[key]![index],
+                                              onTap: (card) => handleTapCardItem(rarity2CardsGroup[key]!, index),
+                                            );
+                                            // return Container(color: Colors.white,);
+                                          }),
                                     ),
-                                    Card(
-                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
-                                      margin: const EdgeInsets.all(0),
-                                      child: Padding(
-                                        padding: const EdgeInsets.only(left: 6, right: 6, top: 6),
-                                        child: GridView.builder(
-                                            padding: const EdgeInsets.all(0),
-                                            shrinkWrap: true,
-                                            itemCount: rarity2CardsGroup[key]!.length,
-                                            physics: const NeverScrollableScrollPhysics(),
-                                            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                                                crossAxisCount: 5, childAspectRatio: 0.58, crossAxisSpacing: 6),
-                                            itemBuilder: (context, index) {
-                                              return MdCardItemView(
-                                                mdCard: rarity2CardsGroup[key]![index],
-                                                onTap: (card) => handleTapCardItem(rarity2CardsGroup[key]!, index),
-                                              );
-                                              // return Container(color: Colors.white,);
-                                            }),
-                                      ),
-                                    )
-                                  ],
-                                ))
-                            .toList(),
-                      ),
+                                  )
+                                ],
+                              ))
+                          .toList(),
                     ),
-                  )
-                ],
-              ),
+                  ),
+                )
+              ],
             ),
-            if (_pageStatus == PageStatus.loading) const Positioned(child: Center(child: Loading()))
-          ],
-        ),
+          ),
+          if (_pageStatus == PageStatus.loading) const Positioned(child: Center(child: Loading()))
+        ],
       ),
     );
   }

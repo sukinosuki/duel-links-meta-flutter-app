@@ -32,8 +32,8 @@ class _PacksPageState extends State<PacksPage> with SingleTickerProviderStateMix
   Future<bool> fetchData({bool force = false}) async {
     var reRefreshFlag = false;
 
-    final hiveValue = MyHive.box.get(hiveBoxKey) as List?;
-    final lastFetchDate = MyHive.box.get(packSetListLastFetchDateKey);
+    final hiveValue = await MyHive.box2.get(hiveBoxKey) as List?;
+    final lastFetchDate = await MyHive.box2.get(packSetListLastFetchDateKey);
     late List<PackSet> list;
 
     if (hiveValue == null || force) {
@@ -48,8 +48,8 @@ class _PacksPageState extends State<PacksPage> with SingleTickerProviderStateMix
       }
       list = res!.map(PackSet.fromJson).toList();
 
-      MyHive.box.put(hiveBoxKey, list);
-      MyHive.box.put(packSetListLastFetchDateKey, DateTime.now());
+      MyHive.box2.put(hiveBoxKey, list);
+      MyHive.box2.put(packSetListLastFetchDateKey, DateTime.now());
     } else {
       log('本地获取到数据');
       try {
@@ -66,8 +66,8 @@ class _PacksPageState extends State<PacksPage> with SingleTickerProviderStateMix
         log('转换成功');
       } catch (e) {
         log('[fetchTopTiers] 转换失败: $e');
-        await MyHive.box.delete(hiveBoxKey);
-        await MyHive.box.delete(packSetListLastFetchDateKey);
+        await MyHive.box2.delete(hiveBoxKey);
+        await MyHive.box2.delete(packSetListLastFetchDateKey);
         return true;
       }
     }

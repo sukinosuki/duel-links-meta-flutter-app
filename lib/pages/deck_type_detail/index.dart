@@ -14,6 +14,7 @@ import 'package:duel_links_meta/http/CardApi.dart';
 import 'package:duel_links_meta/http/DeckTypeApi.dart';
 import 'package:duel_links_meta/http/TopDeckApi.dart';
 import 'package:duel_links_meta/pages/cards_viewpager/index.dart';
+import 'package:duel_links_meta/pages/deck_detail/components/DeckInfo.dart';
 import 'package:duel_links_meta/pages/deck_type_detail/components/DeckTypeBreakdownGridView.dart';
 import 'package:duel_links_meta/type/MdCard.dart';
 import 'package:duel_links_meta/type/deck_type/DeckType.dart';
@@ -22,6 +23,7 @@ import 'package:duel_links_meta/type/top_deck/TopDeck.dart';
 import 'package:duel_links_meta/util/time_util.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:get/utils.dart';
 
 class DeckTypeDetailPage extends StatefulWidget {
   const DeckTypeDetailPage({super.key, required this.name});
@@ -44,20 +46,8 @@ class _DeckTypeDetailPageState extends State<DeckTypeDetailPage> {
     return false;
   }
 
-  String formatToK(int number) {
-    if (number >= 1000) {
-      return '${(number / 1000).floor()}k';
-    }
-
-    return number.toString();
-  }
-
   DeckType? _deckType;
-  TopDeck? _topDeck;
-  List<MdCard> _mainCards = [];
-  List<MdCard> _mainSingularCards = [];
-  List<MdCard> _extraCards = [];
-  List<MdCard> _extraSingularCards = [];
+
   var _pageStatus = PageStatus.loading;
 
   List<DeckType_DeckBreakdownCards> get breakdownCards {
@@ -76,14 +66,6 @@ class _DeckTypeDetailPageState extends State<DeckTypeDetailPage> {
     return _deckType!.deckBreakdown.cards.where((item) => isExtraCard(item.card.monsterType)).toList();
   }
 
-  String get sampleDeckTournamentName {
-    if (_topDeck == null) return '';
-
-    if (_topDeck!.tournamentType == null) return '';
-
-    return '${_topDeck!.tournamentType!.shortName} ${_topDeck!.tournamentType!.enumSuffix} ${_topDeck!.tournamentNumber}';
-  }
-
   void handleTapSkill(DeckType_DeckBreakdown_Skill skill) {
     showDialog<void>(
       context: context,
@@ -97,130 +79,48 @@ class _DeckTypeDetailPageState extends State<DeckTypeDetailPage> {
     );
   }
 
-  void handleTapSampleDeckCard(int index) {
-    final id = _mainCards[index].oid;
+  //
+  Future<bool> fetchDeckType({bool force = false}) async {
+    final hiveDeckTypeKey = 'deck_type:$_deckTypeName';
+    final hiveDeckTypeFetchDateKey = 'deck_type_fetch_date:$_deckTypeName';
+    var deckType = await MyHive.box2.get(hiveDeckTypeKey) as DeckType?;
+    final hiveDataExpire = await MyHive.box2.get(hiveDeckTypeFetchDateKey) as DateTime?;
+    Exception? err;
 
-    final index0 = _mainSingularCards.indexWhere((element) => element.oid == id);
+    var refreshFlag = false;
 
-    showDialog<void>(
-      context: context,
-      builder: (context) => Dialog.fullscreen(
-        backgroundColor: Colors.black87.withOpacity(0.3),
-        child: CardsViewpagerPage(cards: _mainSingularCards, index: index0),
-      ),
-    );
-  }
+    if (deckType == null || force) {
+      (err, deckType) = await DeckTypeApi().getDetailByName(_deckTypeName).toCatch;
 
-  void handleTapSampleDeckExtraCard(int index) {
-    final id = _extraCards[index].oid;
-
-    final cardIndex = _extraSingularCards.indexWhere((element) => element.oid == id);
-
-    showDialog<void>(
-      context: context,
-      builder: (context) => Dialog.fullscreen(
-        backgroundColor: Colors.black87.withOpacity(0.3),
-        child: CardsViewpagerPage(cards: _extraSingularCards, index: cardIndex),
-      ),
-    );
-  }
-
-  Future<void> fetchDeckType({bool force = false}) async {
-    // setState(() {
-    //   _deckType = null;
-    //   _pageStatus = PageStatus.loading;
-    // });
-
-    var deckTypeKey = 'deck_type:$_deckTypeName';
-    var deckTypeFetchDateKey = 'deck_type_fetch_date:${_deckTypeName}';
-    var hiveData = await MyHive.box2.get(deckTypeKey) as DeckType?;
-    var hiveDataExpire = await MyHive.box2.get(deckTypeFetchDateKey) as DateTime?;
-
-    DeckType? deckType;
-    if (hiveData == null || force) {
-      log('本地没数据，请求获取 ${hiveData}');
-      final (err, __deckType) = await DeckTypeApi().getDetailByName(_deckTypeName).toCatch;
       if (err != null) {
         setState(() {
           _pageStatus = PageStatus.fail;
         });
 
-        return;
+        return false;
       }
-      deckType = __deckType;
-      MyHive.box2.put(deckTypeKey, __deckType);
+      MyHive.box2.put(hiveDeckTypeKey, deckType);
+      MyHive.box2.put(hiveDeckTypeFetchDateKey, DateTime.now());
     } else {
       log('从本地获取数据');
       try {
-        deckType = hiveData as DeckType;
-        log('deckType.toJson(): ${deckType.toJson()}');
+        if (hiveDataExpire != null && hiveDataExpire.add(const Duration(hours: 12)).isBefore(DateTime.now())) {
+          refreshFlag = true;
+        }
       } catch (e) {
         log('转换失败');
-        MyHive.box2.delete(deckTypeKey);
-        MyHive.box2.delete(deckTypeFetchDateKey);
+        MyHive.box2.delete(hiveDeckTypeKey);
+        MyHive.box2.delete(hiveDeckTypeFetchDateKey);
+        return true;
       }
     }
-    // final deckTpe = res.body!;
-
-    final topDeckRes = await TopDeckApi().getBreakdownSample(deckType!.oid);
-    final topDeck = topDeckRes.body!;
-
-    final mainCardIds = topDeck.main.map((e) => e.card.oid).toList();
-    final extraCardIds = topDeck.extra.map((e) => e.card.oid).toList();
-    mainCardIds.addAll(extraCardIds);
-    final idStrings = mainCardIds.join(',');
-
-    // 从本地获取card
-
-    // final cardsRes = await CardApi().getById(idStrings);
-    // final cards = cardsRes.body!.map(MdCard.fromJson);
-    List<MdCard> cards = [];
-    for (var i = 0; i < mainCardIds.length; i++) {
-      var hiveData = await MyHive.box2.get('card:${mainCardIds[i]}') as MdCard?;
-      if (hiveData == null) {}
-      cards.add(hiveData ?? MdCard()
-        ..oid = mainCardIds[i]);
-    }
-
-    final id2CardMap = <String, MdCard>{};
-    cards.forEach((item) {
-      id2CardMap[item.oid] = item;
-    });
-    final mainCards = <MdCard>[];
-    final mainSingularCards = <MdCard>[];
-    final extraCards = <MdCard>[];
-    final extraSingularCards = <MdCard>[];
-
-    topDeck.main.forEach((item) {
-      final card = id2CardMap[item.card.oid]!;
-      mainSingularCards.add(card);
-
-      var amount = item.amount;
-      while (amount > 0) {
-        mainCards.add(card);
-        amount--;
-      }
-    });
-    topDeck.extra.forEach((item) {
-      final card = id2CardMap[item.card.oid]!;
-      extraSingularCards.add(card);
-
-      var amount = item.amount;
-      while (amount > 0) {
-        extraCards.add(id2CardMap[item.card.oid]!);
-        amount--;
-      }
-    });
 
     setState(() {
       _deckType = deckType;
-      _topDeck = topDeck;
       _pageStatus = PageStatus.success;
-      _mainCards = mainCards;
-      _mainSingularCards = mainSingularCards;
-      _extraCards = extraCards;
-      _extraSingularCards = extraSingularCards;
     });
+
+    return refreshFlag;
   }
 
   @override
@@ -235,7 +135,6 @@ class _DeckTypeDetailPageState extends State<DeckTypeDetailPage> {
       body: Stack(
         children: [
           SingleChildScrollView(
-            // padding: EdgeInsets.only(bottom: 8),
             child: Column(
               children: [
                 Stack(
@@ -304,7 +203,9 @@ class _DeckTypeDetailPageState extends State<DeckTypeDetailPage> {
                             ? Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  SizedBox(height: 140,),
+                                  const SizedBox(
+                                    height: 140,
+                                  ),
                                   const Padding(
                                     padding: EdgeInsets.symmetric(vertical: 12),
                                     child: Text('Top Main Deck', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w500)),
@@ -345,114 +246,8 @@ class _DeckTypeDetailPageState extends State<DeckTypeDetailPage> {
                                   ),
                                   const SizedBox(height: 20),
                                   const Text('Sample Deck', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w500)),
-                                  Wrap(
-                                    children: [
-                                      Text(_topDeck?.tournamentPlacement.toString() ?? '', style: const TextStyle(fontSize: 12)),
-                                      const Padding(
-                                          padding: EdgeInsets.symmetric(horizontal: 4), child: Text('—', style: TextStyle(fontSize: 12))),
-                                      Text(sampleDeckTournamentName, style: const TextStyle(color: Color(0xff0a87bb), fontSize: 12)),
-                                      const Padding(
-                                          padding: EdgeInsets.symmetric(horizontal: 4), child: Text('—', style: TextStyle(fontSize: 12))),
-                                      if (_topDeck != null) Text(TimeUtil.format(_topDeck?.created), style: const TextStyle(fontSize: 12)),
-                                      const Padding(
-                                          padding: EdgeInsets.symmetric(horizontal: 4), child: Text('—', style: TextStyle(fontSize: 12))),
-                                      if (_topDeck != null)
-                                        Text(_topDeck!.author is String ? _topDeck!.author.toString() : '',
-                                            style: const TextStyle(fontSize: 12))
-                                    ],
-                                  ),
-                                  const SizedBox(height: 10),
-                                  Row(
-                                    children: [
-                                      SizedBox(
-                                        width: 80,
-                                        child: Row(
-                                          children: [
-                                            Assets.images.iconGem.image(width: 13, height: 13),
-                                            const SizedBox(width: 4),
-                                            Text(formatToK(_topDeck?.gemsPrice ?? 0), style: const TextStyle(fontSize: 11)),
-                                            const Padding(
-                                                padding: EdgeInsets.symmetric(horizontal: 4),
-                                                child: Text('+', style: TextStyle(fontSize: 11))),
-                                            Text('\$${_topDeck?.dollarsPrice.toString() ?? '0'}', style: const TextStyle(fontSize: 11)),
-                                          ],
-                                        ),
-                                      ),
-                                      Expanded(
-                                        child: Row(
-                                          mainAxisAlignment: MainAxisAlignment.center,
-                                          children: [
-                                            Assets.images.iconSkill2.image(width: 15, height: 15),
-                                            const SizedBox(width: 2),
-                                            Text(_topDeck?.skill?.name ?? '',
-                                                style: const TextStyle(color: Color(0xff0a87bb), fontSize: 12)),
-                                          ],
-                                        ),
-                                      ),
-                                      SizedBox(
-                                          width: 80,
-                                          child: Row(
-                                            mainAxisAlignment: MainAxisAlignment.end,
-                                            children: [
-                                              Text(
-                                                _topDeck?.main.map((e) => e.amount).reduce((a, b) => a + b).toString() ?? '',
-                                                style: const TextStyle(fontSize: 11),
-                                              ),
-                                            ],
-                                          ))
-                                    ],
-                                  ),
-                                  const SizedBox(height: 10),
-                                  Card(
-                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
-                                    margin: const EdgeInsets.all(0),
-                                    child: Padding(
-                                      padding: const EdgeInsets.only(left: 8, right: 8, top: 8),
-                                      child: GridView.builder(
-                                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                                            crossAxisCount: 5, mainAxisSpacing: 0, crossAxisSpacing: 8, childAspectRatio: 0.57),
-                                        padding: const EdgeInsets.all(0),
-                                        shrinkWrap: true,
-                                        physics: const NeverScrollableScrollPhysics(),
-                                        itemCount: _mainCards.length,
-                                        itemBuilder: (context, index) {
-                                          return MdCardItemView2(
-                                            onTap: (card) => handleTapSampleDeckCard(index),
-                                            mdCard: _mainCards[index],
-                                            id: _mainCards[index].oid,
-                                          );
-                                        },
-                                      ),
-                                    ),
-                                  ),
-                                  if (_extraCards.isNotEmpty)
-                                    Column(
-                                      children: [
-                                        const SizedBox(height: 10),
-                                        Card(
-                                          margin: const EdgeInsets.all(0),
-                                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
-                                          child: Padding(
-                                            padding: const EdgeInsets.only(left: 8, right: 8, top: 8),
-                                            child: GridView.builder(
-                                              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                                                  crossAxisCount: 8, mainAxisSpacing: 0, crossAxisSpacing: 8, childAspectRatio: 0.53),
-                                              padding: const EdgeInsets.all(0),
-                                              shrinkWrap: true,
-                                              physics: const NeverScrollableScrollPhysics(),
-                                              itemCount: _extraCards.length,
-                                              itemBuilder: (context, index) {
-                                                return MdCardItemView2(
-                                                  onTap: (card) => handleTapSampleDeckExtraCard(index),
-                                                  mdCard: _extraCards[index],
-                                                  id: _extraCards[index].oid,
-                                                );
-                                              },
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    )
+
+                                  DeckInfo(deckTypeId: _deckType?.oid,)
                                 ],
                               )
                             : null,
@@ -463,7 +258,12 @@ class _DeckTypeDetailPageState extends State<DeckTypeDetailPage> {
               ],
             ),
           ),
-          if (_pageStatus == PageStatus.loading) const Positioned.fill(child: Center(child: Loading()))
+          if (_pageStatus == PageStatus.loading)
+            const Positioned.fill(
+              child: Center(
+                child: Loading(),
+              ),
+            )
         ],
       ),
     );
