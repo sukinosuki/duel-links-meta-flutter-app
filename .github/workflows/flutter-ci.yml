@@ -10,6 +10,10 @@ jobs:
     steps:
       - name: Clone repository
         uses: actions/checkout@v4
+      - name: Setup JDK
+        uses: actions/setup-java@v1
+        with:
+          java-version: '11.x'
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
@@ -18,8 +22,8 @@ jobs:
       - name: Build apks
         run: |
           flutter pub get
-          flutter build apk --release --tree-shake-icons
-          flutter build apk --target-platform android-arm,android-arm64,android-x64 --split-per-abi --release --tree-shake-icons
+          flutter build apk --release
+#          flutter build apk --target-platform android-arm,android-arm64,android-x64 --split-per-abi --release --tree-shake-icons
           mkdir -p releases
           mv -f build/app/outputs/flutter-apk/*-release.apk releases
           mv -f releases/app-release.apk releases/app-universal-release.apk
@@ -28,6 +32,6 @@ jobs:
         with:
           allowUpdates: true
           artifacts: "releases/*-release.apk"
-          token: ${{ secrets.ACTION_TOKEN }}
+#          token: ${{ secrets.ACTION_TOKEN }}
 #          tag: ${{ github.event.inputs.TAG }}
           tag: 1.0
