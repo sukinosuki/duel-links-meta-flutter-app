@@ -15,4 +15,19 @@ jobs:
         with:
           channel: stable
           flutter-version: 3.19.0
-      - run: flutter --version
+      - name: Build apks
+        run: |
+          flutter pub get
+          flutter build apk --release --tree-shake-icons
+          flutter build apk --target-platform android-arm,android-arm64,android-x64 --split-per-abi --release --tree-shake-icons
+          mkdir -p releases
+          mv -f build/app/outputs/flutter-apk/*-release.apk releases
+          mv -f releases/app-release.apk releases/app-universal-release.apk
+      - name: Release to github
+        uses: ncipollo/release-action@v1
+        with:
+          allowUpdates: true
+          artifacts: "releases/*-release.apk"
+          token: ${{ secrets.ACTION_TOKEN }}
+#          tag: ${{ github.event.inputs.TAG }}
+          tag: 1.0
