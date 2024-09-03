@@ -7,6 +7,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Clone repository
         uses: actions/checkout@v4
@@ -22,6 +24,7 @@ jobs:
         run: |
           flutter pub get
           flutter build apk --release
+          flutter build apk --target-platform android-arm,android-arm64,android-x64 --split-per-abi --release
           mkdir -p releases
           mv -f build/app/outputs/flutter-apk/*-release.apk releases
           mv -f releases/app-release.apk releases/app-universal-release.apk
@@ -30,5 +33,5 @@ jobs:
         with:
           allowUpdates: true
           artifacts: "releases/*-release.apk"
-          token: ${{ secrets.ACTION_TOKEN }}
+          token: ${{ secrets.GITHUB_ACTION }}
           tag: 1.0
