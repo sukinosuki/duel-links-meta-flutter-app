@@ -33,5 +33,4 @@ jobs:
         with:
           allowUpdates: true
           artifacts: "releases/*-release.apk"
-          token: ${{ secrets.GITHUB_ACTION }}
           tag: 1.0
