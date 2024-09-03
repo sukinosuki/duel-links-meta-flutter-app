@@ -3,7 +3,9 @@ import 'dart:developer';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:duel_links_meta/components/Loading.dart';
 import 'package:duel_links_meta/components/MdCardItemView.dart';
-import 'package:duel_links_meta/hive/MyHive.dart';
+import 'package:duel_links_meta/extension/Future.dart';
+import 'package:duel_links_meta/hive/db/CardHiveDb.dart';
+import 'package:duel_links_meta/hive/db/PackHiveDb.dart';
 import 'package:duel_links_meta/http/CardApi.dart';
 import 'package:duel_links_meta/pages/cards_viewpager/index.dart';
 import 'package:duel_links_meta/type/MdCard.dart';
@@ -11,9 +13,10 @@ import 'package:duel_links_meta/type/enum/PageStatus.dart';
 import 'package:duel_links_meta/type/pack_set/PackSet.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 
 class PackDetailPage extends StatefulWidget {
-  const PackDetailPage({super.key, required this.pack});
+  const PackDetailPage({required this.pack, super.key});
 
   final PackSet pack;
 
@@ -23,12 +26,12 @@ class PackDetailPage extends StatefulWidget {
 
 class _PackDetailPageState extends State<PackDetailPage> {
   PackSet get pack => widget.pack;
-  List<MdCard> _cards = [];
   Map<String, List<MdCard>> rarity2CardsGroup = {};
   var _pageStatus = PageStatus.loading;
+  final _refreshIndicatorKey = GlobalKey<RefreshIndicatorState>();
 
-  handleTapCardItem(List<MdCard> cards, int index) {
-    showDialog(
+  void handleTapCardItem(List<MdCard> cards, int index) {
+    showDialog<void>(
       context: context,
       builder: (context) => Dialog.fullscreen(
         backgroundColor: Colors.black87.withOpacity(0.3),
@@ -38,91 +41,84 @@ class _PackDetailPageState extends State<PackDetailPage> {
   }
 
   //
-  Future<void> fetchData() async {
-    final sourceKey = 'pack_card_ids:${pack.oid}';
-    final cardsIds = await MyHive.box2.get(sourceKey) as List<String>?;
+  Future<void> fetchData({bool force = false}) async {
+    final cardsIds = await PackHiveDb.getIds(pack.oid);
+    var cards = <MdCard>[];
 
     if (cardsIds != null) {
-      // await Future.delayed(Duration(milliseconds: 300));
-      log('从本地获取到card, sourceKey: ${sourceKey}');
+      for (var i = 0; i < cardsIds.length; i++) {
+        final card = await CardHiveDb.get(cardsIds[i]);
 
-      final cards = <MdCard>[];
-
-      for (var i=0; i<cardsIds.length;i++) {
-          final card = await MyHive.box2.get('card:${cardsIds[i]}') as MdCard?;
-
-          cards.add(card?? MdCard()..oid= cardsIds[i]);
+        cards.add(card ?? MdCard()
+          ..oid = cardsIds[i]);
       }
-      await Future.delayed(Duration(milliseconds: 200));
-      // var cards = cardsIds.map((id) {
-      //   var card = MyHive.box2.get('card:${id}') as MdCard;
-      //
-      //   return card;
-      // }).toList();
+    } else {
+      final (err, list) = await CardApi().getByObtainSource(pack.oid).toCatch;
+      if (err != null || list == null) {
+        setState(() {
+          _pageStatus = PageStatus.fail;
+        });
+        return;
+      }
 
-      log('从本地获取到card, length: ${cards.length}');
-
-      final rarityGroup = <String, List<MdCard>>{};
-
-      cards.forEach((item) {
-        // MyHive.box2.put('card:${item.oid}', item);
-
-        if (rarityGroup[item.rarity] == null) {
-          rarityGroup[item.rarity] = [item];
-        } else {
-          rarityGroup[item.rarity]!.add(item);
-        }
-      });
-
-      setState(() {
-        rarity2CardsGroup = rarityGroup;
-        _cards = cards;
-        _pageStatus = PageStatus.success;
-      });
-
-      return;
+      cards = list;
+      PackHiveDb.setIds(pack.oid, list.map((e) => e.oid).toList()).ignore();
     }
 
-    final res = await CardApi().getObtainSourceId(pack.oid);
-
-    final list = res.body!.map(MdCard.fromJson).toList();
-    MyHive.box2.put(sourceKey, list.map((e) => e.oid).toList());
     final rarityGroup = <String, List<MdCard>>{};
 
-    list.forEach((item) {
-      MyHive.box2.put('card:${item.oid}', item);
+    cards.forEach((element) {
+      if (cardsIds == null && element.rarity != '') {
+        CardHiveDb.setCard(element);
+      }
 
-      if (rarityGroup[item.rarity] == null) {
-        rarityGroup[item.rarity] = [item];
+      if (rarityGroup[element.rarity] == null) {
+        rarityGroup[element.rarity] = [element];
       } else {
-        rarityGroup[item.rarity]!.add(item);
+        rarityGroup[element.rarity]!.add(element);
       }
     });
 
     setState(() {
       rarity2CardsGroup = rarityGroup;
-      _cards = list;
       _pageStatus = PageStatus.success;
     });
+  }
+
+  var _isInit = false;
+
+  Future<void> _handleRefresh() async {
+    await fetchData(force: _isInit);
+    _isInit = true;
+  }
+
+  void _triggerRefresh() {
+    _refreshIndicatorKey.currentState?.show();
   }
 
   @override
   void initState() {
     super.initState();
-    fetchData();
+
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      _triggerRefresh();
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Stack(
-        children: [
-          SingleChildScrollView(
-            child: Column(
-              children: [
-                Hero(
-                  tag: pack.name,
-                  child: SizedBox(
+      body: RefreshIndicator(
+        key: _refreshIndicatorKey,
+        onRefresh: _handleRefresh,
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              child: Column(
+                children: [
+                  SizedBox(
                     height: 200,
                     child: Stack(
                       children: [
@@ -138,63 +134,78 @@ class _PackDetailPageState extends State<PackDetailPage> {
                             decoration: BoxDecoration(
                               gradient: LinearGradient(
                                 begin: Alignment.bottomCenter,
-                                end: Alignment.topCenter,
-                                colors: [Theme.of(context).colorScheme.background, Colors.transparent],
-                                // colors: [Colors.white, Colors.transparent],
+                                end: Alignment.center,
+                                colors: [
+                                  Theme.of(context).scaffoldBackgroundColor,
+                                  Theme.of(context).scaffoldBackgroundColor.withOpacity(0)
+                                ],
                               ),
                             ),
                           ),
-                        )
+                        ),
                       ],
                     ),
                   ),
-                ),
-                AnimatedOpacity(
-                  opacity: _pageStatus == PageStatus.success ? 1 : 0,
-                  duration: const Duration(milliseconds: 500),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-                    child: Column(
-                      children: rarity2CardsGroup.keys
-                          .map((key) => Column(
+                  AnimatedOpacity(
+                    opacity: _pageStatus == PageStatus.success ? 1 : 0,
+                    duration: const Duration(milliseconds: 300),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                      child: Column(
+                        children: rarity2CardsGroup.keys
+                            .map(
+                              (key) => Column(
                                 children: [
                                   const SizedBox(height: 20),
                                   Row(
                                     mainAxisAlignment: MainAxisAlignment.end,
-                                    children: [Image.asset('assets/images/rarity_${key.toLowerCase()}.webp', height: 20)],
+                                    children: [
+                                      Image.asset('assets/images/rarity_${key.toLowerCase()}.webp', height: 20),
+                                    ],
                                   ),
                                   Card(
                                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
-                                    margin: const EdgeInsets.all(0),
+                                    margin: EdgeInsets.zero,
                                     child: Padding(
                                       padding: const EdgeInsets.only(left: 6, right: 6, top: 6),
                                       child: GridView.builder(
-                                          padding: const EdgeInsets.all(0),
-                                          shrinkWrap: true,
-                                          itemCount: rarity2CardsGroup[key]!.length,
-                                          physics: const NeverScrollableScrollPhysics(),
-                                          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                                              crossAxisCount: 5, childAspectRatio: 0.58, crossAxisSpacing: 6),
-                                          itemBuilder: (context, index) {
-                                            return MdCardItemView(
-                                              mdCard: rarity2CardsGroup[key]![index],
-                                              onTap: (card) => handleTapCardItem(rarity2CardsGroup[key]!, index),
-                                            );
-                                            // return Container(color: Colors.white,);
-                                          }),
+                                        padding: EdgeInsets.zero,
+                                        shrinkWrap: true,
+                                        itemCount: rarity2CardsGroup[key]!.length,
+                                        physics: const NeverScrollableScrollPhysics(),
+                                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                                          crossAxisCount: 5,
+                                          childAspectRatio: 0.58,
+                                          crossAxisSpacing: 6,
+                                        ),
+                                        itemBuilder: (context, index) {
+                                          return MdCardItemView(
+                                            mdCard: rarity2CardsGroup[key]![index],
+                                            onTap: (card) => handleTapCardItem(rarity2CardsGroup[key]!, index),
+                                          );
+                                          // return Container(color: Colors.white,);
+                                        },
+                                      ),
                                     ),
-                                  )
+                                  ),
                                 ],
-                              ))
-                          .toList(),
+                              ),
+                            )
+                            .toList(),
+                      ),
                     ),
                   ),
-                )
-              ],
+                ],
+              ),
             ),
-          ),
-          if (_pageStatus == PageStatus.loading) const Positioned(child: Center(child: Loading()))
-        ],
+            if (_pageStatus == PageStatus.fail)
+              const Positioned(
+                child: Center(
+                  child: Text('Loading failed'),
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }

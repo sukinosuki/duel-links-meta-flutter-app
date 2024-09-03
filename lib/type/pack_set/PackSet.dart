@@ -10,7 +10,8 @@ class PackSet {
 
   PackSet();
 
-  factory PackSet.fromJson(dynamic json) => _$PackSetFromJson(json);
+  factory PackSet.fromJson(dynamic json) => _$PackSetFromJson(json as Map<String, dynamic>);
+
   @HiveField(0)
   @JsonKey(name: '_id', defaultValue: '')
   String oid = '';
@@ -41,7 +42,7 @@ class PackSet_Icon {
 
   PackSet_Icon();
 
-  factory PackSet_Icon.fromJson(dynamic json) => _$PackSet_IconFromJson(json);
+  factory PackSet_Icon.fromJson(dynamic json) => _$PackSet_IconFromJson(json as Map<String, dynamic>);
   dynamic toJson() => _$PackSet_IconToJson(this);
 
   @HiveField(0)

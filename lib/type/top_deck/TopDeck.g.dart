@@ -231,19 +231,22 @@ TopDeck _$TopDeckFromJson(Map<String, dynamic> json) => TopDeck()
   ..created =
       json['created'] == null ? null : DateTime.parse(json['created'] as String)
   ..customTournamentName = json['customTournamentName'] as String?
-  ..deckType = TopDeck_DeckType.fromJson(json['deckType'])
+  ..deckType =
+      TopDeck_DeckType.fromJson(json['deckType'] as Map<String, dynamic>)
   ..dollarsPrice = json['dollarsPrice'] as int
   ..extra = (json['extra'] as List<dynamic>?)
-          ?.map(TopDeck_MainCard.fromJson)
+          ?.map((e) => TopDeck_MainCard.fromJson(e as Map<String, dynamic>))
           .toList() ??
       []
   ..gemsPrice = json['gemsPrice'] as int
   ..main = (json['main'] as List<dynamic>?)
-          ?.map(TopDeck_MainCard.fromJson)
+          ?.map((e) => TopDeck_MainCard.fromJson(e as Map<String, dynamic>))
           .toList() ??
       []
   ..rush = json['rush'] as bool?
-  ..skill = json['skill'] == null ? null : TopDeck_Skill.fromJson(json['skill'])
+  ..skill = json['skill'] == null
+      ? null
+      : TopDeck_Skill.fromJson(json['skill'] as Map<String, dynamic>)
   ..tournamentNumber = json['tournamentNumber'] as String?
   ..tournamentPlacement = json['tournamentPlacement'] as String?
   ..rankedType = json['rankedType'] == null
@@ -251,7 +254,8 @@ TopDeck _$TopDeckFromJson(Map<String, dynamic> json) => TopDeck()
       : TopDeck_RankedType.fromJson(json['rankedType'])
   ..tournamentType = json['tournamentType'] == null
       ? null
-      : TopDeck_TournamentType.fromJson(json['tournamentType'])
+      : TopDeck_TournamentType.fromJson(
+          json['tournamentType'] as Map<String, dynamic>)
   ..url = json['url'] as String?;
 
 Map<String, dynamic> _$TopDeckToJson(TopDeck instance) => <String, dynamic>{
@@ -286,7 +290,8 @@ Map<String, dynamic> _$TopDeck_DeckTypeToJson(TopDeck_DeckType instance) =>
 TopDeck_MainCard _$TopDeck_MainCardFromJson(Map<String, dynamic> json) =>
     TopDeck_MainCard()
       ..amount = json['amount'] as int
-      ..card = TopDeck_MainCard_Card.fromJson(json['card']);
+      ..card =
+          TopDeck_MainCard_Card.fromJson(json['card'] as Map<String, dynamic>);
 
 Map<String, dynamic> _$TopDeck_MainCardToJson(TopDeck_MainCard instance) =>
     <String, dynamic>{

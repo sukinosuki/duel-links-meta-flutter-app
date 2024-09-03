@@ -1,32 +1,24 @@
 import 'dart:developer';
 import 'dart:ui';
 
+import 'package:animations/animations.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:duel_links_meta/components/Loading.dart';
-import 'package:duel_links_meta/components/MdCardItemView.dart';
-import 'package:duel_links_meta/components/MdCardItemView2.dart';
 import 'package:duel_links_meta/components/SkillModalView.dart';
-import 'package:duel_links_meta/constant/colors.dart';
 import 'package:duel_links_meta/extension/Future.dart';
-import 'package:duel_links_meta/gen/assets.gen.dart';
-import 'package:duel_links_meta/hive/MyHive.dart';
-import 'package:duel_links_meta/http/CardApi.dart';
+import 'package:duel_links_meta/hive/db/DeckTypeDetailHiveDb.dart';
 import 'package:duel_links_meta/http/DeckTypeApi.dart';
-import 'package:duel_links_meta/http/TopDeckApi.dart';
-import 'package:duel_links_meta/pages/cards_viewpager/index.dart';
 import 'package:duel_links_meta/pages/deck_detail/components/DeckInfo.dart';
 import 'package:duel_links_meta/pages/deck_type_detail/components/DeckTypeBreakdownGridView.dart';
-import 'package:duel_links_meta/type/MdCard.dart';
+import 'package:duel_links_meta/store/AppStore.dart';
 import 'package:duel_links_meta/type/deck_type/DeckType.dart';
 import 'package:duel_links_meta/type/enum/PageStatus.dart';
-import 'package:duel_links_meta/type/top_deck/TopDeck.dart';
-import 'package:duel_links_meta/util/time_util.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:get/utils.dart';
+import 'package:flutter/scheduler.dart';
+import 'package:get/get.dart';
 
 class DeckTypeDetailPage extends StatefulWidget {
-  const DeckTypeDetailPage({super.key, required this.name});
+  const DeckTypeDetailPage({required this.name, super.key});
 
   final String name;
 
@@ -36,6 +28,9 @@ class DeckTypeDetailPage extends StatefulWidget {
 
 class _DeckTypeDetailPageState extends State<DeckTypeDetailPage> {
   String get _deckTypeName => widget.name;
+  final _refreshIndicator = GlobalKey<RefreshIndicatorState>();
+
+  final AppStore appStore = Get.put(AppStore());
 
   bool isExtraCard(List<String> monsterType) {
     if (monsterType.contains('Link')) return true;
@@ -50,7 +45,7 @@ class _DeckTypeDetailPageState extends State<DeckTypeDetailPage> {
 
   var _pageStatus = PageStatus.loading;
 
-  List<DeckType_DeckBreakdownCards> get breakdownCards {
+  List<DeckType_DeckBreakdownCards> get _breakdownCards {
     if (_deckType == null) {
       return [];
     }
@@ -58,7 +53,7 @@ class _DeckTypeDetailPageState extends State<DeckTypeDetailPage> {
     return _deckType!.deckBreakdown.cards.where((item) => !isExtraCard(item.card.monsterType)).toList();
   }
 
-  List<DeckType_DeckBreakdownCards> get breakdownExtraCards {
+  List<DeckType_DeckBreakdownCards> get _breakdownExtraCards {
     if (_deckType == null) {
       return [];
     }
@@ -66,53 +61,72 @@ class _DeckTypeDetailPageState extends State<DeckTypeDetailPage> {
     return _deckType!.deckBreakdown.cards.where((item) => isExtraCard(item.card.monsterType)).toList();
   }
 
-  void handleTapSkill(DeckType_DeckBreakdown_Skill skill) {
-    showDialog<void>(
+  Future<void> handleTapSkill(DeckType_DeckBreakdown_Skill skill) async {
+    // await showModal<void>(
+    //   context: context,
+    //   builder: (context) {
+    //     return Padding(padding: EdgeInsets.symmetric(horizontal: 12), child: SkillModalView(name: skill.name));
+    //   },
+    //   // configuration: FadeScaleTransitionConfiguration(),
+    // );
+    await showDialog<void>(
       context: context,
-      builder: (context) => Dialog.fullscreen(
-        backgroundColor: Colors.black.withOpacity(0.2),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 30),
-          child: SkillModalView(name: skill.name),
-        ),
-      ),
+      builder: (context) => SkillModalView(name: skill.name),
+      // builder: (context) => Dialog.fullscreen(
+      //   backgroundColor: Colors.black.withOpacity(0.3),
+      //   child: Container(
+      //     padding: const EdgeInsets.symmetric(horizontal: 30),
+      //     child: SkillModalView(name: skill.name),
+      //   ),
+      // ),
     );
+
+    // await showGeneralDialog<void>(
+    //   context: context,
+    //   barrierDismissible: true,
+    //   barrierLabel: '',
+    //   pageBuilder: (context, anim1, anim2) {
+    //     // return SkillModalView(name: skill.name);
+    //     return SkillModalView(name: skill.name);
+    //   },
+    //   transitionDuration: Duration(milliseconds: 400),
+    //   transitionBuilder: (context, anim1, anim2, child) {
+    //     return Transform.scale(
+    //       scale: anim1.value,
+    //       child: Opacity(
+    //         opacity: anim1.value,
+    //         child: child,
+    //       ),
+    //     );
+    //   },
+    // );
   }
 
   //
   Future<bool> fetchDeckType({bool force = false}) async {
-    final hiveDeckTypeKey = 'deck_type:$_deckTypeName';
-    final hiveDeckTypeFetchDateKey = 'deck_type_fetch_date:$_deckTypeName';
-    var deckType = await MyHive.box2.get(hiveDeckTypeKey) as DeckType?;
-    final hiveDataExpire = await MyHive.box2.get(hiveDeckTypeFetchDateKey) as DateTime?;
+    var deckType = await DeckTypeDetailHiveDb.getDetail(_deckTypeName);
+    final hiveDataExpire = await DeckTypeDetailHiveDb.getDetailExpireDate(_deckTypeName);
     Exception? err;
 
     var refreshFlag = false;
 
     if (deckType == null || force) {
+      log('需要请求获取数据, 本地数据为空: ${deckType == null}, 是否强制刷新: $force');
+
       (err, deckType) = await DeckTypeApi().getDetailByName(_deckTypeName).toCatch;
 
-      if (err != null) {
+      if (err != null || deckType == null) {
         setState(() {
           _pageStatus = PageStatus.fail;
         });
 
         return false;
       }
-      MyHive.box2.put(hiveDeckTypeKey, deckType);
-      MyHive.box2.put(hiveDeckTypeFetchDateKey, DateTime.now());
+      await DeckTypeDetailHiveDb.setDeckType(deckType);
+      await DeckTypeDetailHiveDb.setDeckTypeExpireDate(deckType, DateTime.now().add(const Duration(days: 1)));
     } else {
-      log('从本地获取数据');
-      try {
-        if (hiveDataExpire != null && hiveDataExpire.add(const Duration(hours: 12)).isBefore(DateTime.now())) {
-          refreshFlag = true;
-        }
-      } catch (e) {
-        log('转换失败');
-        MyHive.box2.delete(hiveDeckTypeKey);
-        MyHive.box2.delete(hiveDeckTypeFetchDateKey);
-        return true;
-      }
+      log('从本地获取数据 $hiveDataExpire');
+      refreshFlag = hiveDataExpire == null || hiveDataExpire.isBefore(DateTime.now());
     }
 
     setState(() {
@@ -123,148 +137,195 @@ class _DeckTypeDetailPageState extends State<DeckTypeDetailPage> {
     return refreshFlag;
   }
 
+  Future<void> init() async {
+    final shouldRefresh = await fetchDeckType();
+    if (shouldRefresh) {
+      await fetchDeckType(force: true);
+    }
+  }
+
+  var _isInit = false;
+
+  Future<void> _handleRefresh() async {
+    final shouldRefresh = await fetchDeckType(force: _isInit);
+    _isInit = true;
+    if (shouldRefresh) {
+      await fetchDeckType(force: true);
+    }
+  }
+
   @override
   void initState() {
     super.initState();
-    fetchDeckType();
+
+    SchedulerBinding.instance.addPostFrameCallback((timeStamp) {
+      _refreshIndicator.currentState?.show();
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Stack(
-        children: [
-          SingleChildScrollView(
-            child: Column(
-              children: [
-                Stack(
-                  children: [
-                    Stack(
-                      children: [
-                        AspectRatio(
-                          aspectRatio: 1,
-                          child: ClipRRect(
-                            child: ImageFiltered(
-                              imageFilter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                              child: CachedNetworkImage(
-                                width: double.infinity,
-                                imageUrl: 'https://imgserv.duellinksmeta.com/v2/dlm/deck-type/$_deckTypeName?portrait=true&width=50',
-                                fit: BoxFit.cover,
+      body: RefreshIndicator(
+        onRefresh: _handleRefresh,
+        key: _refreshIndicator,
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              child: Column(
+                children: [
+                  Stack(
+                    children: [
+                      Stack(
+                        children: [
+                          AspectRatio(
+                            aspectRatio: 1,
+                            child: ClipRRect(
+                              child: ImageFiltered(
+                                imageFilter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                                child: CachedNetworkImage(
+                                  width: double.infinity,
+                                  imageUrl: 'https://imgserv.duellinksmeta.com/v2/dlm/deck-type/$_deckTypeName?portrait=true&width=50',
+                                  fit: BoxFit.cover,
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                        Positioned.fill(
-                          child: Container(
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
+                          Positioned.fill(
+                            bottom: -1,
+                            child: Container(
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
                                   begin: Alignment.bottomCenter,
                                   end: Alignment.topCenter,
                                   // colors: [Theme.of(context).colorScheme.background, BaColors.theme.withOpacity(0)]),
-                                  colors: [Colors.white, Colors.white.withOpacity(0)]),
-                            ),
-                          ),
-                        ),
-                        Positioned(
-                          bottom: 200,
-                          left: 0,
-                          right: 0,
-                          child: Padding(
-                            padding: const EdgeInsets.only(left: 8, bottom: 18),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(_deckTypeName, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w500)),
-                                AnimatedOpacity(
-                                  opacity: _pageStatus == PageStatus.success ? 1 : 0,
-                                  duration: const Duration(milliseconds: 300),
-                                  child: Row(
-                                    children: [
-                                      const Text('Average size: ', style: TextStyle(fontSize: 12)),
-                                      Text(_deckType?.deckBreakdown.avgMainSize.toString() ?? '',
-                                          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500)),
-                                      const SizedBox(width: 3),
-                                      const Text('cards', style: TextStyle(fontSize: 12)),
-                                    ],
-                                  ),
+                                  colors: [
+                                    Theme.of(context).scaffoldBackgroundColor,
+                                    Theme.of(context).scaffoldBackgroundColor.withOpacity(0)
+                                  ],
                                 ),
-                              ],
+                              ),
                             ),
                           ),
-                        )
-                      ],
-                    ),
-                    AnimatedOpacity(
-                      opacity: _pageStatus == PageStatus.success ? 1 : 0,
-                      duration: const Duration(milliseconds: 400),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-                        child: _pageStatus == PageStatus.success
-                            ? Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  const SizedBox(
-                                    height: 140,
-                                  ),
-                                  const Padding(
-                                    padding: EdgeInsets.symmetric(vertical: 12),
-                                    child: Text('Top Main Deck', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w500)),
-                                  ),
-                                  const SizedBox(height: 10),
-                                  DeckTypeBreakdownGridView(cards: breakdownCards, crossAxisCount: 6),
-                                  if (breakdownExtraCards.isNotEmpty)
-                                    Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        const SizedBox(height: 20),
-                                        const Text('Top Extra Deck', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w500)),
-                                        const SizedBox(height: 10),
-                                        DeckTypeBreakdownGridView(cards: breakdownExtraCards, crossAxisCount: 6),
-                                      ],
-                                    ),
-                                  const SizedBox(height: 10),
-                                  const Text('Popular Skills', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w500)),
-                                  Column(
-                                    children: _deckType?.deckBreakdown.skills
-                                            .where((item) => ((item.count) / _deckType!.deckBreakdown.total).round() > 0)
-                                            .map((skill) => InkWell(
-                                                  onTap: () => handleTapSkill(skill),
-                                                  child: Padding(
-                                                    padding: const EdgeInsets.symmetric(vertical: 2),
-                                                    child: Row(
-                                                      children: [
-                                                        Text(skill.name, style: const TextStyle(color: Color(0xff0a87bb))),
-                                                        Text(
-                                                            ': ${(skill.count * 100 / _deckType!.deckBreakdown.total).toStringAsFixed(0)}%',
-                                                            style: const TextStyle(fontSize: 12))
-                                                      ],
-                                                    ),
-                                                  ),
-                                                ))
-                                            .toList() ??
-                                        [],
-                                  ),
-                                  const SizedBox(height: 20),
-                                  const Text('Sample Deck', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w500)),
-
-                                  DeckInfo(deckTypeId: _deckType?.oid,)
-                                ],
-                              )
-                            : null,
+                          // Positioned(
+                          //   bottom: 200,
+                          //   left: 0,
+                          //   right: 0,
+                          //   child: Padding(
+                          //     padding: const EdgeInsets.only(left: 8, bottom: 18),
+                          //     child: Column(
+                          //       crossAxisAlignment: CrossAxisAlignment.start,
+                          //       children: [
+                          //         Text(_deckTypeName, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w500)),
+                          //         AnimatedOpacity(
+                          //           opacity: _pageStatus == PageStatus.success ? 1 : 0,
+                          //           duration: const Duration(milliseconds: 300),
+                          //           child: Row(
+                          //             children: [
+                          //               const Text('Average size: ', style: TextStyle(fontSize: 12)),
+                          //               Text(_deckType?.deckBreakdown.avgMainSize.toString() ?? '',
+                          //                   style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500)),
+                          //               const SizedBox(width: 3),
+                          //               const Text('cards', style: TextStyle(fontSize: 12)),
+                          //             ],
+                          //           ),
+                          //         ),
+                          //       ],
+                          //     ),
+                          //   ),
+                          // )
+                        ],
                       ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          if (_pageStatus == PageStatus.loading)
-            const Positioned.fill(
-              child: Center(
-                child: Loading(),
+                      AnimatedOpacity(
+                        opacity: _pageStatus == PageStatus.success ? 1 : 0,
+                        duration: const Duration(milliseconds: 400),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                          child: _pageStatus == PageStatus.success
+                              ? Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const SizedBox(height: 140),
+                                    Text(_deckTypeName, style: const TextStyle(fontSize: 30, fontWeight: FontWeight.w500)),
+                                    AnimatedOpacity(
+                                      opacity: _pageStatus == PageStatus.success ? 1 : 0,
+                                      duration: const Duration(milliseconds: 300),
+                                      child: Row(
+                                        children: [
+                                          const Text('Average size: ', style: TextStyle(fontSize: 12)),
+                                          Text(_deckType?.deckBreakdown.avgMainSize.toString() ?? '',
+                                              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500)),
+                                          const SizedBox(width: 3),
+                                          const Text('cards', style: TextStyle(fontSize: 12)),
+                                        ],
+                                      ),
+                                    ),
+                                    const SizedBox(height: 20),
+                                    const Text('Top Main Deck', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w500)),
+                                    const SizedBox(height: 10),
+                                    DeckTypeBreakdownGridView(cards: _breakdownCards, crossAxisCount: 6),
+                                    if (_breakdownExtraCards.isNotEmpty)
+                                      Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          const SizedBox(height: 20),
+                                          const Text('Top Extra Deck', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w500)),
+                                          const SizedBox(height: 10),
+                                          DeckTypeBreakdownGridView(cards: _breakdownExtraCards, crossAxisCount: 6),
+                                        ],
+                                      ),
+                                    const SizedBox(height: 10),
+                                    const Text('Popular Skills', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w500)),
+                                    Column(
+                                      children: _deckType?.deckBreakdown.skills
+                                              .where((item) => ((item.count) / _deckType!.deckBreakdown.total).round() > 0)
+                                              .map((skill) => InkWell(
+                                                    onTap: () => handleTapSkill(skill),
+                                                    child: Padding(
+                                                      padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 2),
+                                                      child: Row(
+                                                        children: [
+                                                          Expanded(
+                                                            child: Text(
+                                                              skill.name + skill.name,
+                                                              style: const TextStyle(color: Color(0xff0a87bb)),
+                                                              overflow: TextOverflow.ellipsis,
+                                                            ),
+                                                          ),
+                                                          const SizedBox(width: 4),
+                                                          Text(
+                                                              ': ${(skill.count * 100 / _deckType!.deckBreakdown.total).toStringAsFixed(0)}%',
+                                                              style: const TextStyle(fontSize: 12))
+                                                        ],
+                                                      ),
+                                                    ),
+                                                  ))
+                                              .toList() ??
+                                          [],
+                                    ),
+                                    const SizedBox(height: 20),
+                                    const Text('Sample Deck', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w500)),
+                                    DeckInfo(
+                                      deckTypeId: _deckType?.oid,
+                                    )
+                                  ],
+                                )
+                              : null,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ),
-            )
-        ],
+            ),
+            if (_pageStatus == PageStatus.fail)
+              const Center(
+                child: Text('Loading failed'),
+              )
+          ],
+        ),
       ),
     );
   }

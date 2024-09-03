@@ -1,17 +1,14 @@
-import 'dart:developer';
-
 import 'package:duel_links_meta/components/Loading.dart';
-import 'package:duel_links_meta/components/MdCardItemView.dart';
 import 'package:duel_links_meta/components/MdCardItemView2.dart';
-import 'package:duel_links_meta/extension/Future.dart';
-import 'package:duel_links_meta/hive/MyHive.dart';
-import 'package:duel_links_meta/http/CardApi.dart';
 import 'package:duel_links_meta/pages/cards_viewpager/index.dart';
+import 'package:duel_links_meta/pages/top_decks/type/Group.dart';
+import 'package:duel_links_meta/store/BanCardStore.dart';
 import 'package:duel_links_meta/type/MdCard.dart';
-import 'package:duel_links_meta/type/ban_list_change/BanStatusCard.dart';
 import 'package:duel_links_meta/type/enum/PageStatus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:get/get.dart';
+
 
 class BanStatusCardView extends StatefulWidget {
   const BanStatusCardView({super.key});
@@ -21,10 +18,25 @@ class BanStatusCardView extends StatefulWidget {
 }
 
 class _BanStatusCardViewState extends State<BanStatusCardView> with AutomaticKeepAliveClientMixin {
-  Map<String, List<MdCard>> banStatus2CardsGroup = {};
-  var _pageStatus = PageStatus.loading;
+  BanCardStore banCardsStore = Get.put(BanCardStore());
 
+  List<Group<MdCard>> get groups1 => [
+        Group(key: 'Forbidden', data: banCardsStore.group.value['Forbidden'] ?? []),
+        Group(key: 'Limited 1', data: banCardsStore.group.value['Limited 1'] ?? []),
+        Group(key: 'Limited 2', data: banCardsStore.group.value['Limited 2'] ?? []),
+        Group(key: 'Limited 3', data: banCardsStore.group.value['Limited 3'] ?? [])
+      ];
+
+  // List<Group<MdCard>> get groups2 => [
+  //       Group(key: 'Limited 2', data: banCardsStore.group.value['Limited 2'] ?? []),
+  //       Group(key: 'Limited 3', data: banCardsStore.group.value['Limited 3'] ?? [])
+  //     ];
+
+  var _initFlag = false;
+
+  //
   void handleTapCardItem(List<MdCard> cards, int index) {
+    // TODO
     showDialog<void>(
       context: context,
       builder: (context) => Dialog.fullscreen(
@@ -34,88 +46,17 @@ class _BanStatusCardViewState extends State<BanStatusCardView> with AutomaticKee
     );
   }
 
-  //
-  Future<bool> fetchCards({bool force = false}) async {
-    var banStatusCardIdsKey = 'ban_status:card_ids';
-    var banStatusCardIdsFetchDateKey = 'ban_status:card_ids';
-
-    var cardIds = await MyHive.box2.get(banStatusCardIdsKey) as List<String>?;
-
-    var refreshFlag = false;
-
-    var list = <MdCard>[];
-
-    if (cardIds == null) {
-      final params = <String, String>{
-        'limit': '0',
-        r'banStatus[$exists]': 'true',
-        r'alternateArt[$ne]': 'true',
-        r'rush[$ne]': 'true',
-        // 'fields': 'oid,banStatus'
-      };
-
-      final (err, res) = await CardApi().list(params).toCatch;
-      if (err != null) {
-        setState(() {
-          _pageStatus = PageStatus.fail;
-        });
-        return false;
-      }
-      list = res!.map(MdCard.fromJson).toList();
-
-      // 保存ids
-      MyHive.box2.put(banStatusCardIdsKey, list.map((e) => e.oid).toList());
-      // 保存card
-      list.forEach((element) {
-        MyHive.box2.put('card:${element.oid}', element);
-      });
-    } else {
-      log('本地有数据');
-      // await Future.delayed(Duration(milliseconds: 300));
-
-      try {
-        // list = (cardIds as List).map((e) => (MyHive.box2.get('card:$e') ?? MdCard()..oid = e) as MdCard).toList();
-        // list = cardIds.map((e) => (MyHive.box2.get('card:$e') ?? MdCard()..oid = e) as MdCard).toList();
-
-        var start = DateTime.now();
-        for (var i=0; i < cardIds.length;i++) {
-          final card = await MyHive.box2.get('card:${cardIds[i]}') as MdCard?;
-
-          list.add(card??MdCard()..oid = cardIds[i]);
-        }
-        log('读取本地数据消耗时间: ${DateTime.now().difference(start).inMilliseconds}');
-      } catch (e) {
-        MyHive.box2.delete(banStatusCardIdsKey);
-
-        log('转换失败 $e');
-
-        return true;
-      }
-    }
-
-    final group = <String, List<MdCard>>{
-      'Forbidden': [],
-      'Limited 1': [],
-      'Limited 2': [],
-      'Limited 3': [],
-    };
-
-    list.forEach((item) {
-      group[item.banStatus]?.add(item);
-    });
-
+  Future<void> init() async {
+    await Future.delayed(const Duration(milliseconds: 300));
     setState(() {
-      banStatus2CardsGroup = group;
-      _pageStatus = PageStatus.success;
+      _initFlag = true;
     });
-
-    return refreshFlag;
   }
 
   @override
   void initState() {
     super.initState();
-    fetchCards();
+    init();
   }
 
   @override
@@ -124,57 +65,82 @@ class _BanStatusCardViewState extends State<BanStatusCardView> with AutomaticKee
 
     return Stack(
       children: [
-        AnimatedOpacity(
-          opacity: _pageStatus == PageStatus.success ? 1 : 0,
-          duration: const Duration(milliseconds: 300),
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 4),
-            child: Column(
-              children: banStatus2CardsGroup.keys.map((key) => Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
-                    child: Row(
-                      children: [
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(20),
-                          child: SvgPicture.asset('assets/images/icon_${key.toLowerCase()}.svg',
-                              width: 20, height: 20),
-                        ),
-                        const SizedBox(width: 4),
-                        Text(key, style: const TextStyle(fontSize: 20)),
-                      ],
-                    ),
-                  ),
-                  Card(
-                    // margin: EdgeInsets.all(0),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: Container(
-                      padding: const EdgeInsets.only(left: 8, right: 8, top: 8),
-                      child: GridView.builder(
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          itemCount: banStatus2CardsGroup[key]!.length,
-                          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: 5, childAspectRatio: 0.57, crossAxisSpacing: 6),
-                          itemBuilder: (context, _index) {
-                            return MdCardItemView2(
-                              id: banStatus2CardsGroup[key]![_index].oid,
-                              mdCard: banStatus2CardsGroup[key]![_index],
-                              onTap: (card) => handleTapCardItem(banStatus2CardsGroup[key]!, _index),
-                            );
-                          }),
-                    ),
-                  ),
-                ],
-              )).toList(),
+        Obx(
+          () => AnimatedOpacity(
+            opacity: (banCardsStore.pageStatus.value == PageStatus.success && _initFlag) ? 1 : 0,
+            duration: const Duration(milliseconds: 300),
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+              child: Column(
+                children: groups1
+                    .map(
+                      (group) => Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
+                            child: Row(
+                              children: [
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(20),
+                                  child: SvgPicture.asset(
+                                    'assets/images/icon_${group.key.toLowerCase()}.svg',
+                                    width: 20,
+                                    height: 20,
+                                  ),
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  group.key,
+                                  style: const TextStyle(fontSize: 20),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Card(
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Container(
+                              padding: const EdgeInsets.only(left: 8, right: 8, top: 8),
+                              child: GridView.builder(
+                                shrinkWrap: true,
+                                physics: const NeverScrollableScrollPhysics(),
+                                itemCount: group.data.length,
+                                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                                  crossAxisCount: 5,
+                                  childAspectRatio: 0.57,
+                                  crossAxisSpacing: 6,
+                                ),
+                                itemBuilder: (context, _index) {
+                                  return MdCardItemView2(
+                                    id: group.data[_index].oid,
+                                    mdCard: group.data[_index],
+                                    onTap: (card) => handleTapCardItem(group.data, _index),
+                                  );
+                                },
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                    .toList(),
+              ),
             ),
           ),
         ),
-        if (_pageStatus == PageStatus.loading) const Positioned.fill(child: Center(child: Loading()))
+        Obx(
+          () {
+            return banCardsStore.pageStatus.value == PageStatus.loading
+                ? const Positioned.fill(
+                    child: Center(
+                      child: Loading(),
+                    ),
+                  )
+                : const SizedBox();
+          },
+        )
       ],
     );
   }

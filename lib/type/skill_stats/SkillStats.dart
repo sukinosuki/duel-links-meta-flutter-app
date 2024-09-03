@@ -17,7 +17,7 @@ class SkillStats {
   int? tier;
 
   SkillStats();
-  factory SkillStats.fromJson(dynamic json) => _$SkillStatsFromJson(json);
+  factory SkillStats.fromJson(dynamic json) => _$SkillStatsFromJson(json as Map<String, dynamic>);
   dynamic toJson() => _$SkillStatsToJson(this);
 }
 
@@ -29,6 +29,6 @@ class SkillStats_CoverCard {
   String name = '';
 
   SkillStats_CoverCard();
-  factory SkillStats_CoverCard.fromJson(dynamic json) => _$SkillStats_CoverCardFromJson(json);
+  factory SkillStats_CoverCard.fromJson(dynamic json) => _$SkillStats_CoverCardFromJson(json as Map<String, dynamic>);
   dynamic toJson() => _$SkillStats_CoverCardToJson(this);
 }

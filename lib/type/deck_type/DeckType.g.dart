@@ -197,7 +197,8 @@ DeckType _$DeckTypeFromJson(Map<String, dynamic> json) => DeckType()
   ..name = json['name'] as String
   ..thumbnailImage = json['thumbnailImage'] as String
   ..oid = json['_id'] as String
-  ..deckBreakdown = DeckType_DeckBreakdown.fromJson(json['deckBreakdown']);
+  ..deckBreakdown = DeckType_DeckBreakdown.fromJson(
+      json['deckBreakdown'] as Map<String, dynamic>);
 
 Map<String, dynamic> _$DeckTypeToJson(DeckType instance) => <String, dynamic>{
       'card': instance.card,
@@ -217,7 +218,8 @@ DeckType_DeckBreakdown _$DeckType_DeckBreakdownFromJson(
           .map(DeckType_DeckBreakdown_Skill.fromJson)
           .toList()
       ..cards = (json['cards'] as List<dynamic>)
-          .map(DeckType_DeckBreakdownCards.fromJson)
+          .map((e) =>
+              DeckType_DeckBreakdownCards.fromJson(e as Map<String, dynamic>))
           .toList();
 
 Map<String, dynamic> _$DeckType_DeckBreakdownToJson(

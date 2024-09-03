@@ -91,8 +91,9 @@ MdCard _$MdCardFromJson(Map<String, dynamic> json) => MdCard()
   ..monsterType =
       (json['monsterType'] as List<dynamic>).map((e) => e as String).toList()
   ..name = json['name'] as String
-  ..obtain =
-      (json['obtain'] as List<dynamic>).map(MdCard_Obtain.fromJson).toList()
+  ..obtain = (json['obtain'] as List<dynamic>)
+      .map((e) => MdCard_Obtain.fromJson(e as Map<String, dynamic>))
+      .toList()
   ..race = json['race'] as String
   ..rarity = json['rarity'] as String? ?? ''
   ..release =

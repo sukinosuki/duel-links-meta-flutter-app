@@ -1,15 +1,13 @@
 import 'dart:developer';
 
-import 'package:duel_links_meta/components/IfElseBox.dart';
-import 'package:duel_links_meta/components/Loading.dart';
 import 'package:duel_links_meta/extension/Future.dart';
-import 'package:duel_links_meta/hive/MyHive.dart';
+import 'package:duel_links_meta/hive/db/PacksHiveDb.dart';
 import 'package:duel_links_meta/http/PackSetApi.dart';
 import 'package:duel_links_meta/pages/packs/components/PackListView.dart';
 import 'package:duel_links_meta/type/enum/PageStatus.dart';
-import 'package:duel_links_meta/type/pack_set/ExpireData.dart';
 import 'package:duel_links_meta/type/pack_set/PackSet.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 
 class PacksPage extends StatefulWidget {
   const PacksPage({super.key});
@@ -20,61 +18,44 @@ class PacksPage extends StatefulWidget {
 
 class _PacksPageState extends State<PacksPage> with SingleTickerProviderStateMixin, AutomaticKeepAliveClientMixin {
   TabController? _tabController;
-  String hiveBoxKey = 'pack_set:list';
-  String packSetListLastFetchDateKey = 'pack_set:list_last_fetch_date';
-
   final _refreshIndicatorKey = GlobalKey<RefreshIndicatorState>();
-
   var _pageStatus = PageStatus.loading;
+  var _isInit = false;
   Map<String, List<PackSet>> _tabsMap = {};
 
   //
   Future<bool> fetchData({bool force = false}) async {
     var reRefreshFlag = false;
 
-    final hiveValue = await MyHive.box2.get(hiveBoxKey) as List?;
-    final lastFetchDate = await MyHive.box2.get(packSetListLastFetchDateKey);
-    late List<PackSet> list;
+    var packs = await PackHiveDb.get();
+    final expireTime = await PackHiveDb.getExpireTime();
 
-    if (hiveValue == null || force) {
-      log('无本地数据或者强制刷新');
+    if (packs == null || force) {
+      if (packs == null) {
+        log('无本地数据');
+      }
+      if (force) {
+        log('强制刷新');
+      }
       final (err, res) = await PackSetApi().list().toCatch;
 
-      if (err != null) {
+      if (err != null || res == null) {
         setState(() {
           _pageStatus = PageStatus.fail;
         });
         return false;
       }
-      list = res!.map(PackSet.fromJson).toList();
-
-      MyHive.box2.put(hiveBoxKey, list);
-      MyHive.box2.put(packSetListLastFetchDateKey, DateTime.now());
+      packs = res;
+      PackHiveDb.set(packs).ignore();
+      PackHiveDb.setExpireTime(DateTime.now().add(const Duration(days: 1))).ignore();
     } else {
       log('本地获取到数据');
-      try {
-        list = hiveValue.map((e) => e as PackSet).toList();
-
-        if (lastFetchDate != null) {
-          // 超过刷新时间
-          if ((lastFetchDate as DateTime).add(const Duration(seconds: 10)).isBefore(DateTime.now())) {
-            log('超过默认的数据有效时间，需要刷新');
-
-            reRefreshFlag = true;
-          }
-        }
-        log('转换成功');
-      } catch (e) {
-        log('[fetchTopTiers] 转换失败: $e');
-        await MyHive.box2.delete(hiveBoxKey);
-        await MyHive.box2.delete(packSetListLastFetchDateKey);
-        return true;
-      }
+      reRefreshFlag = expireTime == null || expireTime.isBefore(DateTime.now());
     }
 
     final tabsMap = <String, List<PackSet>>{};
 
-    for (final item in list) {
+    for (final item in packs) {
       if (tabsMap[item.type] == null) {
         tabsMap[item.type] = [item];
       } else {
@@ -101,21 +82,23 @@ class _PacksPageState extends State<PacksPage> with SingleTickerProviderStateMix
     _tabController?.dispose();
   }
 
-  Future<void> init() async {
-    final needRefresh = await fetchData();
+  Future<void> _handleRefresh() async {
+    final needRefresh = await fetchData(force: _isInit);
+
+    _isInit = true;
+
     if (needRefresh) {
-      await _refreshIndicatorKey.currentState?.show(atTop: true);
+      await fetchData(force: true);
     }
   }
 
   @override
   void initState() {
     super.initState();
-    init();
-  }
 
-  Future<void> _handleRefresh() async {
-    await fetchData(force: true);
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      _refreshIndicatorKey.currentState?.show();
+    });
   }
 
   @override
@@ -123,48 +106,44 @@ class _PacksPageState extends State<PacksPage> with SingleTickerProviderStateMix
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
+
     return RefreshIndicator(
       key: _refreshIndicatorKey,
+      // 如果子控件是可滚动的, 需要声明notificationPredicate
       notificationPredicate: (_) => _pageStatus != PageStatus.loading,
       onRefresh: _handleRefresh,
-      child: Stack(
-        children: [
-          if (_pageStatus == PageStatus.success)
-            Scaffold(
-              appBar: AppBar(
-                title: _tabController != null
-                    ? TabBar(
-                        isScrollable: true,
-                        tabAlignment: TabAlignment.start,
-                        controller: _tabController,
-                        dividerHeight: 0,
-                        indicatorSize: TabBarIndicatorSize.label,
-                        tabs: _tabsMap.keys.map((key) => Tab(text: key)).toList(),
-                      )
-                    : null,
-              ),
-              body: IfElseBox(
-                condition: _tabController != null,
-                ifTure: TabBarView(
+      child: Scaffold(
+        appBar: AppBar(
+          title: _tabController != null
+              ? TabBar(
+                  isScrollable: true,
+                  tabAlignment: TabAlignment.start,
                   controller: _tabController,
-                  children: _tabsMap.values.map((packs) => PackListView(packs: packs)).toList(),
-                ),
+                  dividerHeight: 0,
+                  indicatorSize: TabBarIndicatorSize.label,
+                  tabs: _tabsMap.keys.map((key) => Tab(text: key)).toList(),
+                )
+              : null,
+        ),
+        body: Stack(
+          fit: StackFit.expand,
+          children: [
+            if (_tabController != null)
+              TabBarView(
+                controller: _tabController,
+                children: _tabsMap.values.map((packs) => PackListView(packs: packs)).toList(),
               ),
-            ),
-          if (_pageStatus == PageStatus.loading) const Positioned.fill(child: Center(child: Loading())),
-          if (_pageStatus == PageStatus.fail)
-            Positioned.fill(
-              child: Column(
-                // mainAxisSize: MainAxisSize.min,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Text('加载失败'),
-                  ElevatedButton(onPressed: _refreshIndicatorKey.currentState?.show, child: const Text('刷新')),
-                ],
+            if (_pageStatus == PageStatus.fail)
+              const SingleChildScrollView(
+                physics: AlwaysScrollableScrollPhysics(),
               ),
-            )
-          // Positioned.fill(child: Container(color: Colors.orange, child: Center(child: Text('失败'))))
-        ],
+            if (_pageStatus == PageStatus.fail)
+              const Center(
+                child: Text('Loading failed'),
+              ),
+          ],
+        ),
       ),
     );
   }

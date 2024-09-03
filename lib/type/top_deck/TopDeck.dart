@@ -51,7 +51,7 @@ class TopDeck {
 
   TopDeck();
 
-  factory TopDeck.fromJson(dynamic json) => _$TopDeckFromJson(json);
+  factory TopDeck.fromJson(dynamic json) => _$TopDeckFromJson(json as Map<String, dynamic>);
   dynamic toJson() => _$TopDeckToJson(this);
 }
 
@@ -66,7 +66,7 @@ class TopDeck_DeckType {
 
   TopDeck_DeckType();
 
-  factory TopDeck_DeckType.fromJson(dynamic json) => _$TopDeck_DeckTypeFromJson(json);
+  factory TopDeck_DeckType.fromJson(Map<String, dynamic> json) => _$TopDeck_DeckTypeFromJson(json);
   dynamic toJson() => _$TopDeck_DeckTypeToJson(this);
 }
 
@@ -81,7 +81,7 @@ class TopDeck_MainCard {
 
   TopDeck_MainCard();
 
-  factory TopDeck_MainCard.fromJson(dynamic json) => _$TopDeck_MainCardFromJson(json);
+  factory TopDeck_MainCard.fromJson(Map<String, dynamic> json) => _$TopDeck_MainCardFromJson(json);
   dynamic toJson() => _$TopDeck_MainCardToJson(this);
 }
 
@@ -93,7 +93,7 @@ class TopDeck_MainCard_Card {
 
   TopDeck_MainCard_Card();
 
-  factory TopDeck_MainCard_Card.fromJson(dynamic json) => _$TopDeck_MainCard_CardFromJson(json);
+  factory TopDeck_MainCard_Card.fromJson(Map<String, dynamic> json) => _$TopDeck_MainCard_CardFromJson(json);
   dynamic toJson() => _$TopDeck_MainCard_CardToJson(this);
 }
 
@@ -112,7 +112,7 @@ class TopDeck_Skill {
 
   TopDeck_Skill();
 
-  factory TopDeck_Skill.fromJson(dynamic json) => _$TopDeck_SkillFromJson(json);
+  factory TopDeck_Skill.fromJson(Map<String, dynamic> json) => _$TopDeck_SkillFromJson(json);
   dynamic toJson() => _$TopDeck_SkillToJson(this);
 }
 
@@ -137,7 +137,7 @@ class TopDeck_TournamentType {
 
   TopDeck_TournamentType();
 
-  factory TopDeck_TournamentType.fromJson(dynamic json) => _$TopDeck_TournamentTypeFromJson(json);
+  factory TopDeck_TournamentType.fromJson(Map<String, dynamic> json) => _$TopDeck_TournamentTypeFromJson(json);
   dynamic toJson() => _$TopDeck_TournamentTypeToJson(this);
 }
 
@@ -159,7 +159,7 @@ class TopDeck_RankedType {
 
   TopDeck_RankedType();
 
-  factory TopDeck_RankedType.fromJson(dynamic json) => _$TopDeck_RankedTypeFromJson(json);
+  factory TopDeck_RankedType.fromJson(dynamic json) => _$TopDeck_RankedTypeFromJson(json as Map<String, dynamic>);
   dynamic toJson() => _$TopDeck_RankedTypeToJson(this);
 }
 

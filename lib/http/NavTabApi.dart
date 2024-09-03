@@ -1,8 +1,18 @@
 import 'package:duel_links_meta/http/http.dart';
+import 'package:duel_links_meta/type/NavTab.dart';
 import 'package:get/get.dart';
 
 class NavTabApi extends Net {
-  Future<Response<List>> list() => httpClient.get('/api/v1/nav-tabs');
+  factory NavTabApi() {
+    return _instance;
+  }
 
-  // Future<Response> getTierListChangesLatestDate() => httpClient.get('/api/v1/tierlist-changes?fields=-_id,date&sort=-date&limit=1');
+  NavTabApi._privateConstructor();
+
+  static final NavTabApi _instance = NavTabApi._privateConstructor();
+
+  Future<Response<List<NavTab>>> list() => httpClient.get(
+        '/api/v1/nav-tabs',
+        decoder: (data) => (data as List<dynamic>).map(NavTab.fromJson).toList(),
+      );
 }

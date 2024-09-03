@@ -1,7 +1,9 @@
 import 'dart:developer';
 import 'dart:io';
 
+import 'package:duel_links_meta/extension/String.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:get/get_connect/http/src/response/response.dart';
 
 class Util {
@@ -24,7 +26,28 @@ class Util {
     }
   }
 
+
   static bool isReachBottom(ScrollController controller, {int threshold = 200}) {
     return controller.position.maxScrollExtent - controller.position.pixels <= threshold;
   }
+
+  static List<T>? decoderListCatch<T>(dynamic data, T Function(dynamic _data) decoder) {
+    if (data == null) {
+      return null;
+    }
+
+    try {
+      return (data as List<dynamic>).map(decoder).toList();
+    } catch (err) {
+      if (kDebugMode) {
+        final msg = '[decoderListCatch] 解析json失败: $err';
+        log(msg);
+
+        msg.toast();
+      }
+
+      return null;
+    }
+  }
+
 }

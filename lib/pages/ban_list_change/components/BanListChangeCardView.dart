@@ -1,12 +1,9 @@
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:duel_links_meta/type/ban_list_change/BanListChange.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
-
-import '../../../type/ban_list_change/BanListChange.dart';
 
 class BanListChangeCardView extends StatelessWidget {
-  const BanListChangeCardView({super.key, required this.change, required this.onTap});
+  const BanListChangeCardView({required this.change, required this.onTap, super.key});
 
   final BanListChange_Change change;
 
@@ -18,7 +15,6 @@ class BanListChangeCardView extends StatelessWidget {
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        // height: 60,
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -30,35 +26,31 @@ class BanListChangeCardView extends StatelessWidget {
             ),
             const SizedBox(width: 8),
             Expanded(
-                child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  change.card?.name ?? '',
-                  style: TextStyle(
-                    overflow: TextOverflow.ellipsis,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    change.card?.name ?? '',
+                    textAlign: TextAlign.left,
+                    style: const TextStyle(
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
-                  // maxLines: 1,
-                  textAlign: TextAlign.left,
-                ),
-                Row(
-                  children: [
-                    const Text('From: ', style: TextStyle(fontSize: 11)),
-                    Text(
-                      change.from ?? '—',
-                    )
-                  ],
-                ),
-                Row(
-                  children: [
-                    const Text('To: ', style: TextStyle(fontSize: 11)),
-                    Text(
-                      change.to ?? '—',
-                    )
-                  ],
-                ),
-              ],
-            ))
+                  Row(
+                    children: [
+                      const Text('From: ', style: TextStyle(fontSize: 11)),
+                      Text(change.from ?? '—'),
+                    ],
+                  ),
+                  Row(
+                    children: [
+                      const Text('To: ', style: TextStyle(fontSize: 11)),
+                      Text(change.to ?? '—'),
+                    ],
+                  ),
+                ],
+              ),
+            ),
           ],
         ),
       ),

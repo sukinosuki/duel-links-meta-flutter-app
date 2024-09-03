@@ -25,7 +25,7 @@ class TierList_PowerRanking {
 
   TierList_PowerRanking();
 
-  factory TierList_PowerRanking.fromJson(dynamic json)=> _$TierList_PowerRankingFromJson(json);
+  factory TierList_PowerRanking.fromJson(dynamic json)=> _$TierList_PowerRankingFromJson(json as Map<String, dynamic>);
 
   dynamic toJson() => _$TierList_PowerRankingToJson(this);
 }

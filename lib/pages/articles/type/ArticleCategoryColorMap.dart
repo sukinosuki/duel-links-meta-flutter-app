@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 Map<String, Color> articleCategoryColorMap = {
-
   'set-release': const Color(0xffA72400),
   'news': const Color(0xff3B98F0),
   'memes': const Color(0xffd60bf8),

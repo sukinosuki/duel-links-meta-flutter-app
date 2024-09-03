@@ -3,17 +3,23 @@ import 'dart:developer';
 import 'package:duel_links_meta/extension/Future.dart';
 import 'package:duel_links_meta/hive/MyHive.dart';
 import 'package:duel_links_meta/http/NavTabApi.dart';
+import 'package:duel_links_meta/pages/about/index.dart';
 import 'package:duel_links_meta/pages/farming_and_event/index.dart';
+import 'package:duel_links_meta/hive/db/NavHiveDb.dart';
 import 'package:duel_links_meta/pages/home/components/NavItemCard.dart';
 import 'package:duel_links_meta/pages/home/type/NavTabType.dart';
+import 'package:duel_links_meta/pages/open_source_licenses/index.dart';
 import 'package:duel_links_meta/pages/tier_list/index.dart';
 import 'package:duel_links_meta/pages/top_decks/index.dart';
 import 'package:duel_links_meta/pages/webview/index.dart';
 import 'package:duel_links_meta/store/AppStore.dart';
 import 'package:duel_links_meta/type/NavTab.dart';
-import 'package:duel_links_meta/type/enum/PageStatus.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
+import 'package:flutter/widgets.dart';
 import 'package:get/get.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -26,6 +32,8 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
   final _refreshIndicatorKey = GlobalKey<RefreshIndicatorState>();
 
   final AppStore appStore = Get.put(AppStore());
+
+  var _isInit = false;
 
   List<NavTab> _navTabs = [
     NavTab(id: NavTabType.tierList.value, title: 'TIER LIST'),
@@ -77,85 +85,215 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
 
   //
   Future<void> toggleDarkMode() async {
-    MyHive.box.clear();
-    MyHive.box2.clear();
-
+    // TODO
     if (Get.isDarkMode) {
       Get.changeThemeMode(ThemeMode.light);
-      appStore.changeThemeMode(ThemeMode.light);
-      MyHive.box2.put('dark_mode', 'light');
+      // appStore.changeThemeMode(ThemeMode.light);
+      MyHive.box2.put('dark_mode', 'light').ignore();
     } else {
       Get.changeThemeMode(ThemeMode.dark);
-      appStore.changeThemeMode(ThemeMode.dark);
-      MyHive.box2.put('dark_mode', 'dark');
+      // appStore.changeThemeMode(ThemeMode.dark);
+      MyHive.box2.put('dark_mode', 'dark').ignore();
     }
   }
 
+  //
   Future<bool> fetchData({bool force = false}) async {
-    const navTabKey = 'nav_tab:list';
-    const navTabFetchDateKey = 'nav_tab:fetch_date';
-    final hiveData = await MyHive.box2.get(navTabKey) as List?;
-    final expireTime = await MyHive.box2.get(navTabFetchDateKey) as DateTime?;
-    var list = <NavTab>[];
+    var navTabList = await HomeHiveDb.getNavTabList();
+    final navTabListExpireTime = await HomeHiveDb.getNavTabListExpireTime();
+    var shouldRefresh = false;
 
-    var refreshFlag = false;
-    if (hiveData == null || force) {
-      log('需要强制刷新');
+    if (navTabList == null || force) {
       final (err, res) = await NavTabApi().list().toCatch;
-      if (err != null) {
-        setState(() {
-          // _pageStatus = PageStatus.fail;
-        });
-        return false;
-      }
 
-      list = res!.map(NavTab.fromJson).toList();
-      MyHive.box2.put(navTabKey, list);
-      MyHive.box2.put(navTabFetchDateKey, DateTime.now());
+      if (err != null || res == null) return false;
+
+      navTabList = res;
+      await HomeHiveDb.setNavTabList(navTabList);
+      // set 1 day expire
+      await HomeHiveDb.setNavTabListExpireTime(DateTime.now().add(const Duration(days: 1)));
     } else {
-      log('本地获取到数据');
-
-      try {
-        list = hiveData.cast<NavTab>();
-        if (expireTime != null && expireTime.add(const Duration(hours: 12)).isBefore(DateTime.now())) {
-          log('已过期');
-          refreshFlag = true;
-        }
-      } catch (e) {
-        log('解析失败');
-
-        MyHive.box2.delete(navTabKey);
-        MyHive.box2.delete(navTabFetchDateKey);
-        return true;
+      if (navTabListExpireTime == null || navTabListExpireTime.isBefore(DateTime.now())) {
+        shouldRefresh = true;
       }
     }
 
     final id2NavTabMap = <int, NavTab>{};
-    for (final element in list) {
+    navTabList.forEach((element) {
       id2NavTabMap[element.id] = element;
-    }
+    });
 
-    _navTabs.forEach((item) {
-      item.image = id2NavTabMap[item.id]?.image ?? '';
+    _navTabs.forEach((element) {
+      element.image = id2NavTabMap[element.id]?.image ?? '';
     });
 
     setState(() {
       _navTabs = _navTabs;
-      // _pageStatus = PageStatus.success;
     });
 
-    return refreshFlag;
+    return shouldRefresh;
   }
 
+  //
   Future<void> handleRefresh() async {
-    await fetchData(force: true);
+    final shouldRefresh = await fetchData(force: _isInit);
+    _isInit = true;
+
+    if (shouldRefresh) {
+      await fetchData(force: true);
+    }
   }
 
-  Future<void> init() async {
-    final flag = await fetchData();
-    if (flag) {
-      _refreshIndicatorKey.currentState?.show(atTop: true);
-    }
+  void init() {
+    // trigger refresh indicator when page initialized
+    SchedulerBinding.instance.addPostFrameCallback((_) async {
+      await _refreshIndicatorKey.currentState?.show();
+    });
+  }
+
+  void _handleOpenSettingDialog() async {
+    PackageInfo packageInfo = await PackageInfo.fromPlatform();
+    log("packageInfo ${packageInfo.toString()}");
+
+    await showModalBottomSheet<void>(
+        context: context,
+        // backgroundColor: Theme.of(context).colorScheme.surface,
+        // backgroundColor: Colors.orange,
+        builder: (context) {
+          return ClipRRect(
+            borderRadius: const BorderRadius.only(topLeft: Radius.circular(24), topRight: Radius.circular(24)),
+            child: Container(
+              // height: 300,
+              padding: const EdgeInsets.only(top: 30),
+              color: Theme.of(context).colorScheme.onPrimary,
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // const SizedBox(height: 40),
+                    const Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 12),
+                      child: Text(
+                        'Setting',
+                        style: TextStyle(fontSize: 24),
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Padding(
+                            padding: EdgeInsets.only(left: 6),
+                            child: Text('Theme mode'),
+                          ),
+                          Row(
+                            children: [
+                              IconButton(
+                                isSelected: !Get.isDarkMode,
+                                onPressed: () {
+                                  Get.changeThemeMode(ThemeMode.light);
+                                  // TODO
+                                  MyHive.box2.put('dark_mode', 'light').ignore();
+                                },
+                                icon: const Icon(Icons.sunny),
+                              ),
+                              IconButton(
+                                isSelected: Get.isDarkMode,
+                                onPressed: () {
+                                  Get.changeThemeMode(ThemeMode.dark);
+                                  MyHive.box2.put('dark_mode', 'dark').ignore();
+                                },
+                                icon: const Icon(Icons.nightlight_rounded),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 12, horizontal: 12),
+                      child: Text(
+                        'About',
+                        style: TextStyle(fontSize: 24),
+                      ),
+                    ),
+                    // Material(
+                    //   color: Colors.transparent,
+                    //   child: InkWell(
+                    //     onTap: () {
+                    //       Navigator.push(context, MaterialPageRoute<void>(builder: (context) => const AboutPage()));
+                    //     },
+                    //     child: Container(
+                    //       height: 50,
+                    //       padding: const EdgeInsets.symmetric(horizontal: 12),
+                    //       child: const Row(
+                    //         mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    //         children: [
+                    //           Text(
+                    //             'About this project',
+                    //             overflow: TextOverflow.ellipsis,
+                    //           ),
+                    //           Icon(Icons.arrow_forward),
+                    //         ],
+                    //       ),
+                    //     ),
+                    //   ),
+                    // ),
+                    Container(
+                      height: 50,
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [const Text('App version'), Text(packageInfo.version)],
+                      ),
+                    ),
+                    Container(
+                      height: 50,
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [const Text('Build signature'), Text(packageInfo.buildSignature.substring(0, 6))],
+                      ),
+                    ),
+                    Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        onTap: () {
+                          Navigator.push(context, MaterialPageRoute<void>(builder: (context) => const OpenSourceLicensePage()));
+                        },
+                        child: Container(
+                          height: 50,
+                          padding: const EdgeInsets.symmetric(horizontal: 12),
+                          child: const Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [Text('Github'), Icon(Icons.arrow_forward)],
+                          ),
+                        ),
+                      ),
+                    ),
+                    Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        onTap: () {
+                          Navigator.push(context, MaterialPageRoute<void>(builder: (context) => const OpenSourceLicensePage()));
+                        },
+                        child: Container(
+                          height: 50,
+                          padding: const EdgeInsets.symmetric(horizontal: 12),
+                          child: const Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [Text('Open source licenses'), Icon(Icons.arrow_forward)],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        });
   }
 
   @override
@@ -163,9 +301,6 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
     super.initState();
 
     init();
-    // SchedulerBinding.instance.addPostFrameCallback((_) {
-    //   _refreshIndicatorKey.currentState?.show(atTop: true);
-    // });
   }
 
   @override
@@ -173,42 +308,38 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
+
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        title: const Text('Duel Link Meta'),
+        title: const Text('Duel Links Meta'),
         actions: [
-          IconButton(
-            onPressed: toggleDarkMode,
-            icon: Obx(() => Icon(appStore.themeMode.value == ThemeMode.dark ? Icons.nightlight : Icons.sunny)),
-          )
+          // IconButton(
+          //   onPressed: toggleDarkMode,
+          //   icon: Obx(() => Icon(appStore.themeMode.value == ThemeMode.dark ? Icons.nightlight : Icons.sunny)),
+          // ),
+          IconButton(onPressed: _handleOpenSettingDialog, icon: const Icon(Icons.settings))
         ],
       ),
       body: RefreshIndicator(
         onRefresh: handleRefresh,
         key: _refreshIndicatorKey,
-        child: AnimatedOpacity(
-          // opacity: _pageStatus == PageStatus.success ? 1 : 0,
-          opacity: 1,
-          duration: const Duration(milliseconds: 400),
-          child: GridView.builder(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              mainAxisSpacing: 8,
-              crossAxisSpacing: 8,
-              childAspectRatio: 2,
-            ),
-            itemCount: _navTabs.length,
-            itemBuilder: (BuildContext context, int index) {
-              return GestureDetector(
-                onTap: () {
-                  handleTapNav(_navTabs[index]);
-                },
-                child: NavItemCard(navTab: _navTabs[index]),
-              );
-            },
+        child: GridView.builder(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+            mainAxisSpacing: 8,
+            crossAxisSpacing: 8,
+            childAspectRatio: 2,
           ),
+          itemCount: _navTabs.length,
+          itemBuilder: (BuildContext context, int index) {
+            return GestureDetector(
+              onTap: () => handleTapNav(_navTabs[index]),
+              child: NavItemCard(navTab: _navTabs[index]),
+            );
+          },
         ),
       ),
     );

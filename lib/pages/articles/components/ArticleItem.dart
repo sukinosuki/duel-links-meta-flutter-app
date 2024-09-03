@@ -18,18 +18,19 @@ class ArticleItem extends StatefulWidget {
 class _ArticleItemState extends State<ArticleItem> {
   Article get article => super.widget.article;
 
-  String get coverUrl => "https://wsrv.nl/?url=https://s3.duellinksmeta.com${article.image}&w=520&output=webp&we&n=-1&maxage=7d";
+  String get coverUrl => 'https://wsrv.nl/?url=https://s3.duellinksmeta.com${article.image}&w=520&output=webp&we&n=-1&maxage=7d';
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () => {widget.onTap?.call(widget.article)},
+      onTap: () => widget.onTap?.call(widget.article),
       child: Stack(
         children: [
           Container(
             padding: const EdgeInsets.only(left: 5, right: 5),
             child: ClipRRect(
               borderRadius: const BorderRadius.all(Radius.circular(6)),
+              // clipBehavior: Clip.hardEdge,
               child: Stack(
                 children: [
                   SizedBox(
@@ -37,8 +38,7 @@ class _ArticleItemState extends State<ArticleItem> {
                     height: 120,
                     child: CachedNetworkImage(
                       fit: BoxFit.cover,
-                      fadeInDuration: const Duration(milliseconds: 0),
-                      placeholder: (context, url) => Container(color: articleCategoryColorMap[widget.article.category] ?? Colors.grey),
+                      placeholder: (context, url) => Container(color: articleCategoryColorMap[widget.article.category]?.withOpacity(0.3) ?? Colors.grey),
                       imageUrl: coverUrl,
                     ),
                   ),

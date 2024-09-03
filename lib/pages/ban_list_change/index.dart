@@ -13,25 +13,18 @@ class BanListChangePage extends StatefulWidget {
 class _BanListChangePageState extends State<BanListChangePage> with SingleTickerProviderStateMixin, AutomaticKeepAliveClientMixin {
 
   @override
-  void initState() {
-    super.initState();
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
-  }
-
-  @override
   bool get wantKeepAlive => true;
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
+
     return DefaultTabController(
       length: 2,
       child: Scaffold(
         appBar: AppBar(
           title: const TabBar(
+            // center tab
             tabAlignment: TabAlignment.start,
             isScrollable: true,
             dividerHeight: 0,

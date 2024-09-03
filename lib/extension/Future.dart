@@ -19,13 +19,9 @@ extension FutureEx<T> on Future<Response<T>> {
           throw HttpException('status: ${res.statusCode}');
         }
 
-        if (res.body == null) {
-          throw const HttpException('response body is null');
-        }
-
         return (null, res.body);
       } catch (err) {
-        log('[toCatch] err: $err');
+        log('[toCatch] err: $err, ${err.runtimeType}');
 
         // toast error
         err.toString().toast();

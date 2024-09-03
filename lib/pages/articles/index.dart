@@ -1,23 +1,15 @@
 import 'dart:developer';
 
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:duel_links_meta/components/ListFooter.dart';
 import 'package:duel_links_meta/components/Loading.dart';
-import 'package:duel_links_meta/constant/colors.dart';
-import 'package:duel_links_meta/extension/Function.dart';
 import 'package:duel_links_meta/extension/Future.dart';
 import 'package:duel_links_meta/http/ArticleApi.dart';
 import 'package:duel_links_meta/pages/articles/components/ArticleItem.dart';
 import 'package:duel_links_meta/pages/webview/index.dart';
 import 'package:duel_links_meta/type/Article.dart';
 import 'package:duel_links_meta/type/enum/PageStatus.dart';
-import 'package:duel_links_meta/util/index.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:duel_links_meta/type/listViewData.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
-import 'package:intl/intl.dart';
-
-import '../../type/listViewData.dart';
 
 class ArticlesPage extends StatefulWidget {
   const ArticlesPage({super.key});
@@ -27,34 +19,27 @@ class ArticlesPage extends StatefulWidget {
 }
 
 class _ArticlesPageState extends State<ArticlesPage> with AutomaticKeepAliveClientMixin {
-  // List<Article> _articles = [];
 
   final ScrollController _scrollController = ScrollController();
-
-  // var _page = 1;
-  // final _size = 8;
-  // var _pageStatus = PageStatus.loading;
-  // var _loadMoreStatus = PageStatus.success;
-  // var _hasMore = true;
 
   final _listViewData = ListViewData<Article>();
 
   List<Article> get _articles => _listViewData.data;
 
-  handleTapArticleItem(Article article) {
-    var title = article.title;
-    var url = 'https://www.duellinksmeta.com/articles${article.url}';
+  void handleTapArticleItem(Article article) {
+    final title = article.title;
+    final url = 'https://www.duellinksmeta.com/articles${article.url}';
 
-    Navigator.push(context, MaterialPageRoute(builder: (context) => WebviewPage(title: title, url: url)));
+    Navigator.push(context, MaterialPageRoute<void>(builder: (context) => WebviewPage(title: title, url: url)));
   }
 
   //
-  fetchData({bool isLoadMore = false}) async {
-    var params = <String, String>{};
+  Future<void> fetchData({bool isLoadMore = false}) async {
+    final params = <String, String>{};
     params['limit'] = _listViewData.size.toString();
     params['page'] = _listViewData.page.toString();
 
-    var (err, res) = await ArticleApi().articleList(params).toCatch;
+    final (err, res) = await ArticleApi().articleList(params).toCatch;
     if (err != null) {
       if (isLoadMore) {
         setState(() {
@@ -123,7 +108,7 @@ class _ArticlesPageState extends State<ArticlesPage> with AutomaticKeepAliveClie
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Articles"),
+        title: const Text('Articles'),
       ),
       body: Stack(
         children: [

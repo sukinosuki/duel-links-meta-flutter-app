@@ -12,13 +12,15 @@ TopDeckSimple _$TopDeckSimpleFromJson(Map<String, dynamic> json) =>
       ..created = json['created'] == null
           ? null
           : DateTime.parse(json['created'] as String)
-      ..deckType = TopDeck_DeckType.fromJson(json['deckType'])
+      ..deckType =
+          TopDeck_DeckType.fromJson(json['deckType'] as Map<String, dynamic>)
       ..rankedType = json['rankedType'] == null
           ? null
           : TopDeck_RankedType.fromJson(json['rankedType'])
       ..tournamentType = json['tournamentType'] == null
           ? null
-          : TopDeck_TournamentType.fromJson(json['tournamentType']);
+          : TopDeck_TournamentType.fromJson(
+              json['tournamentType'] as Map<String, dynamic>);
 
 Map<String, dynamic> _$TopDeckSimpleToJson(TopDeckSimple instance) =>
     <String, dynamic>{

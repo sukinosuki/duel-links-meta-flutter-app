@@ -1,0 +1,110 @@
+[
+  {
+    "name": "cached_network_image",
+    "repos": "https://github.com/Baseflow/flutter_cached_network_image",
+    "license_path": "https://github.com/google/json_serializable.dart/blob/master/LICENSE",
+    "version": "^3.2.3"
+  },
+  {
+    "name": "webview_flutter",
+    "repos": "https://github.com/flutter/packages/tree/main/packages/webview_flutter/webview_flutter",
+    "license_path": "https://github.com/flutter/packages/blob/main/packages/webview_flutter/webview_flutter/LICENSE",
+    "version": "^4.7.0"
+  },
+  {
+    "name": "get",
+    "repos": "https://github.com/jonataslaw/getx",
+    "license_path": "https://github.com/jonataslaw/getx/blob/master/LICENSE",
+    "version": "^4.6.5"
+  },
+  {
+    "name": "json_annotation",
+    "repos": "https://github.com/google/json_serializable.dart/tree/master/json_annotation",
+    "license_path": "https://github.com/google/json_serializable.dart/blob/master/json_annotation/LICENSE",
+    "version": "^4.8.1"
+  },
+  {
+    "name": "intl",
+    "repos": "https://github.com/dart-lang/i18n/tree/main/pkgs/intl",
+    "license_path": "https://github.com/dart-lang/i18n/blob/main/pkgs/intl/LICENSE",
+    "version": "^0.19.0"
+  },
+  {
+    "name": "flutter_svg",
+    "repos": "https://github.com/dnfield/flutter_svg",
+    "license_path": "https://github.com/dnfield/flutter_svg/blob/master/LICENSE",
+    "version": "^2.0.10+1"
+  },
+  {
+    "name": "path",
+    "repos": "https://github.com/dart-lang/path",
+    "license_path": "https://github.com/dart-lang/path/blob/master/LICENSE",
+    "version": "^1.9.0"
+  },
+  {
+    "name": "hive",
+    "repos": "https://github.com/isar/hive",
+    "license_path": "https://github.com/isar/hive/blob/main/LICENSE",
+    "version": "^2.2.3"
+  },
+  {
+    "name": "hive_flutter",
+    "repos": "https://github.com/isar/hive",
+    "license_path": "https://github.com/isar/hive/blob/main/LICENSE",
+    "version": "^1.1.0"
+  },
+  {
+    "name": "flutter_smart_dialog",
+    "repos": "https://github.com/fluttercandies/flutter_smart_dialog",
+    "license_path": "https://github.com/fluttercandies/flutter_smart_dialog/blob/master/LICENSE",
+    "version": "^4.9.6+1"
+  },
+  {
+    "name": "animations",
+    "repos": "https://github.com/flutter/packages/tree/main/packages/animations",
+    "license_path": "https://github.com/flutter/packages/blob/main/packages/animations/LICENSE",
+    "version": "^2.0.11"
+  },
+  {
+    "name": "build_runner",
+    "repos": "https://github.com/dart-lang/build/tree/master/build_runner",
+    "license_path": "https://github.com/dart-lang/build/blob/master/build_runner/LICENSE",
+    "version": "^2.4.6"
+  },
+  {
+    "name": "json_serializable",
+    "repos": "https://github.com/google/json_serializable.dart",
+    "license_path": "https://github.com/google/json_serializable.dart/blob/master/LICENSE",
+    "version": "^6.7.1"
+  },
+  {
+    "name": "flutter_lints",
+    "repos": "https://github.com/flutter/packages/tree/main/packages/flutter_lints",
+    "license_path": "https://github.com/flutter/packages/blob/main/packages/flutter_lints/LICENSE",
+    "version": "^3.0.2"
+  },
+  {
+    "name": "flutter_gen_runner",
+    "repos": "https://github.com/FlutterGen/flutter_gen",
+    "license_path": "https://github.com/FlutterGen/flutter_gen/blob/main/LICENSE",
+    "version": "^5.3.1"
+  },
+  {
+    "name": "icons_launcher",
+    "repos": "https://github.com/mrrhak/icons_launcher",
+    "license_path": "https://github.com/mrrhak/icons_launcher/blob/master/LICENSE",
+    "version": "^2.1.7"
+  },
+  {
+    "name": "very_good_analysis",
+    "repos": "https://github.com/VeryGoodOpenSource/very_good_analysis",
+    "license_path": "https://github.com/VeryGoodOpenSource/very_good_analysis/blob/main/LICENSE",
+    "version": "^5.1.0"
+  },
+  {
+    "name": "hive_generator",
+    "repos": "https://github.com/isar/hive",
+    "license_path": "https://github.com/isar/hive/blob/main/LICENSE",
+    "version": "^2.0.1"
+  }
+]

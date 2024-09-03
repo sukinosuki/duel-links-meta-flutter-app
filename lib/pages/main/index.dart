@@ -37,7 +37,7 @@ class _MainPageState extends State<MainPage> {
           HomePage(),
           PacksPage(),
           ArticlesPage(),
-          BanListChangePage()
+          BanListChangePage(),
         ],
       ),
       bottomNavigationBar: NavigationBar(
@@ -51,6 +51,9 @@ class _MainPageState extends State<MainPage> {
         selectedIndex: _selectedIndex,
         onDestinationSelected: _onItemTapped,
         height: 70,
+        // overlayColor: Colors.white,
+        // indicatorColor: Colors.teal,
+        // surfaceTintColor: Colors.tealAccent, // 背景
         // backgroundColor: Theme.of(context).colorScheme.primary,
       ),
       // bottomNavigationBar: BottomNavigationBar(

@@ -1,7 +1,5 @@
 import 'dart:developer';
-import 'dart:ffi';
 
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:duel_links_meta/components/TopDeckItem.dart';
 import 'package:duel_links_meta/extension/Future.dart';
 import 'package:duel_links_meta/hive/MyHive.dart';
@@ -11,12 +9,11 @@ import 'package:duel_links_meta/pages/top_decks/components/TopDeckListView.dart'
 import 'package:duel_links_meta/pages/top_decks/type/Group.dart';
 import 'package:duel_links_meta/type/enum/PageStatus.dart';
 import 'package:duel_links_meta/type/top_deck/TopDeck.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
+import 'package:flutter/scheduler.dart';
 
 class TopDecksPage extends StatefulWidget {
-  const TopDecksPage({super.key, required this.isRush});
+  const TopDecksPage({required this.isRush, super.key});
 
   final bool isRush;
 
@@ -31,11 +28,11 @@ class _TopDecksPageState extends State<TopDecksPage> {
   List<Group<TopDeck>> _tournamentTypeTopDeckGroups = [];
   final _refreshIndicatorKey = GlobalKey<RefreshIndicatorState>();
 
-  var _init = false;
+  var _isInit = false;
 
   int? selectedTournamentType;
 
-  DateTime now = DateTime.now();
+  final DateTime _now = DateTime.now();
 
   bool get _isRush => widget.isRush;
 
@@ -53,7 +50,6 @@ class _TopDecksPageState extends State<TopDecksPage> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(2)),
       ),
-      // backgroundColor: Colors.transparent,
       context: context,
       builder: (context) => TopDeckListView(
         topDecks: group.data,
@@ -64,6 +60,7 @@ class _TopDecksPageState extends State<TopDecksPage> {
     );
   }
 
+  //
   Future<bool> fetchData({bool force = false}) async {
     final hiveDataKey = 'top_deck:list:${_isRush ? 'rush' : 'speed'}';
     final hiveRefreshKey = 'top_deck:list:${_isRush ? 'rush' : 'speed'}:refresh';
@@ -78,10 +75,10 @@ class _TopDecksPageState extends State<TopDecksPage> {
       final params = <String, dynamic>{
         r'created[$gte]': '(days-28)',
         'fields': 'rankedType,deckType,created,tournamentType,gemsPrice,dollarsPrice,url,skill',
-        // 'fields': '-',
         'limit': '0',
-        // r'rush[$ne]': _isRush ? 'true' : 'false',
         'rush': _isRush ? 'true' : 'false',
+        // 'fields': '-',
+        // r'rush[$ne]': _isRush ? 'true' : 'false',
       };
 
       final (err, res) = await TopDeckApi().list(params).toCatch;
@@ -94,18 +91,19 @@ class _TopDecksPageState extends State<TopDecksPage> {
       }
 
       topDecks = res!;
-      MyHive.box2.put(hiveDataKey, topDecks);
-      MyHive.box2.put(hiveRefreshKey, DateTime.now());
+      await MyHive.box2.put(hiveDataKey, topDecks);
+      await MyHive.box2.put(hiveRefreshKey, DateTime.now());
     } else {
-      await Future.delayed(const Duration(milliseconds: 200));
       try {
         topDecks = hiveData.map((e) => e as TopDeck).toList();
         if (hiveRefreshDate != null && hiveRefreshDate.add(const Duration(hours: 12)).isBefore(DateTime.now())) {
           refreshFlag = true;
         }
       } catch (e) {
-        MyHive.box2.delete(hiveDataKey);
-        MyHive.box2.delete(hiveRefreshKey);
+        await MyHive.box2.delete(hiveDataKey);
+        await MyHive.box2.delete(hiveRefreshKey);
+
+        return true;
       }
     }
 
@@ -210,10 +208,9 @@ class _TopDecksPageState extends State<TopDecksPage> {
   }
 
   Future<void> init() async {
-    log('init ${_refreshIndicatorKey.currentState}');
-    await Future.delayed(Duration(milliseconds: 10));
-
-    await _refreshIndicatorKey.currentState?.show();
+    SchedulerBinding.instance.addPostFrameCallback((timeStamp) {
+      _refreshIndicatorKey.currentState?.show();
+    });
   }
 
   @override
@@ -224,10 +221,11 @@ class _TopDecksPageState extends State<TopDecksPage> {
   }
 
   Future<void> _handleRefresh() async {
-    log('触发下拉刷新');
-
-    await fetchData(force: _init);
-    _init = true;
+    final shouldRefresh = await fetchData(force: _isInit);
+    _isInit = true;
+    if (shouldRefresh) {
+      await fetchData(force: true);
+    }
   }
 
   @override
@@ -235,71 +233,33 @@ class _TopDecksPageState extends State<TopDecksPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Top Decks'),
-        actions: [
-          IconButton(onPressed: fetchData, icon: const Icon(Icons.refresh)),
-          // IconButton(onPressed: _showFilterPopup, icon: const Icon(Icons.filter_list))
-        ],
       ),
-      body: Builder(builder: (context) {
-        return RefreshIndicator(
-          onRefresh: _handleRefresh,
-          key: _refreshIndicatorKey,
-          // notificationPredicate: (_) => _pageStatus != PageStatus.loading,
-          child: Stack(
-            children: [
-              SingleChildScrollView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                child: Stack(
-                  children: [
-                    Column(
-                      children: [
-                        GridView.builder(
-                          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2, childAspectRatio: 4),
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          padding: const EdgeInsets.only(top: 8, left: 4, right: 4, bottom: 4),
-                          itemCount: _tournamentTypeTopDeckGroups.length,
-                          itemBuilder: (BuildContext context, int index) {
-                            return TopDeckItem(
-                              topDeck: TopDeck()..deckType.name = _tournamentTypeTopDeckGroups[index].key,
-                              isActive: index == selectedTournamentType,
-                              bottomRight: Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 2),
-                                decoration: const BoxDecoration(
-                                  color: Color(0xc5dbe2dc),
-                                  borderRadius: BorderRadius.only(
-                                    topLeft: Radius.circular(6),
-                                  ),
-                                  border: BorderDirectional(
-                                    top: BorderSide(color: Colors.white, width: 0.5),
-                                    start: BorderSide(color: Colors.white, width: 0.5),
-                                  ),
-                                ),
-                                child: Text(
-                                  _tournamentTypeTopDeckGroups[index].data.length.toString(),
-                                  // _topDeckGroups[index].data[0].created!.toLocal().format,
-                                  style: const TextStyle(fontSize: 9),
-                                ),
-                              ),
-                              coverUrl:
-                                  'https://wsrv.nl/?url=https://s3.duellinksmeta.com${_tournamentTypeTopDeckGroups[index].data[0].tournamentType?.icon ?? _tournamentTypeTopDeckGroups[index].data[0].rankedType?.icon}&w=100&output=webp&we&n=-1&maxage=7d',
-                              onTap: () => _handleFilter(index),
-                            );
-                          },
-                        ),
-                        GridView.builder(
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          padding: const EdgeInsets.only(top: 8, left: 4, right: 4, bottom: 4),
-                          itemCount: _showTopDecks.length,
-                          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: 2, childAspectRatio: 4, crossAxisSpacing: 0, mainAxisSpacing: 0),
-                          itemBuilder: (context, index) {
-                            return Column(
-                              children: [
-                                TopDeckItem(
-                                  onTap: () => _handleTapTopDeckItem(_showTopDecks[index]),
-                                  topDeck: _showTopDecks[index].data[0],
+      body: Builder(
+        builder: (context) {
+          return RefreshIndicator(
+            onRefresh: _handleRefresh,
+            key: _refreshIndicatorKey,
+            child: Stack(
+              children: [
+                SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  child: Stack(
+                    children: [
+                      AnimatedOpacity(
+                        opacity: _pageStatus == PageStatus.success ? 1 : 0,
+                        duration: const Duration(milliseconds: 300),
+                        child: Column(
+                          children: [
+                            GridView.builder(
+                              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2, childAspectRatio: 4),
+                              shrinkWrap: true,
+                              physics: const NeverScrollableScrollPhysics(),
+                              padding: const EdgeInsets.only(top: 8, left: 4, right: 4, bottom: 4),
+                              itemCount: _tournamentTypeTopDeckGroups.length,
+                              itemBuilder: (BuildContext context, int index) {
+                                return TopDeckItem(
+                                  topDeck: TopDeck()..deckType.name = _tournamentTypeTopDeckGroups[index].key,
+                                  isActive: index == selectedTournamentType,
                                   bottomRight: Container(
                                     padding: const EdgeInsets.symmetric(horizontal: 2),
                                     decoration: const BoxDecoration(
@@ -313,51 +273,93 @@ class _TopDecksPageState extends State<TopDecksPage> {
                                       ),
                                     ),
                                     child: Text(
-                                      _showTopDecks[index].data.length.toString(),
-                                      style: const TextStyle(fontSize: 9),
+                                      _tournamentTypeTopDeckGroups[index].data.length.toString(),
+                                      style: const TextStyle(fontSize: 9, color: Colors.black54),
                                     ),
                                   ),
-                                  isNew: now.difference(_showTopDecks[index].data[0].created!.toLocal()).inHours < 72,
-                                  topLeft: _showTopDecks[index].data[0].deckType.tier != null
-                                      ? Container(
-                                          width: 20,
-                                          height: 19,
-                                          decoration: BoxDecoration(
-                                            color: _tier2colorMap[_showTopDecks[index].data[0].deckType.tier!] ?? Colors.white,
-                                            borderRadius: const BorderRadius.only(bottomRight: Radius.circular(4)),
+                                  coverUrl:
+                                      'https://wsrv.nl/?url=https://s3.duellinksmeta.com${_tournamentTypeTopDeckGroups[index].data[0].tournamentType?.icon ?? _tournamentTypeTopDeckGroups[index].data[0].rankedType?.icon}&w=100&output=webp&we&n=-1&maxage=7d',
+                                  onTap: () => _handleFilter(index),
+                                );
+                              },
+                            ),
+                            GridView.builder(
+                              shrinkWrap: true,
+                              physics: const NeverScrollableScrollPhysics(),
+                              padding: const EdgeInsets.only(top: 8, left: 4, right: 4, bottom: 4),
+                              itemCount: _showTopDecks.length,
+                              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: 2,
+                                childAspectRatio: 4,
+                                crossAxisSpacing: 0,
+                                mainAxisSpacing: 0,
+                              ),
+                              itemBuilder: (context, index) {
+                                return Column(
+                                  children: [
+                                    TopDeckItem(
+                                      onTap: () => _handleTapTopDeckItem(_showTopDecks[index]),
+                                      topDeck: _showTopDecks[index].data[0],
+                                      bottomRight: Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 2),
+                                        decoration: const BoxDecoration(
+                                          color: Color(0xc5dbe2dc),
+                                          borderRadius: BorderRadius.only(
+                                            topLeft: Radius.circular(6),
                                           ),
-                                          child: Center(
-                                            child: SizedBox(
-                                              width: 13,
-                                              child: Image.asset(
-                                                'assets/images/tier_m_${_showTopDecks[index].data[0].deckType.tier}.webp',
-                                                fit: BoxFit.contain,
+                                          border: BorderDirectional(
+                                            top: BorderSide(color: Colors.white, width: 0.5),
+                                            start: BorderSide(color: Colors.white, width: 0.5),
+                                          ),
+                                        ),
+                                        child: Text(
+                                          _showTopDecks[index].data.length.toString(),
+                                          style: const TextStyle(fontSize: 9, color: Colors.black54),
+                                        ),
+                                      ),
+                                      isNew: _now.difference(_showTopDecks[index].data[0].created!.toLocal()).inHours < 72,
+                                      topLeft: _showTopDecks[index].data[0].deckType.tier != null
+                                          ? Container(
+                                              width: 20,
+                                              height: 19,
+                                              decoration: BoxDecoration(
+                                                color: _tier2colorMap[_showTopDecks[index].data[0].deckType.tier!] ?? Colors.white,
+                                                borderRadius: const BorderRadius.only(bottomRight: Radius.circular(4)),
                                               ),
-                                            ),
-                                          ),
-                                        )
-                                      : null,
-                                ),
-                              ],
-                            );
-                          },
+                                              child: Center(
+                                                child: SizedBox(
+                                                  width: 13,
+                                                  child: Image.asset(
+                                                    'assets/images/tier_m_${_showTopDecks[index].data[0].deckType.tier}.webp',
+                                                    fit: BoxFit.contain,
+                                                  ),
+                                                ),
+                                              ),
+                                            )
+                                          : null,
+                                    ),
+                                  ],
+                                );
+                              },
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
-                    Opacity(
-                      opacity: _pageStatus == PageStatus.fail ? 1 : 0,
-                      child: SizedBox(
-                        height: MediaQuery.of(context).size.height - (Scaffold.of(context).appBarMaxHeight ?? 0),
-                        child: const Center(child: Text('加载失败')),
                       ),
-                    )
-                  ],
+                      Opacity(
+                        opacity: _pageStatus == PageStatus.fail ? 1 : 0,
+                        child: SizedBox(
+                          height: MediaQuery.of(context).size.height - (Scaffold.of(context).appBarMaxHeight ?? 0),
+                          child: const Center(child: Text('Loading failed')),
+                        ),
+                      )
+                    ],
+                  ),
                 ),
-              ),
-            ],
-          ),
-        );
-      }),
+              ],
+            ),
+          );
+        },
+      ),
     );
   }
 }

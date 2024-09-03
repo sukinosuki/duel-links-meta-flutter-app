@@ -18,7 +18,7 @@ class World {
 
   World();
 
-  factory World.fromJson(dynamic json) => _$WorldFromJson(json);
+  factory World.fromJson(dynamic json) => _$WorldFromJson(json as Map<String, dynamic>);
 
   Map<String, dynamic> toJson() => _$WorldToJson(this);
 }

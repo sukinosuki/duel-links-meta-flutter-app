@@ -8,16 +8,16 @@ part 'BanStatusCard.g.dart';
 @HiveType(typeId: MyHive.ban_status_card)
 class BanStatusCard {
 
+  BanStatusCard();
+
+  factory BanStatusCard.fromJson(dynamic json) => _$BanStatusCardFromJson(json as Map<String, dynamic>);
+
   @HiveField(0)
   @JsonKey(name: '_id')
   String oid = '';
 
   @HiveField(1)
   String? banStatus;
-
-  BanStatusCard();
-
-  factory BanStatusCard.fromJson(dynamic json) => _$BanStatusCardFromJson(json);
 
   Map<String, dynamic> toJson() => _$BanStatusCardToJson(this);
 }

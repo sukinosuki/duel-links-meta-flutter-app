@@ -3,10 +3,10 @@ import 'package:duel_links_meta/type/NavTab.dart';
 import 'package:duel_links_meta/type/ban_list_change/BanListChange.dart';
 import 'package:duel_links_meta/type/ban_list_change/BanStatusCard.dart';
 import 'package:duel_links_meta/type/deck_type/DeckType.dart';
-import 'package:duel_links_meta/type/deck_type/TierList_PowerRanking_Expire.dart';
 import 'package:duel_links_meta/type/deck_type/TierList_PowerRanking.dart';
-import 'package:duel_links_meta/type/pack_set/ExpireData.dart';
+import 'package:duel_links_meta/type/deck_type/TierList_PowerRanking_Expire.dart';
 import 'package:duel_links_meta/type/pack_set/PackSet.dart';
+import 'package:duel_links_meta/type/skill/Skill.dart';
 import 'package:duel_links_meta/type/tier_list_top_tier/TierList_TopTier.dart';
 import 'package:duel_links_meta/type/tier_list_top_tier/TierList_TopTier_Expire.dart';
 import 'package:duel_links_meta/type/top_deck/TopDeck.dart';
@@ -37,6 +37,10 @@ class MyHive {
   static const int top_deck_skill = 19;
   static const int top_deck_ranked_type = 20;
   static const int top_deck_tournament_type = 21;
+  static const int skill = 22;
+  static const int skill_related_card = 23;
+  static const int skill_related_character = 24;
+  static const int skill_related_character_character = 25;
 
   // static const int expire_data = 10;
 
@@ -46,7 +50,7 @@ class MyHive {
 
   MyHive._();
 
-  static init() async {
+  static Future<void> init() async {
     await Hive.initFlutter();
 
     Hive
@@ -70,7 +74,11 @@ class MyHive {
       ..registerAdapter(TopDeckDeckTypeAdapter())
       ..registerAdapter(TopDeckSkillAdapter())
       ..registerAdapter(TopDeckRankedTypeAdapter())
-      ..registerAdapter(TopDeckTournamentTypeAdapter());
+      ..registerAdapter(TopDeckTournamentTypeAdapter())
+      ..registerAdapter(SkillAdapter())
+      ..registerAdapter(SkillRelatedCardAdapter())
+      ..registerAdapter(SkillCharacterAdapter())
+      ..registerAdapter(SkillCharacterCharacterAdapter());
 
     // Hive.registerAdapter(TLoginFormAdapter());
     box = await Hive.openBox(boxName);

@@ -3,16 +3,16 @@ import 'dart:developer';
 import 'package:duel_links_meta/components/MdCardItemView2.dart';
 import 'package:duel_links_meta/extension/Future.dart';
 import 'package:duel_links_meta/gen/assets.gen.dart';
-import 'package:duel_links_meta/hive/MyHive.dart';
+import 'package:duel_links_meta/hive/db/CardHiveDb.dart';
+import 'package:duel_links_meta/http/CardApi.dart';
 import 'package:duel_links_meta/http/TopDeckApi.dart';
 import 'package:duel_links_meta/pages/cards_viewpager/index.dart';
 import 'package:duel_links_meta/type/MdCard.dart';
 import 'package:duel_links_meta/type/enum/PageStatus.dart';
 import 'package:duel_links_meta/type/top_deck/TopDeck.dart';
 import 'package:duel_links_meta/util/time_util.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-
-import '../../../http/CardApi.dart';
 
 class DeckInfo extends StatefulWidget {
   const DeckInfo({super.key, this.deckTypeId, this.topDeck, this.loadingVisible});
@@ -20,6 +20,7 @@ class DeckInfo extends StatefulWidget {
   final TopDeck? topDeck;
   final String? deckTypeId;
   final bool? loadingVisible;
+  // final void Function(PageStatus pageStatus)? onPageStatusUpdate;
 
   @override
   State<DeckInfo> createState() => _DeckInfoState();
@@ -85,19 +86,19 @@ class _DeckInfoState extends State<DeckInfo> {
   }
 
   //
-  Future<bool> init() async {
-    final params = <String, String>{'limit': '1'};
-    if (deckTypeId != null) {
-      params['deckType'] = deckTypeId!;
-      params['sort'] = '-tournamentType,-created';
-      params[r'created[$gte'] = '(days-60)';
-    }
+  Future<bool> fetchData() async {
+    var topDeck = widget.topDeck;
+    Exception? topDeckErr;
+    if (topDeck?.url == null) {
+      final params = <String, String>{'limit': '1'};
 
-    if (widget.topDeck != null) {
-      params['url'] = widget.topDeck!.url ?? '';
+      if (deckTypeId != null) {
+        params['deckType'] = deckTypeId!;
+        params['sort'] = '-tournamentType,-created';
+        params[r'created[$gte'] = '(days-60)';
+      }
+      (topDeckErr, topDeck) = await TopDeckApi().getBreakdownSample(params).toCatch;
     }
-
-    final (topDeckErr, topDeck) = await TopDeckApi().getBreakdownSample(params).toCatch;
 
     if (topDeckErr != null || topDeck == null) {
       setState(() {
@@ -111,19 +112,13 @@ class _DeckInfoState extends State<DeckInfo> {
     final extraCardIds = topDeck.extra.map((e) => e.card.oid).toList();
     mainCardIds.addAll(extraCardIds);
 
-    // TODO: 第一次时可以批量获取card再存到本地，第二次时可以减少单独请求card次数
-    // final idStrings = mainCardIds.join(',');
-
-    // 从本地获取card
-
-    // final cardsRes = await CardApi().getById(idStrings);
-    // final cards = cardsRes.body!.map(MdCard.fromJson);
-
     log('mainCardIds length: ${mainCardIds.length}');
+
     final needFetchCardIds = <String>[];
     final cards = <MdCard>[];
+
     for (var i = 0; i < mainCardIds.length; i++) {
-      final hiveData = await MyHive.box2.get('card:${mainCardIds[i]}') as MdCard?;
+      final hiveData = await CardHiveDb.get(mainCardIds[i]);
       if (hiveData == null) {
         log('hiveData为null, ${mainCardIds[i]}');
         needFetchCardIds.add(mainCardIds[i]);
@@ -131,13 +126,14 @@ class _DeckInfoState extends State<DeckInfo> {
         cards.add(hiveData);
       }
     }
-    if (needFetchCardIds.length > 0) {
-      log('需要请求获取card ${needFetchCardIds}, length: ${needFetchCardIds.length}');
-      final (cardsErr, cardsRes) = await CardApi().getById(needFetchCardIds.join(',')).toCatch;
+
+    if (needFetchCardIds.isNotEmpty) {
+      log('需要请求获取card $needFetchCardIds, length: ${needFetchCardIds.length}');
+      final (cardsErr, cardsRes) = await CardApi().getByIds(needFetchCardIds.join(',')).toCatch;
       if (cardsRes != null) {
         cards.addAll(cardsRes);
         cardsRes.forEach((element) {
-          MyHive.box2.put('card:${element.oid}', element);
+          CardHiveDb.setCard(element).ignore();
         });
       }
     }
@@ -164,12 +160,14 @@ class _DeckInfoState extends State<DeckInfo> {
     });
 
     topDeck.extra.forEach((item) {
-      final card = id2CardMap[item.card.oid] ?? MdCard()..oid = item.card.oid;
+      final card = id2CardMap[item.card.oid] ?? MdCard()
+        ..oid = item.card.oid;
       extraSingularCards.add(card);
 
       var amount = item.amount;
       while (amount > 0) {
-        extraCards.add(id2CardMap[item.card.oid] ?? MdCard()..oid = item.card.oid);
+        extraCards.add(id2CardMap[item.card.oid] ?? MdCard()
+          ..oid = item.card.oid);
         amount--;
       }
     });
@@ -183,13 +181,16 @@ class _DeckInfoState extends State<DeckInfo> {
       _extraSingularCards = extraSingularCards;
     });
 
+    // widget.onPageStatusUpdate?.call(PageStatus.success);
+
     return false;
   }
 
   @override
   void initState() {
     super.initState();
-    init();
+
+    fetchData();
   }
 
   @override
@@ -210,7 +211,7 @@ class _DeckInfoState extends State<DeckInfo> {
                   if (_topDeck != null) Text(TimeUtil.format(_topDeck?.created), style: const TextStyle(fontSize: 12)),
                   const Padding(padding: EdgeInsets.symmetric(horizontal: 4), child: Text('—', style: TextStyle(fontSize: 12))),
                   if (_topDeck != null)
-                    Text(_topDeck!.author is String ? _topDeck!.author.toString() : '', style: const TextStyle(fontSize: 12))
+                    Text(_topDeck!.author is String ? _topDeck!.author.toString() : '', style: const TextStyle(fontSize: 12)),
                 ],
               ),
               const SizedBox(height: 10),
@@ -220,38 +221,49 @@ class _DeckInfoState extends State<DeckInfo> {
                     width: 80,
                     child: Row(
                       children: [
-                        Assets.images.iconGem.image(width: 13, height: 13),
+                        Assets.images.iconGem.image(width: 15, height: 15),
                         const SizedBox(width: 4),
                         Text(formatToK(_topDeck?.gemsPrice ?? 0), style: const TextStyle(fontSize: 11)),
-                        const Padding(padding: EdgeInsets.symmetric(horizontal: 4), child: Text('+', style: TextStyle(fontSize: 11))),
-                        Text('\$${_topDeck?.dollarsPrice.toString() ?? '0'}', style: const TextStyle(fontSize: 11)),
+                        if ((_topDeck?.dollarsPrice  ?? 0) > 0) const Padding(padding: EdgeInsets.symmetric(horizontal: 4), child: Text('+', style: TextStyle(fontSize: 11))),
+                        if ((_topDeck?.dollarsPrice  ?? 0) > 0) Text('\$${_topDeck?.dollarsPrice.toString() ?? '0'}', style: const TextStyle(fontSize: 11)),
                       ],
                     ),
                   ),
                   Expanded(
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Assets.images.iconSkill2.image(width: 15, height: 15),
-                        const SizedBox(width: 2),
-                        Text(_topDeck?.skill?.name ?? '', style: const TextStyle(color: Color(0xff0a87bb), fontSize: 12)),
-                      ],
+                    child: Center(
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Assets.images.iconSkill2.image(width: 15, height: 15),
+                          const SizedBox(width: 2),
+                          Expanded(
+                            child: Text(
+                              _topDeck?.skill?.name ?? '',
+                              style: const TextStyle(color: Color(0xff0a87bb), fontSize: 12),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                   SizedBox(
-                      width: 80,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          Text(
-                            _topDeck?.main.map((e) => e.amount).reduce((a, b) => a + b).toString() ?? '',
-                            style: const TextStyle(fontSize: 11),
-                          ),
-                        ],
-                      ))
+                    width: 80,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        Text(
+                          _topDeck?.main.map((e) => e.amount).reduce((a, b) => a + b).toString() ?? '',
+                          style: const TextStyle(fontSize: 11),
+                        ),
+                      ],
+                    ),
+                  ),
                 ],
               ),
+
               const SizedBox(height: 10),
+
               Card(
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
                 margin: EdgeInsets.zero,
@@ -260,7 +272,7 @@ class _DeckInfoState extends State<DeckInfo> {
                   child: GridView.builder(
                     gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                         crossAxisCount: 5, mainAxisSpacing: 0, crossAxisSpacing: 8, childAspectRatio: 0.57),
-                    padding: const EdgeInsets.all(0),
+                    padding: EdgeInsets.zero,
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
                     itemCount: _mainCards.length,
@@ -274,37 +286,34 @@ class _DeckInfoState extends State<DeckInfo> {
                   ),
                 ),
               ),
+              const SizedBox(height: 10),
               if (_extraCards.isNotEmpty)
-                Column(
-                  children: [
-                    const SizedBox(height: 10),
-                    Card(
-                      margin: EdgeInsets.zero,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
-                      child: Padding(
-                        padding: const EdgeInsets.only(left: 8, right: 8, top: 8),
-                        child: GridView.builder(
-                          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: 8, mainAxisSpacing: 0, crossAxisSpacing: 8, childAspectRatio: 0.53),
-                          padding: const EdgeInsets.all(0),
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          itemCount: _extraCards.length,
-                          itemBuilder: (context, index) {
-                            return MdCardItemView2(
-                              onTap: (card) => handleTapSampleDeckExtraCard(index),
-                              mdCard: _extraCards[index],
-                              id: _extraCards[index].oid,
-                            );
-                          },
-                        ),
-                      ),
+                Card(
+                  margin: EdgeInsets.zero,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+                  child: Padding(
+                    padding: const EdgeInsets.only(left: 8, right: 8, top: 8),
+                    child: GridView.builder(
+                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 8, mainAxisSpacing: 0, crossAxisSpacing: 8, childAspectRatio: 0.53),
+                      padding: EdgeInsets.zero,
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: _extraCards.length,
+                      itemBuilder: (context, index) {
+                        return MdCardItemView2(
+                          onTap: (card) => handleTapSampleDeckExtraCard(index),
+                          mdCard: _extraCards[index],
+                          id: _extraCards[index].oid,
+                        );
+                      },
                     ),
-                  ],
+                  ),
                 )
             ],
           ),
         ),
+
         if (_loadingVisible && _pageStatus != PageStatus.success)
           const SizedBox(
             height: 200,

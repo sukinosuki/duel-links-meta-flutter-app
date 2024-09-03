@@ -25,7 +25,7 @@ class DeckType {
 
   DeckType();
 
-  factory DeckType.fromJson(dynamic json) => _$DeckTypeFromJson(json);
+  factory DeckType.fromJson(dynamic json) => _$DeckTypeFromJson(json as Map<String, dynamic>);
 
   Map<String, dynamic> toJson() => _$DeckTypeToJson(this);
 }
@@ -50,7 +50,7 @@ class DeckType_DeckBreakdown {
 
   DeckType_DeckBreakdown();
 
-  factory DeckType_DeckBreakdown.fromJson(dynamic json) => _$DeckType_DeckBreakdownFromJson(json);
+  factory DeckType_DeckBreakdown.fromJson(Map<String, dynamic> json) => _$DeckType_DeckBreakdownFromJson(json);
 
   Map<String, dynamic> toJson() => _$DeckType_DeckBreakdownToJson(this);
 }
@@ -78,7 +78,7 @@ class DeckType_DeckBreakdownCards {
 
   DeckType_DeckBreakdownCards();
 
-  factory DeckType_DeckBreakdownCards.fromJson(dynamic json) => _$DeckType_DeckBreakdownCardsFromJson(json);
+  factory DeckType_DeckBreakdownCards.fromJson(Map<String, dynamic> json) => _$DeckType_DeckBreakdownCardsFromJson(json);
 
   Map<String, dynamic> toJson() => _$DeckType_DeckBreakdownCardsToJson(this);
 }
@@ -100,7 +100,7 @@ class DeckType_DeckBreakdown_Skill {
 
   DeckType_DeckBreakdown_Skill();
 
-  factory DeckType_DeckBreakdown_Skill.fromJson(dynamic json) => _$DeckType_DeckBreakdown_SkillFromJson(json);
+  factory DeckType_DeckBreakdown_Skill.fromJson(dynamic json) => _$DeckType_DeckBreakdown_SkillFromJson(json as Map<String, dynamic>);
 
   Map<String, dynamic> toJson() => _$DeckType_DeckBreakdown_SkillToJson(this);
 }

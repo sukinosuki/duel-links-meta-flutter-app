@@ -1,10 +1,9 @@
 import 'dart:developer';
 
-import 'package:duel_links_meta/components/Loading.dart';
 import 'package:duel_links_meta/extension/Future.dart';
-import 'package:duel_links_meta/hive/MyHive.dart';
+import 'package:duel_links_meta/hive/db/BanListChangeHiveDb.dart';
+import 'package:duel_links_meta/hive/db/CardHiveDb.dart';
 import 'package:duel_links_meta/http/BanListChangeApi.dart';
-import 'package:duel_links_meta/http/CardApi.dart';
 import 'package:duel_links_meta/pages/ban_list_change/components/BanListChangeCardView.dart';
 import 'package:duel_links_meta/pages/ban_list_change/components/BanListChangePickerView.dart';
 import 'package:duel_links_meta/pages/ban_list_change/type/DataGroup.dart';
@@ -14,6 +13,7 @@ import 'package:duel_links_meta/type/ban_list_change/BanListChange.dart';
 import 'package:duel_links_meta/type/enum/PageStatus.dart';
 import 'package:duel_links_meta/util/time_util.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:intl/intl.dart';
 
 class BanListChangeView extends StatefulWidget {
@@ -26,62 +26,52 @@ class BanListChangeView extends StatefulWidget {
 class _BanListChangeViewState extends State<BanListChangeView> with AutomaticKeepAliveClientMixin {
   var _pageStatus = PageStatus.loading;
 
+  final _refreshIndicatorKey = GlobalKey<RefreshIndicatorState>();
+
   List<DataGroup<BanListChange>> banListChangeGroup = [];
 
   BanListChange? currentBanListChange;
 
   //
   Future<bool> fetchBanListChanges({bool force = false}) async {
-    var banListChangeKey = 'ban_list_change:list';
-    var banListChangeFetchDateKey = 'ban_list_change:fetch_date';
     var reRefreshFlag = false;
 
-    List<BanListChange> list = [];
+    var list = await BanListChangeHiveDb.get();
+    final expireTime = await BanListChangeHiveDb.getExpireTime();
 
-    var hiveData = await MyHive.box2.get(banListChangeKey);
-    final lastFetchDate = await MyHive.box2.get(banListChangeFetchDateKey);
-
-    if (hiveData == null || force) {
-      final params = {r'rush[$ne]': 'true', 'sort': '-date,-announced', 'fields': '-linkedArticle'};
+    if (list == null || force) {
+      if (list == null) {
+        log('本地没数据');
+      } else {
+        log('强制刷新');
+      }
+      final params = {
+        r'rush[$ne]': 'true',
+        'sort': '-date,-announced',
+        'fields': '-linkedArticle',
+      };
 
       final (err, res) = await BanListChangeApi().list(params: params).toCatch;
 
-      if (err != null) {
+      if (err != null || res == null) {
         setState(() {
           _pageStatus = PageStatus.fail;
         });
 
-        return true;
+        return false;
       }
-      list = res!.map(BanListChange.fromJson).toList();
-      MyHive.box2.put(banListChangeKey, list);
-      MyHive.box2.put(banListChangeFetchDateKey, DateTime.now());
-      log('本地保存数据');
 
+      list = res;
+      BanListChangeHiveDb.set(list).ignore();
+      BanListChangeHiveDb.setExpireTime(DateTime.now().add(const Duration(days: 1))).ignore();
+      log('本地保存数据');
     } else {
       log('本地获取到数据');
-
-      try {
-
-        list = (hiveData as List<dynamic>).map((e) => e as BanListChange).toList();
-        if (lastFetchDate != null) {
-          // 超过刷新时间
-          if ((lastFetchDate as DateTime).add(const Duration(seconds: 10)).isBefore(DateTime.now())) {
-            log('超过默认的数据有效时间，需要刷新');
-
-            reRefreshFlag = true;
-          }
-        }
-        log('转换成功');
-      }catch (e) {
-        await MyHive.box2.delete(banListChangeKey);
-        await MyHive.box2.delete(banListChangeFetchDateKey);
-        return true;
+      reRefreshFlag = expireTime == null || expireTime.isBefore(DateTime.now());
+      if (reRefreshFlag) {
+        log('本地数据已过期');
       }
-
     }
-
-    final cardIds = list.map((e) => e.changes.map((e) => e.card!.oid).toList()).expand((element) => element).toSet().toList();
 
     final formatter = DateFormat('MM-dd');
 
@@ -110,65 +100,24 @@ class _BanListChangeViewState extends State<BanListChangeView> with AutomaticKee
       _pageStatus = PageStatus.success;
     });
 
-    // fetchCards(cardIds);
-
     return reRefreshFlag;
   }
 
-  // Future<void> fetchCards(List<String> cardIds) async {
-  //   final cards = <MdCard>[];
   //
-  //   var size = 0;
-  //   while (size < cardIds.length) {
-  //     final ids = cardIds.sublist(size, size + 100 > cardIds.length ? cardIds.length : size + 100);
-  //     size += 100;
-  //
-  //     final (cardsErr, cardsRes) = await CardApi().getById(ids.join(',')).toCatch;
-  //     if (cardsErr != null) {
-  //       return;
-  //     }
-  //     cards.addAll(cardsRes!.map(MdCard.fromJson).toList());
-  //
-  //     log('cards: ${cards.length}');
-  //   }
-  //
-  //   final cardId2CardMap = <String, MdCard>{};
-  //
-  //   cards.forEach((card) {
-  //     cardId2CardMap[card.oid] = card;
-  //   });
-  //   log('cardId2CardMap: ${cardId2CardMap.length}');
-  //
-  //   banListChangeGroup.forEach((group) {
-  //     group.items.forEach((item) {
-  //       item.changes.forEach((change) {
-  //         if (cardId2CardMap[change.card?.oid] != null) {
-  //           change.card2 = cardId2CardMap[change.card?.oid]!;
-  //         }
-  //       });
-  //     });
-  //   });
-  // }
+  Future<void> handleTapBanListCard(int index) async {
+    final cards = <MdCard>[];
 
-  void handleTapBanListCard(int index) async{
-    // final cards = currentBanListChange!.changes.map((e) => e.).toList();
-    List<MdCard> cards = [];
-
-    for (var i =0; i <currentBanListChange!.changes.length; i++) {
-      var item  = currentBanListChange!.changes[i];
-      var card = await MyHive.box2.get('card:${item.card!.oid}') as MdCard?;
+    for (var i = 0; i < currentBanListChange!.changes.length; i++) {
+      final item = currentBanListChange!.changes[i];
+      var card = await CardHiveDb.get(item.card!.oid);
       card ??= MdCard()
         ..oid = item.card!.oid
         ..name = item.card!.name;
 
-      log('本地获取到card');
-      // return card as MdCard;
       cards.add(card);
     }
-   // var cards = currentBanListChange!.changes.map((e) async{
-   //
-   //  }).toList();
 
+    // TODO
     await showDialog<void>(
       context: context,
       builder: (context) => Dialog.fullscreen(
@@ -188,32 +137,57 @@ class _BanListChangeViewState extends State<BanListChangeView> with AutomaticKee
     Navigator.pop(context);
   }
 
+  //
   void showUpdatesDatePicker() {
     showModalBottomSheet<void>(
       context: context,
-      backgroundColor: Colors.black12,
-      builder: (context) => BanListChangePicker(data: banListChangeGroup, onConfirm: handlePickerConfirm),
+      // backgroundColor: Colors.black12,
+      builder: (context) => BanListChangePicker(
+        data: banListChangeGroup,
+        onConfirm: handlePickerConfirm,
+      ),
     );
+  }
+
+  bool isInit = false;
+
+  Future<void> _handleRefresh() async {
+    final shouldRefresh = await fetchBanListChanges();
+    isInit = true;
+    if (shouldRefresh) {
+      await fetchBanListChanges(force: true);
+    }
+    log('_handleRefresh');
   }
 
   @override
   void initState() {
     super.initState();
-    fetchBanListChanges();
+
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      _refreshIndicatorKey.currentState?.show();
+    });
   }
 
   @override
+  bool get wantKeepAlive => true;
+
+  @override
   Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        AnimatedOpacity(
-          opacity: _pageStatus == PageStatus.success ? 1 : 0,
-          duration: const Duration(milliseconds: 400),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const SizedBox(height: 10),
-              Padding(
+    super.build(context);
+    return RefreshIndicator(
+      key: _refreshIndicatorKey,
+      onRefresh: _handleRefresh,
+      child: Stack(
+        children: [
+          AnimatedOpacity(
+            opacity: _pageStatus == PageStatus.success ? 1 : 0,
+            duration: const Duration(milliseconds: 300),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const SizedBox(height: 10),
+                Padding(
                   padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -229,32 +203,25 @@ class _BanListChangeViewState extends State<BanListChangeView> with AutomaticKee
                         ),
                       )
                     ],
-                  )),
-              const SizedBox(height: 8),
-              Expanded(
-                child: ListView.builder(
-                  itemCount: currentBanListChange?.changes.length ?? 0,
-                  itemBuilder: (context, index) {
-                    return BanListChangeCardView(
-                      change: currentBanListChange!.changes[index],
-                      onTap: () => handleTapBanListCard(index),
-                    );
-                  },
+                  ),
                 ),
-              ),
-            ],
-          ),
-        ),
-        if (_pageStatus == PageStatus.loading)
-          const Positioned.fill(
-            child: Center(
-              child: Loading(),
+                const SizedBox(height: 8),
+                Expanded(
+                  child: ListView.builder(
+                    itemCount: currentBanListChange?.changes.length ?? 0,
+                    itemBuilder: (context, index) {
+                      return BanListChangeCardView(
+                        change: currentBanListChange!.changes[index],
+                        onTap: () => handleTapBanListCard(index),
+                      );
+                    },
+                  ),
+                ),
+              ],
             ),
-          )
-      ],
+          ),
+        ],
+      ),
     );
   }
-
-  @override
-  bool get wantKeepAlive => true;
 }

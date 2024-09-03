@@ -81,7 +81,7 @@ class _CharacterPageState extends State<CharacterPage> {
 
     var [skillRes, cardsRes] = await Future.wait([
       SkillApi().getByCharacterId(character.oid),
-      CardApi().getObtainSourceId(character.oid)
+      CardApi().getByObtainSource(character.oid)
     ]);
     if (skillRes.statusCode != 200 || cardsRes.statusCode != 200) {
       setState(() {

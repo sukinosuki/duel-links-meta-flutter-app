@@ -19,6 +19,6 @@ class TopDeckSimple {
 
   TopDeckSimple();
 
-  factory TopDeckSimple.fromJson(dynamic json) => _$TopDeckSimpleFromJson(json);
+  factory TopDeckSimple.fromJson(dynamic json) => _$TopDeckSimpleFromJson(json as Map<String, dynamic>);
   dynamic toJson() => _$TopDeckSimpleToJson(this);
 }

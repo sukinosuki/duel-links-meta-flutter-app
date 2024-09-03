@@ -27,8 +27,8 @@ class _DeckTypeBreakdownGridViewState extends State<DeckTypeBreakdownGridView> {
     return cards.map((e) => e.card).toList();
   }
 
-  handleTapCardItem(int index) {
-    showDialog(
+  void handleTapCardItem(int index) {
+    showDialog<void>(
       context: context,
       builder: (context) => Dialog.fullscreen(
         backgroundColor: Colors.black87.withOpacity(0.3),
@@ -43,11 +43,11 @@ class _DeckTypeBreakdownGridViewState extends State<DeckTypeBreakdownGridView> {
       shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(6)
       ),
-      margin: const EdgeInsets.all(0),
+      margin: EdgeInsets.zero,
       child: Padding(
         padding: const EdgeInsets.only(left: 8, right: 8, top: 8),
         child: GridView.builder(
-          padding: const EdgeInsets.all(0),
+          padding: EdgeInsets.zero,
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           itemCount: cards.length,

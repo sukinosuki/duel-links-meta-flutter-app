@@ -30,7 +30,7 @@ class _TopDeckListViewState extends State<TopDeckListView> {
               Expanded(
                 child: Container(
                   padding: const EdgeInsets.only(left: 42),
-                  child: const Text('Skill', style: TextStyle(fontSize: 13),),
+                  child: const Text('Skill', style: TextStyle(fontSize: 13)),
                 ),
               ),
               Container(
@@ -46,86 +46,91 @@ class _TopDeckListViewState extends State<TopDeckListView> {
               Container(
                 width: 80,
                 padding: const EdgeInsets.symmetric(horizontal: 4),
-                child: const Text('Date', style: TextStyle(fontSize: 13),),
+                child: const Text('Date', style: TextStyle(fontSize: 13)),
               )
             ],
           ),
         ),
         Expanded(
-          child: ListView.builder(
-            itemCount: _topDecks.length,
-            itemBuilder: (context, index) {
-              return InkWell(
-                onTap: ()=> widget.onTap?.call(_topDecks[index]),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
-                  child: Row(
-                    children: [
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(3),
-                        child: SizedBox(
-                          height: 32,
-                          width: 32,
-                          child: CachedNetworkImage(
+          child: Container(
+            color: Theme.of(context).colorScheme.surfaceVariant,
+            child: ListView.builder(
+              itemCount: _topDecks.length,
+              itemBuilder: (context, index) {
+                return InkWell(
+                  onTap: ()=> widget.onTap?.call(_topDecks[index]),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+                    child: Row(
+                      children: [
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(3),
+                          child: SizedBox(
+                            height: 32,
                             width: 32,
-                            fit: BoxFit.cover,
-                            imageUrl:
-                            'https://imgserv.duellinksmeta.com/v2/dlm/deck-type/${Uri.encodeComponent(_topDecks[index].deckType.name)}?portrait=true&width=50',
-                          ),
-                        ),
-                      ),
-                      Expanded(
-                        child: Container(
-                          padding: const EdgeInsets.only(left: 4),
-                          child: Text(
-                            _topDecks[index].skill?.name ?? '',
-                            style: const TextStyle(fontSize: 12),
-                          ),
-                        ),
-                      ),
-                      SizedBox(
-                        width: 40,
-                        child: Center(
-                          child: CachedNetworkImage(
-                            width: 28,
-                            fit: BoxFit.cover,
-                            imageUrl:
-                            'https://wsrv.nl/?url=https://s3.duellinksmeta.com${_topDecks[index].tournamentType?.icon ?? _topDecks[index].rankedType?.icon}&w=100&output=webp&we&n=-1&maxage=7d',
-                          ),
-                        ),
-                      ),
-                      SizedBox(
-                        width: 90,
-                        child: Row(
-                          children: [
-                            Assets.images.iconGem.image(width: 16),
-                            SizedBox(width: 2,),
-                            Text(
-                              '${(_topDecks[index].gemsPrice / 1000).toStringAsFixed(0)}k',
-                              style: const TextStyle(fontSize: 12),
+                            child: CachedNetworkImage(
+                              width: 32,
+                              fit: BoxFit.cover,
+                              imageUrl:
+                              'https://imgserv.duellinksmeta.com/v2/dlm/deck-type/${Uri.encodeComponent(_topDecks[index].deckType.name)}?portrait=true&width=50',
                             ),
-                            if (_topDecks[index].dollarsPrice > 0)
+                          ),
+                        ),
+                        Expanded(
+                          child: Container(
+                            padding: const EdgeInsets.only(left: 4),
+                            child: Text(
+                              _topDecks[index].skill?.name ?? '',
+                              style: const TextStyle(fontSize: 12),
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 2,
+                            ),
+                          ),
+                        ),
+                        SizedBox(
+                          width: 45,
+                          child: Center(
+                            child: CachedNetworkImage(
+                              width: 32,
+                              fit: BoxFit.cover,
+                              imageUrl:
+                              'https://wsrv.nl/?url=https://s3.duellinksmeta.com${_topDecks[index].tournamentType?.icon ?? _topDecks[index].rankedType?.icon}&w=100&output=webp&we&n=-1&maxage=7d',
+                            ),
+                          ),
+                        ),
+                        SizedBox(
+                          width: 90,
+                          child: Row(
+                            children: [
+                              Assets.images.iconGem.image(width: 16),
+                              SizedBox(width: 2,),
                               Text(
-                                '+ \$${_topDecks[index].dollarsPrice}',
+                                '${(_topDecks[index].gemsPrice / 1000).toStringAsFixed(0)}k',
                                 style: const TextStyle(fontSize: 12),
                               ),
-                          ],
+                              if (_topDecks[index].dollarsPrice > 0)
+                                Text(
+                                  '+ \$${_topDecks[index].dollarsPrice}',
+                                  style: const TextStyle(fontSize: 12),
+                                ),
+                            ],
+                          ),
                         ),
-                      ),
-                      Container(
-                        padding: const EdgeInsets.only(right: 2),
-                        width: 80,
-                        child: Text(
-                          _topDecks[index].created?.toLocal().format ?? '',
-                          style: const TextStyle(fontSize: 12),
-                          textAlign: TextAlign.right,
-                        ),
-                      )
-                    ],
+                        Container(
+                          padding: const EdgeInsets.only(right: 2),
+                          width: 80,
+                          child: Text(
+                            _topDecks[index].created?.toLocal().format ?? '',
+                            style: const TextStyle(fontSize: 12),
+                            textAlign: TextAlign.right,
+                          ),
+                        )
+                      ],
+                    ),
                   ),
-                ),
-              );
-            },
+                );
+              },
+            ),
           ),
         ),
       ],

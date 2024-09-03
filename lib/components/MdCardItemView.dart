@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
 class MdCardItemView extends StatefulWidget {
-  const MdCardItemView({super.key, required this.mdCard, this.bottomWidget, this.showBanStatus = true, this.trend, this.onTap});
+  const MdCardItemView({required this.mdCard, super.key, this.bottomWidget, this.showBanStatus = true, this.trend, this.onTap});
 
   final MdCard mdCard;
   final Widget? bottomWidget;
@@ -51,14 +51,15 @@ class _MdCardItemViewState extends State<MdCardItemView> {
                 ),
               if (widget.showBanStatus && mdCard.banStatus != null)
                 Positioned(
-                    child: ClipRRect(
-                  borderRadius: const BorderRadius.all(Radius.circular(10)),
-                  child: SvgPicture.asset(
-                    'assets/images/icon_${mdCard.banStatus!.toLowerCase()}.svg',
-                    width: 20,
-                    height: 20,
+                  child: ClipRRect(
+                    borderRadius: const BorderRadius.all(Radius.circular(10)),
+                    child: SvgPicture.asset(
+                      'assets/images/icon_${mdCard.banStatus!.toLowerCase()}.svg',
+                      width: 20,
+                      height: 20,
+                    ),
                   ),
-                )),
+                ),
               if (widget.trend != null && widget.trend != '')
                 Positioned(
                   top: 0,

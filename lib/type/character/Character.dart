@@ -4,6 +4,11 @@ part 'Character.g.dart';
 
 @JsonSerializable()
 class Character {
+
+  Character();
+
+  factory Character.fromJson(dynamic json) => _$CharacterFromJson(json as Map<String, dynamic>);
+
   @JsonKey(name: '_id', defaultValue: '')
   String oid = '';
 
@@ -19,15 +24,16 @@ class Character {
   @JsonKey(defaultValue: [])
   List<Character_World> worlds = [];
 
-  Character();
-
-  factory Character.fromJson(dynamic json) => _$CharacterFromJson(json);
-
   Map<String, dynamic> toJson() => _$CharacterToJson(this);
 }
 
 @JsonSerializable()
 class Character_LinkedArticle {
+
+
+  Character_LinkedArticle();
+
+  factory Character_LinkedArticle.fromJson(dynamic json) => _$Character_LinkedArticleFromJson(json as Map<String, dynamic>);
 
   @JsonKey(defaultValue: '')
   String description = '';
@@ -42,16 +48,15 @@ class Character_LinkedArticle {
   @JsonKey(defaultValue: '')
   String image = '';
 
-
-  Character_LinkedArticle();
-
-  factory Character_LinkedArticle.fromJson(dynamic json) => _$Character_LinkedArticleFromJson(json);
-
   Map<String, dynamic> toJson() => _$Character_LinkedArticleToJson(this);
 }
 
 @JsonSerializable()
 class Character_World {
+
+  Character_World();
+
+  factory Character_World.fromJson(dynamic json) => _$Character_WorldFromJson(json as Map<String, dynamic>);
   @JsonKey(defaultValue: '')
   String name = '';
 
@@ -60,10 +65,6 @@ class Character_World {
 
   @JsonKey(name: '_id', defaultValue: '')
   String oid = '';
-
-  Character_World();
-
-  factory Character_World.fromJson(dynamic json) => _$Character_WorldFromJson(json);
 
   Map<String, dynamic> toJson() => _$Character_WorldToJson(this);
 }

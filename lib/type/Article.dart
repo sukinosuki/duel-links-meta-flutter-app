@@ -28,7 +28,7 @@ class Article {
   Article();
 
   // factory Article.fromJson(Map<String, dynamic> json) => _$ArticleFromJson(json);
-  factory Article.fromJson(dynamic json) => _$ArticleFromJson(json);
+  factory Article.fromJson(dynamic json) => _$ArticleFromJson(json as Map<String, dynamic>);
 
   dynamic toJson() => _$ArticleToJson(this);
 }

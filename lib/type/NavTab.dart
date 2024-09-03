@@ -22,7 +22,7 @@ class NavTab {
 
   NavTab({required this.id, this.title = ''});
 
-  factory NavTab.fromJson(dynamic json) => _$NavTabFromJson(json);
+  factory NavTab.fromJson(dynamic json) => _$NavTabFromJson(json as Map<String, dynamic>);
 
   Map<String, dynamic> toJson() => _$NavTabToJson(this);
 

@@ -7,55 +7,54 @@ class NavItemCard extends StatelessWidget {
 
   final NavTab navTab;
 
+  String get coverUrl => 'https://wsrv.nl/?url=https://s3.duellinksmeta.com${navTab.image}&w=360&output=webp&we&n=-1&maxage=7d';
+
   @override
   Widget build(BuildContext context) {
-    final imageUrl = 'https://wsrv.nl/?url=https://s3.duellinksmeta.com${navTab.image}&w=360&output=webp&we&n=-1&maxage=7d';
-
     return Card(
       margin: EdgeInsets.zero,
-      child: ClipRRect(
-        borderRadius: const BorderRadius.all(Radius.circular(6)),
-        child: Stack(
-          fit: StackFit.expand,
-          children: [
-            if (navTab.image != '')
-              CachedNetworkImage(
-                fit: BoxFit.cover,
-                fadeOutDuration: null,
-                fadeInDuration: Duration.zero,
-                imageUrl: imageUrl,
-              )
-            else
-              Container(
-                color: Colors.black12,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(6),
+      ),
+      clipBehavior: Clip.hardEdge,
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          Container(
+            child: navTab.image != ''
+                ? CachedNetworkImage(
+                    fit: BoxFit.cover,
+                    fadeOutDuration: null,
+                    imageUrl: coverUrl,
+                  )
+                : null,
+          ),
+          Positioned(
+            bottom: 0,
+            left: 0,
+            right: 0,
+            child: Container(
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.centerRight,
+                  end: Alignment.centerLeft,
+                  colors: [Colors.black12, Colors.black87],
+                ),
               ),
-            Positioned(
-              bottom: 0,
-              left: 0,
-              right: 0,
-              child: Container(
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.centerRight,
-                    end: Alignment.centerLeft,
-                    colors: [Colors.black12, Colors.black87],
+              height: 30,
+              padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 4),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    navTab.title ?? '',
+                    style: const TextStyle(color: Colors.white, fontSize: 12),
                   ),
-                ),
-                height: 30,
-                padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 4),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      navTab.title ?? '',
-                      style: const TextStyle(color: Colors.white, fontSize: 12),
-                    )
-                  ],
-                ),
+                ],
               ),
-            )
-          ],
-        ),
+            ),
+          ),
+        ],
       ),
     );
   }

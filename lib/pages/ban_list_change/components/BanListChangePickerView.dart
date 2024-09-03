@@ -1,28 +1,29 @@
 import 'dart:async';
 import 'dart:developer';
 
-import 'package:duel_links_meta/extension/Function.dart';
+import 'package:duel_links_meta/pages/ban_list_change/type/DataGroup.dart';
+import 'package:duel_links_meta/type/ban_list_change/BanListChange.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
-import '../../../type/ban_list_change/BanListChange.dart';
-import '../type/DataGroup.dart';
-
- int _defaultYearIndex = 0;
- int _defaultItemIndex = 0;
+int _defaultYearIndex = 0;
+int _defaultItemIndex = 0;
 
 class BanListChangePicker extends StatefulWidget {
-  const BanListChangePicker({super.key, required this.data, required this.onConfirm,});
+  const BanListChangePicker({
+    required this.data,
+    required this.onConfirm,
+    super.key,
+  });
 
   final List<DataGroup<BanListChange>> data;
-  final Function onConfirm;
-
+  final void Function(int index1, int index2) onConfirm;
 
   @override
   State<BanListChangePicker> createState() => _BanListChangePickerState();
 }
 
-class _BanListChangePickerState extends State<BanListChangePicker>{
+class _BanListChangePickerState extends State<BanListChangePicker> {
   List<String> get years => widget.data.map((e) => e.name).toList();
 
   Timer? yearPickerTimer;
@@ -50,7 +51,7 @@ class _BanListChangePickerState extends State<BanListChangePicker>{
       borderRadius: const BorderRadius.only(topLeft: Radius.circular(18), topRight: Radius.circular(18)),
       child: Container(
         height: 240,
-        padding: const EdgeInsets.only(top: 8.0),
+        padding: const EdgeInsets.only(top: 8),
         color: Theme.of(context).colorScheme.onPrimary,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -70,13 +71,9 @@ class _BanListChangePickerState extends State<BanListChangePicker>{
                       //   log('change, int: ${selectedItem}');
                       // }.debounce(1000),
                       onSelectedItemChanged: (int selectedItem) {
-                        log('change $int');
-
                         if (yearPickerTimer?.isActive ?? false) yearPickerTimer!.cancel();
 
                         yearPickerTimer = Timer(const Duration(milliseconds: 500), () {
-                        log('execute');
-
                           setState(() {
                             selectedYearKey = selectedItem;
 
@@ -92,28 +89,26 @@ class _BanListChangePickerState extends State<BanListChangePicker>{
                     ),
                   ),
                   Expanded(
-                    child: Container(
-                      child: CupertinoPicker(
-                        magnification: 1.22,
-                        squeeze: 1.2,
-                        useMagnifier: true,
-                        itemExtent: 32,
-                        scrollController: _controller,
-                        onSelectedItemChanged: (int selectedItem) {
-                          if (itemPickerTimer?.isActive ?? false) itemPickerTimer!.cancel();
+                    child: CupertinoPicker(
+                      magnification: 1.22,
+                      squeeze: 1.2,
+                      useMagnifier: true,
+                      itemExtent: 32,
+                      scrollController: _controller,
+                      onSelectedItemChanged: (int selectedItem) {
+                        if (itemPickerTimer?.isActive ?? false) itemPickerTimer!.cancel();
 
-                          itemPickerTimer = Timer(const Duration(milliseconds: 500), () {
-                            setState(() {
-                              selectedItemKey = selectedItem;
-                            });
+                        itemPickerTimer = Timer(const Duration(milliseconds: 500), () {
+                          setState(() {
+                            selectedItemKey = selectedItem;
                           });
-                        },
-                        children: widget.data[selectedYearKey].items.map((item) {
-                          return Center(
-                            child: Text(item.formattedMonthDay),
-                          );
-                        }).toList(),
-                      ),
+                        });
+                      },
+                      children: widget.data[selectedYearKey].items.map((item) {
+                        return Center(
+                          child: Text(item.formattedMonthDay),
+                        );
+                      }).toList(),
                     ),
                   ),
                 ],
@@ -122,7 +117,7 @@ class _BanListChangePickerState extends State<BanListChangePicker>{
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               child: ElevatedButton(
-                onPressed: ()  {
+                onPressed: () {
                   log('confirm: $selectedYearKey, $selectedItemKey');
                   _defaultItemIndex = selectedItemKey;
                   _defaultYearIndex = selectedYearKey;
@@ -136,5 +131,4 @@ class _BanListChangePickerState extends State<BanListChangePicker>{
       ),
     );
   }
-
 }

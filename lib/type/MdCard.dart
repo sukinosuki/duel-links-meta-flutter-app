@@ -8,13 +8,13 @@ part 'MdCard.g.dart';
 @HiveType(typeId: MyHive.md_card)
 class MdCard {
   @HiveField(0)
-  int? atk = 0;
+  int? atk;
 
   @HiveField(1)
   String? attribute = '';
 
   @HiveField(2)
-  int? def = 0;
+  int? def;
 
   @HiveField(3)
   String description = '';
@@ -56,7 +56,7 @@ class MdCard {
 
   MdCard();
 
-  factory MdCard.fromJson(dynamic json) => _$MdCardFromJson(json);
+  factory MdCard.fromJson(dynamic json) => _$MdCardFromJson(json as Map<String, dynamic>);
 
   dynamic toJson() => _$MdCardToJson(this);
 }
@@ -76,7 +76,7 @@ class MdCard_Obtain {
 
   MdCard_Obtain();
 
-  factory MdCard_Obtain.fromJson(dynamic json) => _$MdCard_ObtainFromJson(json);
+  factory MdCard_Obtain.fromJson(Map<String, dynamic> json) => _$MdCard_ObtainFromJson(json);
 
   dynamic toJson() => _$MdCard_ObtainToJson(this);
 }
@@ -94,7 +94,7 @@ class MdCard_Obtain_Source {
 
   MdCard_Obtain_Source();
 
-  factory MdCard_Obtain_Source.fromJson(dynamic json) => _$MdCard_Obtain_SourceFromJson(json);
+  factory MdCard_Obtain_Source.fromJson(dynamic json) => _$MdCard_Obtain_SourceFromJson(json as Map<String, dynamic>);
 
   dynamic toJson() => _$MdCard_Obtain_SourceToJson(this);
 }
