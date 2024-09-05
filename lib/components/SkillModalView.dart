@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:duel_links_meta/extension/Future.dart';
 import 'package:duel_links_meta/gen/assets.gen.dart';
@@ -7,7 +5,6 @@ import 'package:duel_links_meta/hive/db/SkillHiveDb.dart';
 import 'package:duel_links_meta/http/SkillApi.dart';
 import 'package:duel_links_meta/type/enum/PageStatus.dart';
 import 'package:duel_links_meta/type/skill/Skill.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class SkillModalView extends StatefulWidget {
@@ -28,10 +25,8 @@ class _SkillModalViewState extends State<SkillModalView> {
 
   //
   Future<bool> fetchData({bool force = false}) async {
-    // await Future.delayed(Duration(seconds: 1));
-    // return false;
-    var skill = await SkillHiveDb.get(_name);
-    final expireTime = await SkillHiveDb.getExpireTime(_name);
+    var skill = await SkillHiveDb().get(_name);
+    final expireTime = await SkillHiveDb().getExpireTime(_name);
     Exception? err;
     var shouldRefresh = false;
 
@@ -44,8 +39,8 @@ class _SkillModalViewState extends State<SkillModalView> {
         return false;
       }
 
-      SkillHiveDb.set(skill).ignore();
-      SkillHiveDb.setExpireTime(skill.name, DateTime.now().add(const Duration(days: 1))).ignore();
+      SkillHiveDb().set(skill).ignore();
+      SkillHiveDb().setExpireTime(skill.name, DateTime.now().add(const Duration(days: 1))).ignore();
     } else {
       shouldRefresh = expireTime == null || expireTime.isBefore(DateTime.now());
     }
@@ -82,139 +77,100 @@ class _SkillModalViewState extends State<SkillModalView> {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: ClipRRect(
-        borderRadius: const BorderRadius.all(Radius.circular(14)),
-        child: Container(
-          // constraints: const BoxConstraints(maxHeight: 400),
-          width: MediaQuery.of(context).size.width * 0.9,
-          decoration: BoxDecoration(
-            // color: Colors.white,
-            image: DecorationImage(image: Assets.images.modalBg.image().image, fit: BoxFit.fitWidth),
-            color: Theme.of(context).cardColor,
-          ),
-          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
+    return Container(
+      constraints: const BoxConstraints(maxHeight: 300),
+      child: Scrollbar(
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
           child: Stack(
             children: [
-              Container(
-                constraints: const BoxConstraints(maxHeight: 300),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 8),
-                      child: Center(
-                        child: Text(
-                          widget.name,
-                          style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w500),
-                        ),
+              Column(
+                children: [
+                  Text(_skill.description, style: const TextStyle(fontSize: 12)),
+                  const SizedBox(height: 4),
+                  if (_skill.relatedCards.isNotEmpty)
+                    SizedBox(
+                      height: 60,
+                      child: ListView.builder(
+                        scrollDirection: Axis.horizontal,
+                        itemCount: _skill.relatedCards.length,
+                        itemBuilder: (context, index) {
+                          return Row(
+                            children: [
+                              Container(
+                                color: Colors.white38,
+                                height: 60,
+                                width: 60 / 1.4,
+                                child: CachedNetworkImage(
+                                  fit: BoxFit.cover,
+                                  imageUrl: 'https://s3.duellinksmeta.com/cards/${_skill.relatedCards[index].oid}_w100.webp',
+                                ),
+                              ),
+                              const SizedBox(width: 4),
+                            ],
+                          );
+                        },
                       ),
                     ),
-                    Expanded(
-                      child: SingleChildScrollView(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(_skill.description, style: const TextStyle(fontSize: 12)),
-                                const SizedBox(height: 4),
-                                if (_skill.relatedCards.isNotEmpty)
-                                  SizedBox(
-                                    height: 60,
-                                    child: ListView.builder(
-                                      scrollDirection: Axis.horizontal,
-                                      itemCount: _skill.relatedCards.length,
-                                      itemBuilder: (context, index) {
-                                        return Row(
-                                          children: [
-                                            Container(
-                                              color: Colors.white38,
-                                              height: 60,
-                                              width: 60 / 1.4,
-                                              child: CachedNetworkImage(
-                                                fit: BoxFit.cover,
-                                                imageUrl: 'https://s3.duellinksmeta.com/cards/${_skill.relatedCards[index].oid}_w100.webp',
-                                              ),
-                                            ),
-                                            const SizedBox(width: 4),
-                                          ],
-                                        );
-                                      },
-                                    ),
-                                  )
-                              ],
-                            ),
-                            const SizedBox(height: 5),
-                            if (_skill.characters.isNotEmpty)
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
+                  const SizedBox(height: 5),
+                  if (_skill.characters.isNotEmpty)
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text('Characters', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
+                        ListView.builder(
+                          padding: EdgeInsets.zero,
+                          // scrollDirection: Axis.horizontal,
+                          itemCount: _skill.characters.length,
+                          physics: const NeverScrollableScrollPhysics(),
+                          shrinkWrap: true,
+                          itemBuilder: (context, index) {
+                            return Container(
+                              padding: EdgeInsets.only(bottom: 4),
+                              child: Row(
                                 children: [
-                                  const Text('Characters', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
-                                  Container(
+                                  SizedBox(
+                                    width: 36,
                                     height: 42,
-                                    child: Scrollbar(
-                                      child: ListView.builder(
-                                        padding: EdgeInsets.zero,
-                                        scrollDirection: Axis.horizontal,
-                                        itemCount: _skill.characters.length,
-                                        itemBuilder: (context, index) {
-                                          return Row(
-                                            children: [
-                                              Container(
-                                                width: 36,
-                                                height: 42,
-                                                child: CachedNetworkImage(
-                                                  fit: BoxFit.cover,
-                                                  imageUrl:
-                                                      'https://s3.duellinksmeta.com${_skill.characters[index].character.thumbnailImage}',
-                                                ),
-                                              ),
-                                              const SizedBox(width: 4),
-                                              Column(
-                                                crossAxisAlignment: CrossAxisAlignment.start,
-                                                children: [
-                                                  Text(_skill.characters[index].character.name,
-                                                      style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500)),
-                                                  Text(
-                                                    _skill.characters[index].how,
-                                                    style: const TextStyle(fontSize: 12),
-                                                  ),
-                                                ],
-                                              ),
-                                              const SizedBox(width: 4),
-                                            ],
-                                          );
-                                        },
-                                      ),
+                                    child: CachedNetworkImage(
+                                      fit: BoxFit.cover,
+                                      imageUrl:
+                                          'https://s3.duellinksmeta.com${_skill.characters[index].character.thumbnailImage}',
                                     ),
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(_skill.characters[index].character.name,
+                                          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500)),
+                                      Text(
+                                        _skill.characters[index].how,
+                                        style: const TextStyle(fontSize: 12),
+                                      ),
+                                    ],
                                   ),
                                 ],
                               ),
-                            if (_skill.source != '')
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  const Text('Source', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w500)),
-                                  Text(_skill.source, style: const TextStyle(color: Colors.white, fontSize: 12)),
-                                ],
-                              )
-                          ],
+                            );
+                          },
                         ),
-                      ),
+                      ],
                     ),
-                  ],
-                ),
+                  if (_skill.source != '')
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text('Source', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w500)),
+                        Text(_skill.source, style: const TextStyle(color: Colors.white, fontSize: 12)),
+                      ],
+                    )
+                ],
               ),
-              if (_pageStatus == PageStatus.loading)
-                const Center(
-                  child: CircularProgressIndicator(
-                    strokeWidth: 3,
-                    color: Colors.white,
-                  ),
-                ),
+        
+              if (_pageStatus == PageStatus.loading) Positioned(child: Center(
+                child: CircularProgressIndicator(),
+              ))
             ],
           ),
         ),

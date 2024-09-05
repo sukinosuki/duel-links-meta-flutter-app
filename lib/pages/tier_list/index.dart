@@ -27,9 +27,8 @@ class _TierListPageState extends State<TierListPage> with SingleTickerProviderSt
       appBar: AppBar(
         title: const Text('Tier List') ,
         bottom: TabBar(
-          // indicatorColor: Colors.transparent,
           controller: _tabController,
-          // dividerHeight: 0,
+          dividerHeight: 0,
           tabs: const [
             Tab(text: 'TOP TIERS'),
             Tab(text: 'POWER RANKINGS'),

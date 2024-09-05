@@ -1,10 +1,24 @@
-import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'dart:developer';
 
-class AppStore  extends GetxController{
-  // Rx<ThemeMode> themeMode = ThemeMode.light.obs;
-  //
-  // void changeThemeMode(ThemeMode mode) {
-  //   themeMode.value = mode;
-  // }
+import 'package:get/get.dart';
+import 'package:package_info_plus/package_info_plus.dart';
+
+class AppStore extends GetxController{
+
+  PackageInfo? packageInfo;
+
+  @override
+  void onClose() {
+    super.onClose();
+    log('AppStore on close');
+  }
+
+  @override
+  Future<void> onInit() async{
+    super.onInit();
+    log('AppStore on init');
+
+    final info = await PackageInfo.fromPlatform();
+    packageInfo = info;
+  }
 }

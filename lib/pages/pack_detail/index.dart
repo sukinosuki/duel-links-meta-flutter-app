@@ -42,12 +42,12 @@ class _PackDetailPageState extends State<PackDetailPage> {
 
   //
   Future<void> fetchData({bool force = false}) async {
-    final cardsIds = await PackHiveDb.getIds(pack.oid);
+    final cardsIds = await PackHiveDb().getIds(pack.oid);
     var cards = <MdCard>[];
 
     if (cardsIds != null) {
       for (var i = 0; i < cardsIds.length; i++) {
-        final card = await CardHiveDb.get(cardsIds[i]);
+        final card = await CardHiveDb().get(cardsIds[i]);
 
         cards.add(card ?? MdCard()
           ..oid = cardsIds[i]);
@@ -62,14 +62,14 @@ class _PackDetailPageState extends State<PackDetailPage> {
       }
 
       cards = list;
-      PackHiveDb.setIds(pack.oid, list.map((e) => e.oid).toList()).ignore();
+      PackHiveDb().setIds(pack.oid, list.map((e) => e.oid).toList()).ignore();
     }
 
     final rarityGroup = <String, List<MdCard>>{};
 
     cards.forEach((element) {
       if (cardsIds == null && element.rarity != '') {
-        CardHiveDb.setCard(element);
+        CardHiveDb().set(element);
       }
 
       if (rarityGroup[element.rarity] == null) {

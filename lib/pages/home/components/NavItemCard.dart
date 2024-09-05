@@ -16,6 +16,8 @@ class NavItemCard extends StatelessWidget {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(6),
       ),
+      shadowColor: Colors.transparent,
+      // elevation: 0,
       clipBehavior: Clip.hardEdge,
       child: Stack(
         fit: StackFit.expand,
@@ -54,6 +56,16 @@ class NavItemCard extends StatelessWidget {
               ),
             ),
           ),
+          // Positioned(
+          //     right: 0,
+          //     top: 0,
+          //     child: Container(
+          //       decoration: BoxDecoration(
+          //         borderRadius: BorderRadius.circular(6),
+          //         // color: Theme.of(context).colorScheme.onPrimary
+          //       ),
+          //       child: Icon(Icons.eject, color: Colors.white, size: 12,),
+          //     ))
         ],
       ),
     );

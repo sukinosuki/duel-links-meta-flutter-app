@@ -13,19 +13,20 @@ class _FarmingAndEventPageState extends State<FarmingAndEventPage> {
   @override
   Widget build(BuildContext context) {
 
-    List<Widget> _tabs = [
+    final tabs = <Widget>[
       Tab(text: TabType.active.value),
       Tab(text: TabType.general.value),
       Tab(text: TabType.past.value),
     ];
 
     return DefaultTabController(
-      length: _tabs.length,
+      length: tabs.length,
       child: Scaffold(
         appBar: AppBar(
           title: const Text('Farming & Event'),
           bottom: TabBar(
-            tabs: _tabs,
+            dividerHeight: 0,
+            tabs: tabs,
           ),
         ),
         body: const TabBarView(

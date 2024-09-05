@@ -24,7 +24,6 @@ class _BanListChangePageState extends State<BanListChangePage> with SingleTicker
       child: Scaffold(
         appBar: AppBar(
           title: const TabBar(
-            // center tab
             tabAlignment: TabAlignment.start,
             isScrollable: true,
             dividerHeight: 0,

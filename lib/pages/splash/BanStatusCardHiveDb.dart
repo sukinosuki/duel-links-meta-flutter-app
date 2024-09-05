@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:duel_links_meta/hive/MyHive.dart';
 
 class BanStatusCardHiveDb {
@@ -9,6 +11,8 @@ class BanStatusCardHiveDb {
     try {
       cardIds = await MyHive.box2.get(_banStatusCardIdsKey) as List<String>?;
     } catch (e) {
+      log('转换失败 $e');
+
       return null;
     }
 
@@ -20,6 +24,7 @@ class BanStatusCardHiveDb {
     try {
       expireTime = await MyHive.box2.get(_banStatusCardIdsFetchDateKey) as DateTime?;
     } catch (e) {
+      log('转换失败 $e');
       return null;
     }
 

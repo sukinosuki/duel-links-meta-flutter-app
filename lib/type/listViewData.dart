@@ -1,12 +1,12 @@
-import 'enum/PageStatus.dart';
+import 'package:duel_links_meta/type/enum/PageStatus.dart';
 
 class ListViewData<T> {
-  var pageStatus = PageStatus.loading;
-  var hasMore = true;
-  var page = 1;
-  var size = 10;
-  var loadMoreStatus = PageStatus.success;
-  List<T> data = [];
 
   ListViewData({this.size = 10});
+  PageStatus pageStatus = PageStatus.loading;
+  bool hasMore = true;
+  int page = 1;
+  int size = 10;
+  PageStatus loadMoreStatus = PageStatus.success;
+  List<T> data = [];
 }

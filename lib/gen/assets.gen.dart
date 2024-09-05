@@ -260,10 +260,21 @@ class $AssetsImagesGen {
       ];
 }
 
+class $AssetsJsonGen {
+  const $AssetsJsonGen();
+
+  /// File path: assets/json/open_source_licenses.json
+  String get openSourceLicenses => 'assets/json/open_source_licenses.json';
+
+  /// List of all assets
+  List<String> get values => [openSourceLicenses];
+}
+
 class Assets {
   Assets._();
 
   static const $AssetsImagesGen images = $AssetsImagesGen();
+  static const $AssetsJsonGen json = $AssetsJsonGen();
 }
 
 class AssetGenImage {

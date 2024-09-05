@@ -62,23 +62,13 @@ class _DeckTypeDetailPageState extends State<DeckTypeDetailPage> {
   }
 
   Future<void> handleTapSkill(DeckType_DeckBreakdown_Skill skill) async {
-    // await showModal<void>(
-    //   context: context,
-    //   builder: (context) {
-    //     return Padding(padding: EdgeInsets.symmetric(horizontal: 12), child: SkillModalView(name: skill.name));
-    //   },
-    //   // configuration: FadeScaleTransitionConfiguration(),
-    // );
     await showDialog<void>(
       context: context,
-      builder: (context) => SkillModalView(name: skill.name),
-      // builder: (context) => Dialog.fullscreen(
-      //   backgroundColor: Colors.black.withOpacity(0.3),
-      //   child: Container(
-      //     padding: const EdgeInsets.symmetric(horizontal: 30),
-      //     child: SkillModalView(name: skill.name),
-      //   ),
-      // ),
+      builder: (context) => AlertDialog(
+        title: Text(skill.name),
+        content: SkillModalView(name: skill.name),
+        surfaceTintColor: Colors.transparent,
+      ),
     );
 
     // await showGeneralDialog<void>(
@@ -104,15 +94,13 @@ class _DeckTypeDetailPageState extends State<DeckTypeDetailPage> {
 
   //
   Future<bool> fetchDeckType({bool force = false}) async {
-    var deckType = await DeckTypeDetailHiveDb.getDetail(_deckTypeName);
-    final hiveDataExpire = await DeckTypeDetailHiveDb.getDetailExpireDate(_deckTypeName);
+    var deckType = await DeckTypeDetailHiveDb().get(_deckTypeName);
+    final hiveDataExpire = await DeckTypeDetailHiveDb().getExpireTime(_deckTypeName);
     Exception? err;
 
     var refreshFlag = false;
 
     if (deckType == null || force) {
-      log('需要请求获取数据, 本地数据为空: ${deckType == null}, 是否强制刷新: $force');
-
       (err, deckType) = await DeckTypeApi().getDetailByName(_deckTypeName).toCatch;
 
       if (err != null || deckType == null) {
@@ -122,10 +110,9 @@ class _DeckTypeDetailPageState extends State<DeckTypeDetailPage> {
 
         return false;
       }
-      await DeckTypeDetailHiveDb.setDeckType(deckType);
-      await DeckTypeDetailHiveDb.setDeckTypeExpireDate(deckType, DateTime.now().add(const Duration(days: 1)));
+      await DeckTypeDetailHiveDb().set(deckType);
+      await DeckTypeDetailHiveDb().setExpireTime(deckType, DateTime.now().add(const Duration(days: 1)));
     } else {
-      log('从本地获取数据 $hiveDataExpire');
       refreshFlag = hiveDataExpire == null || hiveDataExpire.isBefore(DateTime.now());
     }
 

@@ -1,29 +1,21 @@
 import 'dart:developer';
 
-import 'package:duel_links_meta/components/Loading.dart';
-import 'package:duel_links_meta/extension/DateTime.dart';
 import 'package:duel_links_meta/extension/Future.dart';
-import 'package:duel_links_meta/extension/String.dart';
-import 'package:duel_links_meta/hive/MyHive.dart';
+import 'package:duel_links_meta/hive/db/PowerRankingsHiveDb.dart';
+import 'package:duel_links_meta/hive/db/TierListHiveDb.dart';
 import 'package:duel_links_meta/http/TierListApi.dart';
 import 'package:duel_links_meta/pages/deck_type_detail/index.dart';
 import 'package:duel_links_meta/pages/tier_list/components/TierListItemView.dart';
 import 'package:duel_links_meta/pages/tier_list/type/TierListGroup.dart';
 import 'package:duel_links_meta/pages/tier_list/type/TierListType.dart';
-import 'package:duel_links_meta/type/deck_type/TierList_PowerRanking.dart';
-import 'package:duel_links_meta/type/deck_type/TierList_PowerRanking_Expire.dart';
+import 'package:duel_links_meta/type/enum/PageStatus.dart';
 import 'package:duel_links_meta/type/tier_list_top_tier/TierList_TopTier.dart';
-import 'package:duel_links_meta/type/tier_list_top_tier/TierList_TopTier_Expire.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
-import 'package:flutter/widgets.dart';
 import 'package:get/get.dart';
 
-import 'package:duel_links_meta/type/enum/PageStatus.dart';
-
 class TierListView extends StatefulWidget {
-  const TierListView({super.key, required this.tierListType, this.minHeight});
+  const TierListView({required this.tierListType, super.key, this.minHeight});
 
   final TierListType tierListType;
   final double? minHeight;
@@ -37,7 +29,7 @@ class _TierListViewState extends State<TierListView> with AutomaticKeepAliveClie
   final _refreshIndicatorKey = GlobalKey<RefreshIndicatorState>();
 
   TierListType get _tierListType => widget.tierListType;
-  bool initFlag = false;
+  bool _isInit = false;
   var _pageStatus = PageStatus.loading;
 
   Future<void> navigateToDeckTypeDetailPage(TierList_TopTier deckType) async {
@@ -61,51 +53,27 @@ class _TierListViewState extends State<TierListView> with AutomaticKeepAliveClie
 
   //
   Future<bool> fetchTopTiers({bool force = false}) async {
-    var list = <TierList_TopTier>[];
-
-    const hiveBoxKey = 'tier_list:top_tier';
-
+    var list = await TierListHiveDb().get();
+    final expireTime = await TierListHiveDb().getExpireTime();
     var reRefreshFlag = false;
 
-    final hiveValue = await MyHive.box2.get(hiveBoxKey);
-    log('[fetchTopTiers] box取值，value: $hiveValue, value == null ${hiveValue == null}, value type: ${hiveValue.runtimeType}');
-
-    if (hiveValue == null || force) {
-      if (hiveValue == null) {
-        log('[fetchTopTiers] box值为空');
-      } else {
-        log('需要强制刷新');
-      }
-
+    if (list == null || force) {
       final (err, res) = await TierListApi().getTopTiers().toCatch;
 
-      if (err != null) {
-        setState(() {
-          _pageStatus = PageStatus.fail;
-        });
+      if (err != null || res == null) {
+        if (list == null) {
+          setState(() {
+            _pageStatus = PageStatus.fail;
+          });
+        }
         return false;
       }
 
-      list = res?.map(TierList_TopTier.fromJson).toList() ?? [];
-      await MyHive.box2.put(hiveBoxKey, TierList_TopTier_Expire(data: list, expire: DateTime.now().add(const Duration(hours: 6))));
+      list = res;
+      await TierListHiveDb().set(list);
+      await TierListHiveDb().setExpireTime(DateTime.now().add(const Duration(days: 1)));
     } else {
-      try {
-        final value = hiveValue as TierList_TopTier_Expire;
-
-        log('相差ms: ${DateTime.now().difference(value.expire).inSeconds}');
-
-        if (value.expire.isBefore(DateTime.now())) {
-          log('已过期， 需要渲染本地数据后再重新请求数据');
-          reRefreshFlag = true;
-        }
-
-        list = hiveValue.data;
-        log('转换成功');
-      } catch (e) {
-        log('[fetchTopTiers] 转换失败: $e');
-        await MyHive.box2.delete(hiveBoxKey);
-        return true;
-      }
+      reRefreshFlag = expireTime == null || expireTime.isBefore(DateTime.now());
     }
 
     final tier2DeckTypesMap = <int, List<TierList_TopTier>>{};
@@ -138,39 +106,28 @@ class _TierListViewState extends State<TierListView> with AutomaticKeepAliveClie
 
   //
   Future<bool> fetchPowerRankings(bool rush, {bool force = false}) async {
-    var list = <TierList_PowerRanking>[];
-    final boxKey = 'tier_list:power_ranking:${rush ? 'rush' : ''}';
+    var list = await PowerRankingsHiveDb().get(isRush: rush);
+    final expireTime = await PowerRankingsHiveDb().getExpireTime(isRush: rush);
+
     var reRefreshFlag = false;
 
-    final hiveValue = await MyHive.box2.get(boxKey);
-
-    if (hiveValue == null || force) {
+    if (list == null || force) {
       final (err, res) = await (rush ? TierListApi().getRushRankings() : TierListApi().getPowerRankings()).toCatch;
-      if (err != null) {
-        setState(() {
-          _pageStatus = PageStatus.fail;
-        });
+      if (err != null || res == null) {
+        if (list == null) {
+          setState(() {
+            _pageStatus = PageStatus.fail;
+          });
+        }
         return false;
       }
 
-      list = res?.map(TierList_PowerRanking.fromJson).toList() ?? [];
-      await MyHive.box2.put(boxKey, TierList_PowerRanking_Expire(data: list, expire: DateTime.now().add(const Duration(hours: 6))));
+      list = res;
 
-      await Future<void>.delayed(const Duration(milliseconds: 300)).then((value) {
-        '已刷新'.toast;
-      });
+      await PowerRankingsHiveDb().set(list, isRush: rush);
+      await PowerRankingsHiveDb().setExpireTime(DateTime.now().add(const Duration(days: 1)), isRush: rush);
     } else {
-      try {
-        final _value = hiveValue as TierList_PowerRanking_Expire;
-        if (_value.expire.isBefore(DateTime.now())) {
-          reRefreshFlag = true;
-        }
-
-        list = hiveValue.data;
-      } catch (e) {
-        await MyHive.box2.delete(boxKey);
-        return true;
-      }
+      reRefreshFlag = expireTime == null || expireTime.isBefore(DateTime.now());
     }
 
     final tier0 =
@@ -224,27 +181,19 @@ class _TierListViewState extends State<TierListView> with AutomaticKeepAliveClie
       final needReRefresh = await fetchTopTiers(force: force);
       if (needReRefresh) {
         await fetchTopTiers(force: true);
-        return;
       }
-
-      return;
-    }
-
-    var needReRefresh = await fetchPowerRankings(_tierListType == TierListType.rushRankings);
-    if (needReRefresh) {
-      await fetchPowerRankings(_tierListType == TierListType.rushRankings, force: true);
+    } else {
+      final needReRefresh = await fetchPowerRankings(_tierListType == TierListType.rushRankings);
+      if (needReRefresh) {
+        await fetchPowerRankings(_tierListType == TierListType.rushRankings, force: true);
+      }
     }
   }
 
   Future<void> _handleRefresh() async {
-    print('[_handleRefresh] 开始 $initFlag');
-    await fetchData(force: initFlag);
+    await fetchData(force: _isInit);
 
-    print('[_handleRefresh] 完成');
-
-    if (!initFlag) {
-      initFlag = true;
-    }
+    _isInit = true;
   }
 
   @override
@@ -252,7 +201,7 @@ class _TierListViewState extends State<TierListView> with AutomaticKeepAliveClie
     super.initState();
 
     SchedulerBinding.instance.addPostFrameCallback((_) {
-      _refreshIndicatorKey.currentState?.show(atTop: true);
+      _refreshIndicatorKey.currentState?.show();
     });
   }
 
@@ -321,7 +270,7 @@ class _TierListViewState extends State<TierListView> with AutomaticKeepAliveClie
             if (_pageStatus == PageStatus.fail)
               const Positioned.fill(
                   child: Center(
-                child: Text('加载失败'),
+                child: Text('Loading failed'),
               ))
           ],
         ));

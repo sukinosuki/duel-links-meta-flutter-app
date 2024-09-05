@@ -1,16 +1,13 @@
 import 'dart:developer';
 
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:duel_links_meta/constant/colors.dart';
 import 'package:duel_links_meta/extension/Future.dart';
 import 'package:duel_links_meta/gen/assets.gen.dart';
-import 'package:duel_links_meta/hive/MyHive.dart';
 import 'package:duel_links_meta/hive/db/CardHiveDb.dart';
 import 'package:duel_links_meta/http/CardApi.dart';
 import 'package:duel_links_meta/store/BanCardStore.dart';
 import 'package:duel_links_meta/type/MdCard.dart';
 import 'package:duel_links_meta/util/time_util.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
@@ -62,7 +59,7 @@ class _CardViewState extends State<CardView> {
       return;
     }
 
-    final card = await CardHiveDb.get(widget.card.oid);
+    final card = await CardHiveDb().get(widget.card.oid);
 
     if (card != null) {
       log('本地获取到card111');
@@ -79,7 +76,7 @@ class _CardViewState extends State<CardView> {
         _card = card;
       });
 
-      CardHiveDb.setCard(card).ignore();
+      CardHiveDb().set(card).ignore();
     }
   }
 

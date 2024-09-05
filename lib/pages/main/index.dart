@@ -42,40 +42,19 @@ class _MainPageState extends State<MainPage> {
       ),
       bottomNavigationBar: NavigationBar(
         destinations: const [
-          NavigationDestination(icon: Icon(Icons.home), label: 'Home'),
-          NavigationDestination(icon: Icon(Icons.business), label: 'Packs'),
-          NavigationDestination(icon: Icon(Icons.school), label: 'Articles'),
-          NavigationDestination(icon: Icon(Icons.school), label: 'Ban list'),
+          NavigationDestination(icon: Icon(Icons.home_rounded), label: 'Home'),
+          NavigationDestination(icon: Icon(Icons.card_giftcard), label: 'Packs'),
+          NavigationDestination(icon: Icon(Icons.article), label: 'Articles'),
+          NavigationDestination(icon: Icon(Icons.sync_disabled), label: 'Ban list'),
         ],
-        // labelBehavior: NavigationDestinationLabelBehavior.onlyShowSelected,
         selectedIndex: _selectedIndex,
         onDestinationSelected: _onItemTapped,
         height: 70,
-        // overlayColor: Colors.white,
-        // indicatorColor: Colors.teal,
-        // surfaceTintColor: Colors.tealAccent, // 背景
+        indicatorColor: Theme.of(context).colorScheme.secondaryContainer.withOpacity(0.3),
+        // surfaceTintColor: Colors.tealAccent,
+        // surfaceTintColor: Colors.transparent,
         // backgroundColor: Theme.of(context).colorScheme.primary,
       ),
-      // bottomNavigationBar: BottomNavigationBar(
-      //   currentIndex: _selectedIndex,
-      //   selectedFontSize: 12,
-      //   // useLegacyColorScheme: false,
-      //   // enableFeedback: true,
-      //   items: const <BottomNavigationBarItem>[
-      //     BottomNavigationBarItem(icon: Icon(Icons.home), backgroundColor: Colors.transparent, label: 'Home'),
-      //     BottomNavigationBarItem(icon: Icon(Icons.business), label: 'Packs'),
-      //     BottomNavigationBarItem(icon: Icon(Icons.school), label: 'Articles'),
-      //     BottomNavigationBarItem(icon: Icon(Icons.school), label: 'Ban list'),
-      //   ],
-      //
-      //   type: BottomNavigationBarType.fixed,
-      //   // backgroundColor: BaColors.main,
-      //   // selectedIconTheme: const IconThemeData(color: Colors.white),
-      //   // selectedItemColor: Theme.of(context).colorScheme.secondary,
-      //   // selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold),
-      //   // unselectedItemColor: Colors.grey,
-      //   onTap: _onItemTapped,
-      // ),
     );
   }
 }

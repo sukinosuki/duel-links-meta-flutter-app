@@ -33,4 +33,4 @@ jobs:
         with:
           allowUpdates: true
           artifacts: "releases/*-release.apk"
-          tag: 1.0
+          tag: ${{ github.event.inputs.TAG }}

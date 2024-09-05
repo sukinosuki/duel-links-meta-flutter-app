@@ -1,22 +1,31 @@
+import 'package:duel_links_meta/hive/MyHive.dart';
 import 'package:flutter/material.dart';
 
-import '../MyHive.dart';
-
 class DarkModeHiveDb {
-  static const String _key = 'dark_mode';
 
-  static void set() {
-    return MyHive.box2.put(_key, 'light').ignore();
+  factory DarkModeHiveDb() {
+    return _instance;
   }
 
-  static Future<ThemeMode> get() async {
-    final mode = await MyHive.box2.get('dark_mode');
+  DarkModeHiveDb._constructor();
 
-    if (mode == 'dark') {
+  static final DarkModeHiveDb _instance = DarkModeHiveDb._constructor();
+
+   final String _key = 'dark_mode';
+
+   void set(ThemeMode mode) {
+
+    return MyHive.box2.put(_key, mode.name).ignore();
+  }
+
+   Future<ThemeMode> get() async {
+    final mode = await MyHive.box2.get(_key);
+
+    if (mode == ThemeMode.dark.name) {
       return ThemeMode.dark;
     }
 
-    if (mode == 'system') {
+    if (mode == ThemeMode.system.name) {
       return ThemeMode.system;
     }
 

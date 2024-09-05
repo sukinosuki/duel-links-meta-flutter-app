@@ -39,14 +39,14 @@ class _MdCardItemViewState extends State<MdCardItemView2> {
   Future<void> init() async {
     if (widget.mdCard != null && widget.mdCard?.type != '') return;
 
-    var card = await CardHiveDb.get(cardId);
+    var card = await CardHiveDb().get(cardId);
 
     if (card == null) {
       final (err, res) = await CardApi().getById(cardId).toCatch;
       if (err != null || res == null) return;
 
       card = res;
-      await CardHiveDb.setCard(card);
+      await CardHiveDb().set(card);
     }
 
     setState(() {

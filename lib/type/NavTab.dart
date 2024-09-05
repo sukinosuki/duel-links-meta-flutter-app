@@ -8,6 +8,10 @@ part 'NavTab.g.dart';
 @HiveType(typeId: MyHive.nav_tab)
 class NavTab {
 
+  NavTab({required this.id, this.title = '', this.url});
+
+  factory NavTab.fromJson(dynamic json) => _$NavTabFromJson(json as Map<String, dynamic>);
+
   @JsonKey(name: '_id')
   String oid = '';
 
@@ -20,10 +24,7 @@ class NavTab {
   // @JsonKey(includeFromJson: false, includeToJson: true)
   String? title;
 
-  NavTab({required this.id, this.title = ''});
-
-  factory NavTab.fromJson(dynamic json) => _$NavTabFromJson(json as Map<String, dynamic>);
+  String? url;
 
   Map<String, dynamic> toJson() => _$NavTabToJson(this);
-
 }

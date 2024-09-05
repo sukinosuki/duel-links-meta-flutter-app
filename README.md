@@ -1,16 +1,32 @@
-# duel_links_meta
+# Duel links meta app
 
-A new Flutter project.
+## Futures
 
-## Getting Started
+- Tier List Page
+- Deck Type Detail Page
+- Top Deck page
+- Deck detail page
+- Ban list change page
+- Ban list cards page
+- Article list page
+- Pack set list page
+- Pack set detail page
+- Data local cache for fast viewing and reduce the api fetching
 
-This project is a starting point for a Flutter application.
+## Download 下载
 
-A few resources to get you started if this is your first Flutter project:
+[从github下载](https://github.com/sukinosuki/duel-links-meta-flutter-app/releases)
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+## Stars
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+If this project is helpful to you, please consider giving a star for support.
+
+如果本项目对你有帮助的话, 可以`star`支持一下.
+
+## Data source
+
+The app utilizes the following resources from [Duel Links Meta](https://www.duellinksmeta.com):
+
+- **APIs**: The app integrates with Duel Links Meta's APIs to fetch deck lists, card details, and other game-related data.
+- **Images**: Card images and other graphics used in the app are sourced directly from Duel Links Meta.  
+  

@@ -41,12 +41,16 @@ class _PackListViewState extends State<PackListView> with AutomaticKeepAliveClie
             SizedBox(
               height: 110,
               child: OpenContainer(
+                openColor: Colors.transparent,
                 closedColor: Colors.transparent,
+                openElevation: 0,
+                closedElevation: 0,
                 closedBuilder: (BuildContext context, void Function() action) {
                   return Card(
                     margin: EdgeInsets.zero,
                     shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(6))),
                     clipBehavior: Clip.hardEdge,
+                    shadowColor: Colors.transparent,
                     child: Stack(
                       fit: StackFit.expand,
                       children: [

@@ -2,7 +2,6 @@ import 'dart:developer';
 import 'dart:io';
 
 import 'package:duel_links_meta/extension/String.dart';
-import 'package:duel_links_meta/util/index.dart';
 import 'package:get/get_connect/connect.dart';
 
 extension FutureEx<T> on Future<Response<T>> {

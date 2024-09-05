@@ -1,3 +1,4 @@
+import 'package:duel_links_meta/type/Article.dart';
 import 'package:duel_links_meta/type/MdCard.dart';
 import 'package:duel_links_meta/type/NavTab.dart';
 import 'package:duel_links_meta/type/ban_list_change/BanListChange.dart';
@@ -12,7 +13,7 @@ import 'package:duel_links_meta/type/tier_list_top_tier/TierList_TopTier_Expire.
 import 'package:duel_links_meta/type/top_deck/TopDeck.dart';
 import 'package:hive_flutter/adapters.dart';
 
-const boxName = 'todo_box';
+// const boxName = 'todo_box';
 const boxName2 = 'todo_box2';
 
 class MyHive {
@@ -41,11 +42,12 @@ class MyHive {
   static const int skill_related_card = 23;
   static const int skill_related_character = 24;
   static const int skill_related_character_character = 25;
+  static const int article = 26;
 
   // static const int expire_data = 10;
 
   // static late Box<List<TierList_TopTier>> box;
-  static late Box<dynamic> box;
+  // static late Box<dynamic> box;
   static late LazyBox<dynamic> box2;
 
   MyHive._();
@@ -78,10 +80,11 @@ class MyHive {
       ..registerAdapter(SkillAdapter())
       ..registerAdapter(SkillRelatedCardAdapter())
       ..registerAdapter(SkillCharacterAdapter())
-      ..registerAdapter(SkillCharacterCharacterAdapter());
+      ..registerAdapter(SkillCharacterCharacterAdapter())
+      ..registerAdapter(ArticleAdapter());
 
     // Hive.registerAdapter(TLoginFormAdapter());
-    box = await Hive.openBox(boxName);
+    // box = await Hive.openBox(boxName);
     box2 = await Hive.openLazyBox(boxName2);
   }
 }

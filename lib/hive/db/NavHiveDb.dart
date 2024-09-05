@@ -2,12 +2,17 @@ import 'package:duel_links_meta/hive/MyHive.dart';
 import 'package:duel_links_meta/type/NavTab.dart';
 
 class HomeHiveDb {
-  List<NavTab>? navTabList;
+   factory HomeHiveDb(){
+     return _instance;
+   }
 
-  static const _navTabKey = 'nav_tab:list';
-  static const _navTabFetchDateKey = 'nav_tab:fetch_date';
+   HomeHiveDb._constructor();
+   static final HomeHiveDb _instance = HomeHiveDb._constructor();
 
-  static Future<List<NavTab>?> getNavTabList() async {
+   final String _navTabKey = 'nav_tab:list';
+   final String _navTabFetchDateKey = 'nav_tab:fetch_date';
+
+   Future<List<NavTab>?> getNavTabList() async {
     final hiveData = await MyHive.box2.get(_navTabKey) as List?;
 
     if (hiveData == null) return null;
@@ -19,25 +24,25 @@ class HomeHiveDb {
     }
   }
 
-  static Future<void> deleteNavTabList() {
+   Future<void> deleteNavTabList() {
     return MyHive.box2.delete(_navTabKey);
   }
 
-  static Future<void> deleteNavTabListExpireTime() {
+   Future<void> deleteNavTabListExpireTime() {
     return MyHive.box2.delete(_navTabFetchDateKey);
   }
 
-  static Future<DateTime?> getNavTabListExpireTime() async {
+   Future<DateTime?> getNavTabListExpireTime() async {
     final expireTime = await MyHive.box2.get(_navTabFetchDateKey) as DateTime?;
 
     return expireTime;
   }
 
-  static Future<void> setNavTabList(List<NavTab>? data) {
+   Future<void> setNavTabList(List<NavTab>? data) {
     return MyHive.box2.put(_navTabKey, data);
   }
 
-  static Future<void> setNavTabListExpireTime(DateTime? time) {
+   Future<void> setNavTabListExpireTime(DateTime? time) {
     return MyHive.box2.put(_navTabFetchDateKey, time);
   }
 }

@@ -25,26 +25,20 @@ class BanListChangeView extends StatefulWidget {
 
 class _BanListChangeViewState extends State<BanListChangeView> with AutomaticKeepAliveClientMixin {
   var _pageStatus = PageStatus.loading;
-
   final _refreshIndicatorKey = GlobalKey<RefreshIndicatorState>();
-
-  List<DataGroup<BanListChange>> banListChangeGroup = [];
-
+  List<DataGroup<BanListChange>> _banListChangeGroup = [];
   BanListChange? currentBanListChange;
+  final formatter = DateFormat('MM-dd');
+  bool _isInit = false;
 
   //
-  Future<bool> fetchBanListChanges({bool force = false}) async {
+  Future<bool> fetchData({bool force = false}) async {
     var reRefreshFlag = false;
 
-    var list = await BanListChangeHiveDb.get();
-    final expireTime = await BanListChangeHiveDb.getExpireTime();
+    var list = await BanListChangeHiveDb().get();
+    final expireTime = await BanListChangeHiveDb().getExpireTime();
 
     if (list == null || force) {
-      if (list == null) {
-        log('本地没数据');
-      } else {
-        log('强制刷新');
-      }
       final params = {
         r'rush[$ne]': 'true',
         'sort': '-date,-announced',
@@ -62,18 +56,11 @@ class _BanListChangeViewState extends State<BanListChangeView> with AutomaticKee
       }
 
       list = res;
-      BanListChangeHiveDb.set(list).ignore();
-      BanListChangeHiveDb.setExpireTime(DateTime.now().add(const Duration(days: 1))).ignore();
-      log('本地保存数据');
+      BanListChangeHiveDb().set(list).ignore();
+      BanListChangeHiveDb().setExpireTime(DateTime.now().add(const Duration(days: 1))).ignore();
     } else {
-      log('本地获取到数据');
       reRefreshFlag = expireTime == null || expireTime.isBefore(DateTime.now());
-      if (reRefreshFlag) {
-        log('本地数据已过期');
-      }
     }
-
-    final formatter = DateFormat('MM-dd');
 
     final dataGroupList = <DataGroup<BanListChange>>[];
 
@@ -95,7 +82,7 @@ class _BanListChangeViewState extends State<BanListChangeView> with AutomaticKee
     });
 
     setState(() {
-      banListChangeGroup = dataGroupList;
+      _banListChangeGroup = dataGroupList;
       currentBanListChange = dataGroupList[0].items[0];
       _pageStatus = PageStatus.success;
     });
@@ -109,7 +96,7 @@ class _BanListChangeViewState extends State<BanListChangeView> with AutomaticKee
 
     for (var i = 0; i < currentBanListChange!.changes.length; i++) {
       final item = currentBanListChange!.changes[i];
-      var card = await CardHiveDb.get(item.card!.oid);
+      var card = await CardHiveDb().get(item.card!.oid);
       card ??= MdCard()
         ..oid = item.card!.oid
         ..name = item.card!.name;
@@ -117,7 +104,6 @@ class _BanListChangeViewState extends State<BanListChangeView> with AutomaticKee
       cards.add(card);
     }
 
-    // TODO
     await showDialog<void>(
       context: context,
       builder: (context) => Dialog.fullscreen(
@@ -128,7 +114,7 @@ class _BanListChangeViewState extends State<BanListChangeView> with AutomaticKee
   }
 
   void handlePickerConfirm(int yearIndex, int itemIndex) {
-    final banListChange = banListChangeGroup[yearIndex].items[itemIndex];
+    final banListChange = _banListChangeGroup[yearIndex].items[itemIndex];
 
     setState(() {
       currentBanListChange = banListChange;
@@ -141,23 +127,20 @@ class _BanListChangeViewState extends State<BanListChangeView> with AutomaticKee
   void showUpdatesDatePicker() {
     showModalBottomSheet<void>(
       context: context,
-      // backgroundColor: Colors.black12,
       builder: (context) => BanListChangePicker(
-        data: banListChangeGroup,
+        data: _banListChangeGroup,
         onConfirm: handlePickerConfirm,
       ),
     );
   }
 
-  bool isInit = false;
 
   Future<void> _handleRefresh() async {
-    final shouldRefresh = await fetchBanListChanges();
-    isInit = true;
+    final shouldRefresh = await fetchData();
+    _isInit = true;
     if (shouldRefresh) {
-      await fetchBanListChanges(force: true);
+      await fetchData(force: true);
     }
-    log('_handleRefresh');
   }
 
   @override
@@ -175,6 +158,7 @@ class _BanListChangeViewState extends State<BanListChangeView> with AutomaticKee
   @override
   Widget build(BuildContext context) {
     super.build(context);
+
     return RefreshIndicator(
       key: _refreshIndicatorKey,
       onRefresh: _handleRefresh,
@@ -201,7 +185,7 @@ class _BanListChangeViewState extends State<BanListChangeView> with AutomaticKee
                             const Icon(Icons.keyboard_arrow_down, size: 16),
                           ],
                         ),
-                      )
+                      ),
                     ],
                   ),
                 ),
@@ -220,6 +204,10 @@ class _BanListChangeViewState extends State<BanListChangeView> with AutomaticKee
               ],
             ),
           ),
+
+          if (_pageStatus == PageStatus.fail) const Center(
+            child: Text('Loading failed'),
+          )
         ],
       ),
     );

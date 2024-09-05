@@ -118,7 +118,7 @@ class _DeckInfoState extends State<DeckInfo> {
     final cards = <MdCard>[];
 
     for (var i = 0; i < mainCardIds.length; i++) {
-      final hiveData = await CardHiveDb.get(mainCardIds[i]);
+      final hiveData = await CardHiveDb().get(mainCardIds[i]);
       if (hiveData == null) {
         log('hiveData为null, ${mainCardIds[i]}');
         needFetchCardIds.add(mainCardIds[i]);
@@ -133,7 +133,7 @@ class _DeckInfoState extends State<DeckInfo> {
       if (cardsRes != null) {
         cards.addAll(cardsRes);
         cardsRes.forEach((element) {
-          CardHiveDb.setCard(element).ignore();
+          CardHiveDb().set(element).ignore();
         });
       }
     }

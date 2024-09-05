@@ -27,16 +27,10 @@ class _PacksPageState extends State<PacksPage> with SingleTickerProviderStateMix
   Future<bool> fetchData({bool force = false}) async {
     var reRefreshFlag = false;
 
-    var packs = await PackHiveDb.get();
-    final expireTime = await PackHiveDb.getExpireTime();
+    var packs = await PacksHiveDb().get();
+    final expireTime = await PacksHiveDb().getExpireTime();
 
     if (packs == null || force) {
-      if (packs == null) {
-        log('无本地数据');
-      }
-      if (force) {
-        log('强制刷新');
-      }
       final (err, res) = await PackSetApi().list().toCatch;
 
       if (err != null || res == null) {
@@ -46,10 +40,9 @@ class _PacksPageState extends State<PacksPage> with SingleTickerProviderStateMix
         return false;
       }
       packs = res;
-      PackHiveDb.set(packs).ignore();
-      PackHiveDb.setExpireTime(DateTime.now().add(const Duration(days: 1))).ignore();
+      PacksHiveDb().set(packs).ignore();
+      PacksHiveDb().setExpireTime(DateTime.now().add(const Duration(days: 1))).ignore();
     } else {
-      log('本地获取到数据');
       reRefreshFlag = expireTime == null || expireTime.isBefore(DateTime.now());
     }
 

@@ -1,11 +1,8 @@
 import 'dart:convert';
 
 import 'package:animations/animations.dart';
-import 'package:duel_links_meta/pages/webview/index.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter/widgets.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class OpenSourceLicense {
@@ -50,7 +47,7 @@ class _OpenSourceLicensePageState extends State<OpenSourceLicensePage> {
                       launchUrl(uri).ignore();
                       Navigator.pop(context);
                     },
-                    child: const Text('Confirm'),
+                    child: const Text('Open'),
                   ),
                 ),
               ],
@@ -111,14 +108,11 @@ class _OpenSourceLicensePageState extends State<OpenSourceLicensePage> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Row(
-                          children: [
-                            Text(
-                              licenses[index].name,
-                              style: const TextStyle(fontSize: 22),
-                            ),
-                          ],
+                        Text(
+                          licenses[index].name,
+                          style: const TextStyle(fontSize: 22),
                         ),
+                        const SizedBox(height: 10),
                         Text(
                           licenses[index].repos,
                           style: const TextStyle(fontSize: 12),

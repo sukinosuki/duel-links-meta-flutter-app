@@ -1,8 +1,6 @@
-import 'dart:developer';
-
 import 'package:duel_links_meta/components/TopDeckItem.dart';
 import 'package:duel_links_meta/extension/Future.dart';
-import 'package:duel_links_meta/hive/MyHive.dart';
+import 'package:duel_links_meta/hive/db/TopDeckHiveDb.dart';
 import 'package:duel_links_meta/http/TopDeckApi.dart';
 import 'package:duel_links_meta/pages/deck_detail/index.dart';
 import 'package:duel_links_meta/pages/top_decks/components/TopDeckListView.dart';
@@ -47,14 +45,14 @@ class _TopDecksPageState extends State<TopDecksPage> {
   //
   void _handleTapTopDeckItem(Group<TopDeck> group) {
     showModalBottomSheet<void>(
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(2)),
-      ),
       context: context,
       builder: (context) => TopDeckListView(
         topDecks: group.data,
         onTap: (topDeck) => {
-          Navigator.push(context, MaterialPageRoute<void>(builder: (context) => DeckDetailPage(topDeck: topDeck))),
+          Navigator.push(
+            context,
+            MaterialPageRoute<void>(builder: (context) => DeckDetailPage(topDeck: topDeck)),
+          ),
         },
       ),
     );
@@ -62,16 +60,11 @@ class _TopDecksPageState extends State<TopDecksPage> {
 
   //
   Future<bool> fetchData({bool force = false}) async {
-    final hiveDataKey = 'top_deck:list:${_isRush ? 'rush' : 'speed'}';
-    final hiveRefreshKey = 'top_deck:list:${_isRush ? 'rush' : 'speed'}:refresh';
-
-    final hiveData = await MyHive.box2.get(hiveDataKey) as List<dynamic>?;
-    final hiveRefreshDate = await MyHive.box2.get(hiveRefreshKey) as DateTime?;
+    var topDecks = await TopDeckHiveDb().get(isRush: _isRush);
+    final expireTime = await TopDeckHiveDb().getExpireTime(isRush: _isRush);
     var refreshFlag = false;
 
-    var topDecks = <TopDeck>[];
-
-    if (hiveData == null || force) {
+    if (topDecks == null || force) {
       final params = <String, dynamic>{
         r'created[$gte]': '(days-28)',
         'fields': 'rankedType,deckType,created,tournamentType,gemsPrice,dollarsPrice,url,skill',
@@ -82,29 +75,21 @@ class _TopDecksPageState extends State<TopDecksPage> {
       };
 
       final (err, res) = await TopDeckApi().list(params).toCatch;
-      if (err != null) {
-        setState(() {
-          _pageStatus = PageStatus.fail;
-        });
+      if (err != null || res == null) {
+        if (topDecks == null) {
+          setState(() {
+            _pageStatus = PageStatus.fail;
+          });
+        }
 
         return false;
       }
 
-      topDecks = res!;
-      await MyHive.box2.put(hiveDataKey, topDecks);
-      await MyHive.box2.put(hiveRefreshKey, DateTime.now());
+      topDecks = res;
+      await TopDeckHiveDb().set(topDecks, isRush: _isRush);
+      await TopDeckHiveDb().setExpireTime(DateTime.now().add(const Duration(days: 1)), isRush: _isRush);
     } else {
-      try {
-        topDecks = hiveData.map((e) => e as TopDeck).toList();
-        if (hiveRefreshDate != null && hiveRefreshDate.add(const Duration(hours: 12)).isBefore(DateTime.now())) {
-          refreshFlag = true;
-        }
-      } catch (e) {
-        await MyHive.box2.delete(hiveDataKey);
-        await MyHive.box2.delete(hiveRefreshKey);
-
-        return true;
-      }
+      refreshFlag = expireTime == null || expireTime.isBefore(DateTime.now());
     }
 
     final countMap = <String, List<TopDeck>>{};
@@ -152,14 +137,11 @@ class _TopDecksPageState extends State<TopDecksPage> {
       }
     });
     tournamentTypeMap.forEach((key, value) {
-      log('key: $key, count: ${value.length}');
-
       tournamentTypeGroups.add(Group(key: key, data: value));
     });
     tournamentTypeGroups.sort((a, b) => a.key.compareTo(b.key));
 
     setState(() {
-      // _topDecks = topDecks;
       _pageStatus = PageStatus.success;
       _topDeckGroups = groups;
       _tournamentTypeTopDeckGroups = tournamentTypeGroups;

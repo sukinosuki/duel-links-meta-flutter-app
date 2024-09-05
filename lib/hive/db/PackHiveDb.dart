@@ -1,11 +1,19 @@
 import 'package:duel_links_meta/hive/MyHive.dart';
 
 class PackHiveDb {
-  static String _getKey(String packId) {
+  factory PackHiveDb() {
+    return _instance;
+  }
+
+  PackHiveDb._constructor();
+
+  static final _instance = PackHiveDb._constructor();
+
+  String _getKey(String packId) {
     return 'pack_card_ids:$packId';
   }
 
-  static Future<List<String>?>? getIds(String packId) async {
+   Future<List<String>?>? getIds(String packId) async {
     final key = _getKey(packId);
 
     List<String>? ids;
@@ -18,7 +26,7 @@ class PackHiveDb {
     return ids;
   }
 
-  static Future<void> setIds(String packId, List<String> ids) {
+   Future<void> setIds(String packId, List<String> ids) {
     final key = _getKey(packId);
 
     return MyHive.box2.put(key, ids);
