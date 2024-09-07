@@ -1,6 +1,5 @@
+import 'package:duel_links_meta/api/SkillStatsApi.dart';
 import 'package:duel_links_meta/components/SkillModalView.dart';
-import 'package:duel_links_meta/constant/colors.dart';
-import 'package:duel_links_meta/http/SkillStatsApi.dart';
 import 'package:duel_links_meta/type/skill_stats/SkillStats.dart';
 import 'package:flutter/material.dart';
 
@@ -17,13 +16,13 @@ class _SkillStatsState extends State<SkillStatsPage> {
   String get name => widget.name;
   List<SkillStats> _skillStats = [];
 
-  fetchData() async {
+  Future<void> fetchData() async {
     setState(() {
       _skillStats = [];
     });
 
-    var res = await SkillStatsApi().getByName(name);
-    var list = res.body!.map((e) => SkillStats.fromJson(e)).toList();
+    final res = await SkillStatsApi().getByName(name);
+    final list = res.body!.map(SkillStats.fromJson).toList();
 
     setState(() {
       _skillStats = list;
@@ -39,9 +38,7 @@ class _SkillStatsState extends State<SkillStatsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        backgroundColor: BaColors.theme,
         appBar: AppBar(
-          backgroundColor: BaColors.main,
           title: Text(name, style: const TextStyle(color: Colors.white)),
           actions: [
             IconButton(onPressed: fetchData, icon: const Icon(Icons.refresh)),

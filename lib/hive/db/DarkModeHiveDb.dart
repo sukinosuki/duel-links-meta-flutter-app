@@ -15,11 +15,11 @@ class DarkModeHiveDb {
 
    void set(ThemeMode mode) {
 
-    return MyHive.box2.put(_key, mode.name).ignore();
+    return MyHive.box.put(_key, mode.name).ignore();
   }
 
    Future<ThemeMode> get() async {
-    final mode = await MyHive.box2.get(_key);
+    final mode = await MyHive.box.get(_key);
 
     if (mode == ThemeMode.dark.name) {
       return ThemeMode.dark;

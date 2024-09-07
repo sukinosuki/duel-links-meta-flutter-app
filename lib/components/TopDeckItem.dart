@@ -1,14 +1,19 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:duel_links_meta/gen/assets.gen.dart';
-import 'package:duel_links_meta/type/top_deck/TopDeckSimple.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:duel_links_meta/type/top_deck/TopDeck.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
-
-import '../type/top_deck/TopDeck.dart';
 
 class TopDeckItem extends StatelessWidget {
-  const TopDeckItem({super.key, required this.topDeck, this.topLeft, this.bottomRight, this.isNew, this.coverUrl, this.isActive, required this.onTap});
+  const TopDeckItem({
+    required this.topDeck,
+    required this.onTap,
+    super.key,
+    this.topLeft,
+    this.bottomRight,
+    this.isNew,
+    this.coverUrl,
+    this.isActive,
+  });
 
   final String? coverUrl;
   final TopDeck topDeck;
@@ -26,12 +31,12 @@ class TopDeckItem extends StatelessWidget {
         children: [
           Column(
             children: [
-              SizedBox(
+              const SizedBox(
                 height: 6,
               ),
               Row(
                 children: [
-                  SizedBox(
+                  const SizedBox(
                     width: 4,
                   ),
                   Expanded(
@@ -45,11 +50,9 @@ class TopDeckItem extends StatelessWidget {
                         children: [
                           Container(
                             color: const Color(0xff002142),
-                            // color: const Color(0xff91c8da),
                             child: CachedNetworkImage(
                               width: 32,
                               fit: BoxFit.cover,
-                              // https://wsrv.nl/?url=https://s3.duellinksmeta.com/img/tournaments/logos/kog.webp&w=100&output=webp&we&n=-1&maxage=7d
                               imageUrl: coverUrl ??
                                   'https://imgserv.duellinksmeta.com/v2/dlm/deck-type/${Uri.encodeComponent(topDeck.deckType.name)}?portrait=true&width=50',
                             ),
@@ -60,9 +63,8 @@ class TopDeckItem extends StatelessWidget {
                                 Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 22),
                                   decoration: BoxDecoration(
-                                    color: isActive == true ? Color(0xff91c8da) : Color(0xFFa9bcc3),
-                                    // color: Color(0xFFa9bcc3),
-                                    boxShadow: [
+                                    color: (isActive ?? false) == true ? const Color(0xff91c8da) : const Color(0xFFa9bcc3),
+                                    boxShadow: const [
                                       BoxShadow(color: Colors.pinkAccent),
                                       BoxShadow(
                                         color: Colors.pinkAccent,

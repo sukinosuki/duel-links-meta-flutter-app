@@ -49,6 +49,7 @@ class NavTabAdapter extends TypeAdapter<NavTab> {
 NavTab _$NavTabFromJson(Map<String, dynamic> json) => NavTab(
       id: json['id'] as int,
       title: json['title'] as String? ?? '',
+      url: json['url'] as String?,
     )
       ..oid = json['_id'] as String
       ..image = json['image'] as String;
@@ -58,4 +59,5 @@ Map<String, dynamic> _$NavTabToJson(NavTab instance) => <String, dynamic>{
       'image': instance.image,
       'id': instance.id,
       'title': instance.title,
+      'url': instance.url,
     };

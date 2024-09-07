@@ -1,18 +1,15 @@
-import 'dart:developer';
 import 'dart:ui';
 
-import 'package:animations/animations.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:duel_links_meta/api/DeckTypeApi.dart';
 import 'package:duel_links_meta/components/SkillModalView.dart';
 import 'package:duel_links_meta/extension/Future.dart';
 import 'package:duel_links_meta/hive/db/DeckTypeDetailHiveDb.dart';
-import 'package:duel_links_meta/http/DeckTypeApi.dart';
 import 'package:duel_links_meta/pages/deck_detail/components/DeckInfo.dart';
 import 'package:duel_links_meta/pages/deck_type_detail/components/DeckTypeBreakdownGridView.dart';
 import 'package:duel_links_meta/store/AppStore.dart';
 import 'package:duel_links_meta/type/deck_type/DeckType.dart';
 import 'package:duel_links_meta/type/enum/PageStatus.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:get/get.dart';
@@ -187,42 +184,14 @@ class _DeckTypeDetailPageState extends State<DeckTypeDetailPage> {
                                 gradient: LinearGradient(
                                   begin: Alignment.bottomCenter,
                                   end: Alignment.topCenter,
-                                  // colors: [Theme.of(context).colorScheme.background, BaColors.theme.withOpacity(0)]),
                                   colors: [
                                     Theme.of(context).scaffoldBackgroundColor,
-                                    Theme.of(context).scaffoldBackgroundColor.withOpacity(0)
+                                    Theme.of(context).scaffoldBackgroundColor.withOpacity(0),
                                   ],
                                 ),
                               ),
                             ),
                           ),
-                          // Positioned(
-                          //   bottom: 200,
-                          //   left: 0,
-                          //   right: 0,
-                          //   child: Padding(
-                          //     padding: const EdgeInsets.only(left: 8, bottom: 18),
-                          //     child: Column(
-                          //       crossAxisAlignment: CrossAxisAlignment.start,
-                          //       children: [
-                          //         Text(_deckTypeName, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w500)),
-                          //         AnimatedOpacity(
-                          //           opacity: _pageStatus == PageStatus.success ? 1 : 0,
-                          //           duration: const Duration(milliseconds: 300),
-                          //           child: Row(
-                          //             children: [
-                          //               const Text('Average size: ', style: TextStyle(fontSize: 12)),
-                          //               Text(_deckType?.deckBreakdown.avgMainSize.toString() ?? '',
-                          //                   style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500)),
-                          //               const SizedBox(width: 3),
-                          //               const Text('cards', style: TextStyle(fontSize: 12)),
-                          //             ],
-                          //           ),
-                          //         ),
-                          //       ],
-                          //     ),
-                          //   ),
-                          // )
                         ],
                       ),
                       AnimatedOpacity(
@@ -268,27 +237,30 @@ class _DeckTypeDetailPageState extends State<DeckTypeDetailPage> {
                                     Column(
                                       children: _deckType?.deckBreakdown.skills
                                               .where((item) => ((item.count) / _deckType!.deckBreakdown.total).round() > 0)
-                                              .map((skill) => InkWell(
-                                                    onTap: () => handleTapSkill(skill),
-                                                    child: Padding(
-                                                      padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 2),
-                                                      child: Row(
-                                                        children: [
-                                                          Expanded(
-                                                            child: Text(
-                                                              skill.name + skill.name,
-                                                              style: const TextStyle(color: Color(0xff0a87bb)),
-                                                              overflow: TextOverflow.ellipsis,
-                                                            ),
+                                              .map(
+                                                (skill) => InkWell(
+                                                  onTap: () => handleTapSkill(skill),
+                                                  child: Padding(
+                                                    padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 2),
+                                                    child: Row(
+                                                      mainAxisSize: MainAxisSize.min,
+                                                      children: [
+                                                        Expanded(
+                                                          child: Text(
+                                                            skill.name + skill.name,
+                                                            style: const TextStyle(color: Color(0xff0a87bb)),
+                                                            overflow: TextOverflow.ellipsis,
                                                           ),
-                                                          const SizedBox(width: 4),
-                                                          Text(
-                                                              ': ${(skill.count * 100 / _deckType!.deckBreakdown.total).toStringAsFixed(0)}%',
-                                                              style: const TextStyle(fontSize: 12))
-                                                        ],
-                                                      ),
+                                                        ),
+                                                        const SizedBox(width: 4),
+                                                        Text(
+                                                            ': ${(skill.count * 100 / _deckType!.deckBreakdown.total).toStringAsFixed(0)}%',
+                                                            style: const TextStyle(fontSize: 12)),
+                                                      ],
                                                     ),
-                                                  ))
+                                                  ),
+                                                ),
+                                              )
                                               .toList() ??
                                           [],
                                     ),

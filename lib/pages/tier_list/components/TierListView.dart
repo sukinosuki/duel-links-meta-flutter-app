@@ -1,9 +1,9 @@
 import 'dart:developer';
 
+import 'package:duel_links_meta/api/TierListApi.dart';
 import 'package:duel_links_meta/extension/Future.dart';
 import 'package:duel_links_meta/hive/db/PowerRankingsHiveDb.dart';
 import 'package:duel_links_meta/hive/db/TierListHiveDb.dart';
-import 'package:duel_links_meta/http/TierListApi.dart';
 import 'package:duel_links_meta/pages/deck_type_detail/index.dart';
 import 'package:duel_links_meta/pages/tier_list/components/TierListItemView.dart';
 import 'package:duel_links_meta/pages/tier_list/type/TierListGroup.dart';
@@ -92,9 +92,6 @@ class _TierListViewState extends State<TierListView> with AutomaticKeepAliveClie
     });
 
     _list.sort((a, b) => a.tier.compareTo(b.tier));
-    _list.forEach((element) {
-      log(element.desc);
-    });
 
     setState(() {
       _tierListGroup = _list;

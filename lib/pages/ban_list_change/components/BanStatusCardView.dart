@@ -1,6 +1,6 @@
 import 'package:duel_links_meta/components/Loading.dart';
 import 'package:duel_links_meta/components/MdCardItemView2.dart';
-import 'package:duel_links_meta/pages/cards_viewpager/index.dart';
+import 'package:duel_links_meta/components/cards_viewpager/index.dart';
 import 'package:duel_links_meta/pages/top_decks/type/Group.dart';
 import 'package:duel_links_meta/store/BanCardStore.dart';
 import 'package:duel_links_meta/type/MdCard.dart';
@@ -40,7 +40,7 @@ class _BanStatusCardViewState extends State<BanStatusCardView> with AutomaticKee
   }
 
   Future<void> init() async {
-    await Future.delayed(const Duration(milliseconds: 200));
+    await Future<void>.delayed(const Duration(milliseconds: 200));
     setState(() {
       _initFlag = true;
     });
@@ -141,16 +141,20 @@ class _BanStatusCardViewState extends State<BanStatusCardView> with AutomaticKee
                   : const SizedBox();
             },
           ),
-          Obx(() => banCardsStore.pageStatus.value == PageStatus.fail
-              ? const SingleChildScrollView(
-                  physics: AlwaysScrollableScrollPhysics(),
-                )
-              : const SizedBox()),
-          Obx(() => banCardsStore.pageStatus.value == PageStatus.fail
-              ? const Center(
-                  child: Text('Loading failed'),
-                )
-              : const SizedBox(),),
+          Obx(
+            () => banCardsStore.pageStatus.value == PageStatus.fail
+                ? const SingleChildScrollView(
+                    physics: AlwaysScrollableScrollPhysics(),
+                  )
+                : const SizedBox(),
+          ),
+          Obx(
+            () => banCardsStore.pageStatus.value == PageStatus.fail
+                ? const Center(
+                    child: Text('Loading failed'),
+                  )
+                : const SizedBox(),
+          ),
         ],
       ),
     );

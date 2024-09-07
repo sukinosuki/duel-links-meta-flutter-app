@@ -1,5 +1,7 @@
-import '../util/time_util.dart';
+import 'package:intl/intl.dart';
+
+var _formatter = DateFormat.yMMMMd();
 
 extension DateTimeEx on DateTime {
-  String get format => TimeUtil.format(this); // 扩展方法
+  String get format => _formatter.format(this);
 }

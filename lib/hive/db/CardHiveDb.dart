@@ -21,7 +21,7 @@ class CardHiveDb {
 
     MdCard? card;
     try {
-      card = await MyHive.box2.get(key) as MdCard?;
+      card = await MyHive.box.get(key) as MdCard?;
     } catch (e) {
       log('转换失败');
       return null;
@@ -33,6 +33,6 @@ class CardHiveDb {
   Future<void> set(MdCard card) async {
     final key = _getKey(card.oid);
 
-    return MyHive.box2.put(key, card);
+    return MyHive.box.put(key, card);
   }
 }

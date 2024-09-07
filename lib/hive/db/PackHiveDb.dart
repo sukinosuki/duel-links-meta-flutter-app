@@ -18,7 +18,7 @@ class PackHiveDb {
 
     List<String>? ids;
     try {
-      ids = await MyHive.box2.get(key) as List<String>?;
+      ids = await MyHive.box.get(key) as List<String>?;
     } catch (e) {
       return null;
     }
@@ -29,6 +29,6 @@ class PackHiveDb {
    Future<void> setIds(String packId, List<String> ids) {
     final key = _getKey(packId);
 
-    return MyHive.box2.put(key, ids);
+    return MyHive.box.put(key, ids);
   }
 }

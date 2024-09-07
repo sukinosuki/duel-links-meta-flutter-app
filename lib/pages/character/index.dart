@@ -1,23 +1,19 @@
 import 'dart:async';
 
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:duel_links_meta/api/CardApi.dart';
+import 'package:duel_links_meta/api/SkillApi.dart';
 import 'package:duel_links_meta/components/IfElseBox.dart';
-import 'package:duel_links_meta/components/MdCardItemView.dart';
 import 'package:duel_links_meta/components/MdCardsBoxLayout.dart';
-import 'package:duel_links_meta/constant/colors.dart';
-import 'package:duel_links_meta/http/CardApi.dart';
-import 'package:duel_links_meta/http/SkillApi.dart';
+import 'package:duel_links_meta/components/SkillModalView.dart';
 import 'package:duel_links_meta/type/MdCard.dart';
 import 'package:duel_links_meta/type/character/Character.dart';
+import 'package:duel_links_meta/type/enum/PageStatus.dart';
 import 'package:duel_links_meta/type/skill/Skill.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
-import 'package:flutter/widgets.dart';
 
-import '../../components/SkillModalView.dart';
-import '../../type/enum/PageStatus.dart';
-import '../cards_viewpager/index.dart';
+import '../../components/cards_viewpager/index.dart';
 
 class CharacterPage extends StatefulWidget {
   const CharacterPage({super.key, required this.character});
@@ -60,10 +56,10 @@ class _CharacterPageState extends State<CharacterPage> {
     );
   }
 
-  handleTapSkillItem(int index) {
-    var skill = _skills[index];
+  void handleTapSkillItem(int index) {
+    final skill = _skills[index];
 
-    showDialog(
+    showDialog<void>(
       context: context,
       builder: (context) => Dialog.fullscreen(
         backgroundColor: Colors.black.withOpacity(0.2),
@@ -76,7 +72,7 @@ class _CharacterPageState extends State<CharacterPage> {
   }
 
 
-  Future _handleRefresh() async {
+  Future<void> _handleRefresh() async {
     if (_pageStatus == PageStatus.success) return;
 
     var [skillRes, cardsRes] = await Future.wait([
@@ -113,7 +109,6 @@ class _CharacterPageState extends State<CharacterPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: BaColors.theme,
       body: RefreshIndicator(
         key: _refreshIndicatorKey,
         onRefresh: _handleRefresh,
@@ -131,7 +126,7 @@ class _CharacterPageState extends State<CharacterPage> {
                   Positioned.fill(
                     child: Container(
                       decoration: BoxDecoration(
-                        gradient: LinearGradient(begin: Alignment.bottomCenter, end: Alignment.topCenter, colors: [BaColors.theme, BaColors.theme.withOpacity(0)]),
+                        // gradient: LinearGradient(begin: Alignment.bottomCenter, end: Alignment.topCenter, colors: [BaColors.theme, BaColors.theme.withOpacity(0)]),
                       ),
                     ),
                   ),
@@ -215,10 +210,10 @@ class _CharacterPageState extends State<CharacterPage> {
                                 itemCount: _dropedCards.length,
                                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 5, crossAxisSpacing: 6, childAspectRatio: 0.55),
                                 itemBuilder: (context, index) {
-                                  return MdCardItemView(
-                                    mdCard: _dropedCards[index],
-                                    onTap: (card) => handleTapCardItem(_dropedCards, index),
-                                  );
+                                  // return MdCardItemView(
+                                  //   mdCard: _dropedCards[index],
+                                  //   onTap: (card) => handleTapCardItem(_dropedCards, index),
+                                  // );
                                 }),
                           ),
                           const Padding(
@@ -233,10 +228,10 @@ class _CharacterPageState extends State<CharacterPage> {
                                 itemCount: _levelUpCards.length,
                                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 5, crossAxisSpacing: 6, childAspectRatio: 0.55),
                                 itemBuilder: (context, index) {
-                                  return MdCardItemView(
-                                    mdCard: _levelUpCards[index],
-                                    onTap: (card) => handleTapCardItem(_levelUpCards, index),
-                                  );
+                                  // return MdCardItemView(
+                                  //   mdCard: _levelUpCards[index],
+                                  //   onTap: (card) => handleTapCardItem(_levelUpCards, index),
+                                  // );
                                 }),
                           ),
                         ],

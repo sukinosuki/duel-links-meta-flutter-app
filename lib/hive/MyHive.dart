@@ -13,10 +13,12 @@ import 'package:duel_links_meta/type/tier_list_top_tier/TierList_TopTier_Expire.
 import 'package:duel_links_meta/type/top_deck/TopDeck.dart';
 import 'package:hive_flutter/adapters.dart';
 
-// const boxName = 'todo_box';
-const boxName2 = 'todo_box2';
+const boxName = 'todo_box2';
 
 class MyHive {
+
+  MyHive._();
+
   static const int tier_list_top_tier = 1;
   static const int tier_list_power_ranking = 2;
   static const int tier_list_top_tier_expire = 3;
@@ -44,13 +46,7 @@ class MyHive {
   static const int skill_related_character_character = 25;
   static const int article = 26;
 
-  // static const int expire_data = 10;
-
-  // static late Box<List<TierList_TopTier>> box;
-  // static late Box<dynamic> box;
-  static late LazyBox<dynamic> box2;
-
-  MyHive._();
+  static late LazyBox<dynamic> box;
 
   static Future<void> init() async {
     await Hive.initFlutter();
@@ -85,6 +81,6 @@ class MyHive {
 
     // Hive.registerAdapter(TLoginFormAdapter());
     // box = await Hive.openBox(boxName);
-    box2 = await Hive.openLazyBox(boxName2);
+    box = await Hive.openLazyBox(boxName);
   }
 }

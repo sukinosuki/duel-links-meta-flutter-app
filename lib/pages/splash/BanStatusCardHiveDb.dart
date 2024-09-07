@@ -9,7 +9,7 @@ class BanStatusCardHiveDb {
   static Future<List<String>?> getCardIds() async {
     List<String>? cardIds;
     try {
-      cardIds = await MyHive.box2.get(_banStatusCardIdsKey) as List<String>?;
+      cardIds = await MyHive.box.get(_banStatusCardIdsKey) as List<String>?;
     } catch (e) {
       log('转换失败 $e');
 
@@ -22,7 +22,7 @@ class BanStatusCardHiveDb {
   static Future<DateTime?> getExpireTime() async {
     DateTime? expireTime;
     try {
-      expireTime = await MyHive.box2.get(_banStatusCardIdsFetchDateKey) as DateTime?;
+      expireTime = await MyHive.box.get(_banStatusCardIdsFetchDateKey) as DateTime?;
     } catch (e) {
       log('转换失败 $e');
       return null;
@@ -32,10 +32,10 @@ class BanStatusCardHiveDb {
   }
 
   static Future<void> setCardIds(List<String> ids) {
-    return MyHive.box2.put(_banStatusCardIdsKey, ids);
+    return MyHive.box.put(_banStatusCardIdsKey, ids);
   }
 
   static Future<void> setExpireTime(DateTime expireTime) {
-    return MyHive.box2.put(_banStatusCardIdsFetchDateKey, expireTime);
+    return MyHive.box.put(_banStatusCardIdsFetchDateKey, expireTime);
   }
 }

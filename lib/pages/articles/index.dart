@@ -1,9 +1,9 @@
 import 'dart:developer';
 
+import 'package:duel_links_meta/api/ArticleApi.dart';
 import 'package:duel_links_meta/components/ListFooter.dart';
 import 'package:duel_links_meta/extension/Future.dart';
 import 'package:duel_links_meta/hive/db/ArticleHiveDb.dart';
-import 'package:duel_links_meta/http/ArticleApi.dart';
 import 'package:duel_links_meta/pages/articles/components/ArticleItem.dart';
 import 'package:duel_links_meta/pages/webview/index.dart';
 import 'package:duel_links_meta/type/Article.dart';
@@ -52,8 +52,12 @@ class _ArticlesPageState extends State<ArticlesPage> with AutomaticKeepAliveClie
       'limit': _listViewData.size.toString(),
       'page': _listViewData.page.toString(),
     };
+    params['field'] = '-markdown';
+    params['sort'] = '-featured,-date';
+    params[r'hidden[$ne]'] = 'true';
+    params[r'category[$ne]'] = 'quick-news';
 
-    final (err, list) = await ArticleApi().articleList(params).toCatch;
+    final (err, list) = await  ArticleApi().articleList(params).toCatch;
     if (err != null || list == null) {
       if (isLoadMore) {
         setState(() {

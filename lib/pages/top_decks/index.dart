@@ -1,7 +1,7 @@
+import 'package:duel_links_meta/api/TopDeckApi.dart';
 import 'package:duel_links_meta/components/TopDeckItem.dart';
 import 'package:duel_links_meta/extension/Future.dart';
 import 'package:duel_links_meta/hive/db/TopDeckHiveDb.dart';
-import 'package:duel_links_meta/http/TopDeckApi.dart';
 import 'package:duel_links_meta/pages/deck_detail/index.dart';
 import 'package:duel_links_meta/pages/top_decks/components/TopDeckListView.dart';
 import 'package:duel_links_meta/pages/top_decks/type/Group.dart';

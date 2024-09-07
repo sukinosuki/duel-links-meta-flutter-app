@@ -50,7 +50,7 @@ class _MainPageState extends State<MainPage> {
         selectedIndex: _selectedIndex,
         onDestinationSelected: _onItemTapped,
         height: 70,
-        indicatorColor: Theme.of(context).colorScheme.secondaryContainer.withOpacity(0.3),
+        indicatorColor: Theme.of(context).colorScheme.primary.withOpacity(0.4),
         // surfaceTintColor: Colors.tealAccent,
         // surfaceTintColor: Colors.transparent,
         // backgroundColor: Theme.of(context).colorScheme.primary,

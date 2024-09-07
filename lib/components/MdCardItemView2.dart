@@ -1,9 +1,8 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:duel_links_meta/api/CardApi.dart';
 import 'package:duel_links_meta/extension/Future.dart';
 import 'package:duel_links_meta/gen/assets.gen.dart';
-import 'package:duel_links_meta/hive/MyHive.dart';
 import 'package:duel_links_meta/hive/db/CardHiveDb.dart';
-import 'package:duel_links_meta/http/CardApi.dart';
 import 'package:duel_links_meta/store/BanCardStore.dart';
 import 'package:duel_links_meta/type/MdCard.dart';
 import 'package:flutter/material.dart';

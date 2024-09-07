@@ -1,17 +1,16 @@
 import 'dart:developer';
 
+import 'package:duel_links_meta/api/CardApi.dart';
+import 'package:duel_links_meta/api/TopDeckApi.dart';
 import 'package:duel_links_meta/components/MdCardItemView2.dart';
+import 'package:duel_links_meta/components/cards_viewpager/index.dart';
+import 'package:duel_links_meta/extension/DateTime.dart';
 import 'package:duel_links_meta/extension/Future.dart';
 import 'package:duel_links_meta/gen/assets.gen.dart';
 import 'package:duel_links_meta/hive/db/CardHiveDb.dart';
-import 'package:duel_links_meta/http/CardApi.dart';
-import 'package:duel_links_meta/http/TopDeckApi.dart';
-import 'package:duel_links_meta/pages/cards_viewpager/index.dart';
 import 'package:duel_links_meta/type/MdCard.dart';
 import 'package:duel_links_meta/type/enum/PageStatus.dart';
 import 'package:duel_links_meta/type/top_deck/TopDeck.dart';
-import 'package:duel_links_meta/util/time_util.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class DeckInfo extends StatefulWidget {
@@ -20,6 +19,7 @@ class DeckInfo extends StatefulWidget {
   final TopDeck? topDeck;
   final String? deckTypeId;
   final bool? loadingVisible;
+
   // final void Function(PageStatus pageStatus)? onPageStatusUpdate;
 
   @override
@@ -112,15 +112,12 @@ class _DeckInfoState extends State<DeckInfo> {
     final extraCardIds = topDeck.extra.map((e) => e.card.oid).toList();
     mainCardIds.addAll(extraCardIds);
 
-    log('mainCardIds length: ${mainCardIds.length}');
-
     final needFetchCardIds = <String>[];
     final cards = <MdCard>[];
 
     for (var i = 0; i < mainCardIds.length; i++) {
       final hiveData = await CardHiveDb().get(mainCardIds[i]);
       if (hiveData == null) {
-        log('hiveData为null, ${mainCardIds[i]}');
         needFetchCardIds.add(mainCardIds[i]);
       } else {
         cards.add(hiveData);
@@ -128,8 +125,7 @@ class _DeckInfoState extends State<DeckInfo> {
     }
 
     if (needFetchCardIds.isNotEmpty) {
-      log('需要请求获取card $needFetchCardIds, length: ${needFetchCardIds.length}');
-      final (cardsErr, cardsRes) = await CardApi().getByIds(needFetchCardIds.join(',')).toCatch;
+      final (_, cardsRes) = await CardApi().getByIds(needFetchCardIds.join(',')).toCatch;
       if (cardsRes != null) {
         cards.addAll(cardsRes);
         cardsRes.forEach((element) {
@@ -208,7 +204,7 @@ class _DeckInfoState extends State<DeckInfo> {
                   const Padding(padding: EdgeInsets.symmetric(horizontal: 4), child: Text('—', style: TextStyle(fontSize: 12))),
                   Text(sampleDeckTournamentName, style: const TextStyle(color: Color(0xff0a87bb), fontSize: 12)),
                   const Padding(padding: EdgeInsets.symmetric(horizontal: 4), child: Text('—', style: TextStyle(fontSize: 12))),
-                  if (_topDeck != null) Text(TimeUtil.format(_topDeck?.created), style: const TextStyle(fontSize: 12)),
+                  if (_topDeck != null) Text(_topDeck?.created?.format ?? '', style: const TextStyle(fontSize: 12)),
                   const Padding(padding: EdgeInsets.symmetric(horizontal: 4), child: Text('—', style: TextStyle(fontSize: 12))),
                   if (_topDeck != null)
                     Text(_topDeck!.author is String ? _topDeck!.author.toString() : '', style: const TextStyle(fontSize: 12)),
@@ -224,8 +220,10 @@ class _DeckInfoState extends State<DeckInfo> {
                         Assets.images.iconGem.image(width: 15, height: 15),
                         const SizedBox(width: 4),
                         Text(formatToK(_topDeck?.gemsPrice ?? 0), style: const TextStyle(fontSize: 11)),
-                        if ((_topDeck?.dollarsPrice  ?? 0) > 0) const Padding(padding: EdgeInsets.symmetric(horizontal: 4), child: Text('+', style: TextStyle(fontSize: 11))),
-                        if ((_topDeck?.dollarsPrice  ?? 0) > 0) Text('\$${_topDeck?.dollarsPrice.toString() ?? '0'}', style: const TextStyle(fontSize: 11)),
+                        if ((_topDeck?.dollarsPrice ?? 0) > 0)
+                          const Padding(padding: EdgeInsets.symmetric(horizontal: 4), child: Text('+', style: TextStyle(fontSize: 11))),
+                        if ((_topDeck?.dollarsPrice ?? 0) > 0)
+                          Text('\$${_topDeck?.dollarsPrice.toString() ?? '0'}', style: const TextStyle(fontSize: 11)),
                       ],
                     ),
                   ),
@@ -261,9 +259,7 @@ class _DeckInfoState extends State<DeckInfo> {
                   ),
                 ],
               ),
-
               const SizedBox(height: 10),
-
               Card(
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
                 margin: EdgeInsets.zero,
@@ -271,7 +267,10 @@ class _DeckInfoState extends State<DeckInfo> {
                   padding: const EdgeInsets.only(left: 8, right: 8, top: 8),
                   child: GridView.builder(
                     gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 5, mainAxisSpacing: 0, crossAxisSpacing: 8, childAspectRatio: 0.57),
+                      crossAxisCount: 5,
+                      crossAxisSpacing: 8,
+                      childAspectRatio: 0.57,
+                    ),
                     padding: EdgeInsets.zero,
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
@@ -295,7 +294,10 @@ class _DeckInfoState extends State<DeckInfo> {
                     padding: const EdgeInsets.only(left: 8, right: 8, top: 8),
                     child: GridView.builder(
                       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 8, mainAxisSpacing: 0, crossAxisSpacing: 8, childAspectRatio: 0.53),
+                        crossAxisCount: 8,
+                        crossAxisSpacing: 8,
+                        childAspectRatio: 0.53,
+                      ),
                       padding: EdgeInsets.zero,
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),
@@ -309,18 +311,17 @@ class _DeckInfoState extends State<DeckInfo> {
                       },
                     ),
                   ),
-                )
+                ),
             ],
           ),
         ),
-
         if (_loadingVisible && _pageStatus != PageStatus.success)
           const SizedBox(
             height: 200,
             child: Center(
               child: CircularProgressIndicator(),
             ),
-          )
+          ),
       ],
     );
   }

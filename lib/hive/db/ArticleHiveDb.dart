@@ -25,7 +25,7 @@ class ArticleHiveDb {
     List<Article>? articles;
 
     try {
-      final data = await MyHive.box2.get(key) as List<dynamic>?;
+      final data = await MyHive.box.get(key) as List<dynamic>?;
       articles = data?.map((e) => e as Article).toList();
     } catch (e) {
       log('转换失败: $e');
@@ -39,7 +39,7 @@ class ArticleHiveDb {
     final key = _getExpireTimeKey(category);
     DateTime? time;
     try {
-      time = await MyHive.box2.get(key) as DateTime?;
+      time = await MyHive.box.get(key) as DateTime?;
     } catch (e) {
       log('转换失败: $e');
       return null;
@@ -51,12 +51,12 @@ class ArticleHiveDb {
   Future<void> set(List<Article> articles, String category) {
     final key = _getKey(category);
 
-    return MyHive.box2.put(key, articles);
+    return MyHive.box.put(key, articles);
   }
 
   Future<void> setExpireTime(DateTime? time, String category) {
     final key = _getExpireTimeKey(category);
 
-    return MyHive.box2.put(key, time);
+    return MyHive.box.put(key, time);
   }
 }

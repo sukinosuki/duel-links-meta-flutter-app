@@ -37,8 +37,8 @@ class _MdCardItemViewState extends State<MdCardItemView> {
           Stack(
             children: [
               CachedNetworkImage(
-                  placeholder: (context, url) => Image.asset('assets/images/card_placeholder.webp'),
-                  errorWidget: (context, url, err) => Image.asset('assets/images/card_placeholder.webp'),
+                  // placeholder: (context, url) => Image.asset('assets/images/card_placeholder.webp'),
+                  // errorWidget: (context, url, err) => Image.asset('assets/images/card_placeholder.webp'),
                   fadeInDuration: const Duration(milliseconds: 0),
                   fadeOutDuration: null,
                   imageUrl: 'https://s3.duellinksmeta.com/cards/${mdCard.oid}_w100.webp'),

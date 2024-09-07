@@ -1,17 +1,13 @@
-import 'dart:developer';
-
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:duel_links_meta/components/Loading.dart';
-import 'package:duel_links_meta/components/MdCardItemView.dart';
+import 'package:duel_links_meta/api/CardApi.dart';
+import 'package:duel_links_meta/components/MdCardItemView2.dart';
+import 'package:duel_links_meta/components/cards_viewpager/index.dart';
 import 'package:duel_links_meta/extension/Future.dart';
 import 'package:duel_links_meta/hive/db/CardHiveDb.dart';
 import 'package:duel_links_meta/hive/db/PackHiveDb.dart';
-import 'package:duel_links_meta/http/CardApi.dart';
-import 'package:duel_links_meta/pages/cards_viewpager/index.dart';
 import 'package:duel_links_meta/type/MdCard.dart';
 import 'package:duel_links_meta/type/enum/PageStatus.dart';
 import 'package:duel_links_meta/type/pack_set/PackSet.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 
@@ -179,9 +175,9 @@ class _PackDetailPageState extends State<PackDetailPage> {
                                           crossAxisSpacing: 6,
                                         ),
                                         itemBuilder: (context, index) {
-                                          return MdCardItemView(
+                                          return MdCardItemView2(
                                             mdCard: rarity2CardsGroup[key]![index],
-                                            onTap: (card) => handleTapCardItem(rarity2CardsGroup[key]!, index),
+                                            onTap: (card) => handleTapCardItem(rarity2CardsGroup[key]!, index), id: rarity2CardsGroup[key]![index].oid,
                                           );
                                           // return Container(color: Colors.white,);
                                         },

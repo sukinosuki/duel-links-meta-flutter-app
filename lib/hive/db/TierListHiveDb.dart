@@ -18,7 +18,7 @@ class TierListHiveDb {
     List<TierList_TopTier>? list;
 
     try {
-      final data = await MyHive.box2.get(_key) as List<dynamic>?;
+      final data = await MyHive.box.get(_key) as List<dynamic>?;
       list = data?.map((e) => e as TierList_TopTier).toList();
     } catch (e) {
       log('转换失败 $e');
@@ -31,7 +31,7 @@ class TierListHiveDb {
     DateTime? time;
 
     try {
-      time = await MyHive.box2.get(_expireTimeKey) as DateTime?;
+      time = await MyHive.box.get(_expireTimeKey) as DateTime?;
     } catch (e) {
       log('转换失败 $e');
     }
@@ -40,10 +40,10 @@ class TierListHiveDb {
   }
 
   Future<void> set(List<TierList_TopTier> list) {
-    return MyHive.box2.put(_key, list);
+    return MyHive.box.put(_key, list);
   }
 
   Future<void> setExpireTime(DateTime time) {
-    return MyHive.box2.put(_expireTimeKey, time);
+    return MyHive.box.put(_expireTimeKey, time);
   }
 }

@@ -4,15 +4,11 @@ import 'package:flutter/services.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 
 extension StringEx on String {
-  toast() {
-    print('[toast] $this');
-
+  void toast() {
     SmartDialog.showToast(this, alignment: const Alignment(0, 0.8));
   }
 
-  copy(String? toastText) {
-    print('toastText:  $toastText');
-
+  void copy(String? toastText) {
     Clipboard.setData(ClipboardData(text: this));
 
     if (toastText != null) {

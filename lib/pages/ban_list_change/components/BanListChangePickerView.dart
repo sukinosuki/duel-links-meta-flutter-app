@@ -1,6 +1,6 @@
 import 'dart:async';
-import 'dart:developer';
 
+import 'package:duel_links_meta/components/ModalBottomSheetWrap.dart';
 import 'package:duel_links_meta/pages/ban_list_change/type/DataGroup.dart';
 import 'package:duel_links_meta/type/ban_list_change/BanListChange.dart';
 import 'package:flutter/cupertino.dart';
@@ -47,12 +47,10 @@ class _BanListChangePickerState extends State<BanListChangePicker> {
 
   @override
   Widget build(BuildContext context) {
-    return ClipRRect(
-      borderRadius: const BorderRadius.only(topLeft: Radius.circular(18), topRight: Radius.circular(18)),
+    return ModalBottomSheetWrap(
       child: Container(
         height: 240,
         padding: const EdgeInsets.only(top: 8),
-        color: Theme.of(context).colorScheme.onPrimary,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -118,7 +116,6 @@ class _BanListChangePickerState extends State<BanListChangePicker> {
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               child: ElevatedButton(
                 onPressed: () {
-                  log('confirm: $selectedYearKey, $selectedItemKey');
                   _defaultItemIndex = selectedItemKey;
                   _defaultYearIndex = selectedYearKey;
                   widget.onConfirm(selectedYearKey, selectedItemKey);

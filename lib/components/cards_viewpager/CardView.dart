@@ -1,21 +1,17 @@
 import 'dart:developer';
 
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:duel_links_meta/api/CardApi.dart';
+import 'package:duel_links_meta/components/IfElseBox.dart';
+import 'package:duel_links_meta/extension/DateTime.dart';
 import 'package:duel_links_meta/extension/Future.dart';
 import 'package:duel_links_meta/gen/assets.gen.dart';
 import 'package:duel_links_meta/hive/db/CardHiveDb.dart';
-import 'package:duel_links_meta/http/CardApi.dart';
 import 'package:duel_links_meta/store/BanCardStore.dart';
 import 'package:duel_links_meta/type/MdCard.dart';
-import 'package:duel_links_meta/util/time_util.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
-import 'package:intl/intl.dart';
-
-import '../../components/IfElseBox.dart';
 
 class CardView extends StatefulWidget {
   const CardView({required this.card, super.key});
@@ -30,7 +26,6 @@ class CardView extends StatefulWidget {
 // 如果传入的card是只有基础信息(id,name)的card，需要从本地获取完整信息的card
 // 如果从本地获取不到card，则请求获取一次再存到本地
 class _CardViewState extends State<CardView> {
-  // MdCard? _card = MdCard()..oid="60c2b3a9a0e24f2d54a517cf";
   MdCard? _card;
 
   BanCardStore banCardStore = Get.put(BanCardStore());
@@ -42,11 +37,9 @@ class _CardViewState extends State<CardView> {
     super.dispose();
   }
 
-  var banStatusStore = Get.put(BanCardStore());
+  BanCardStore banStatusStore = Get.put(BanCardStore());
 
   Future<void> init() async {
-    log('_init, _card == null: ${_card == null}, widget.card: ${widget.card}');
-
     // _card已经有值
     if (_card != null) return;
 
@@ -62,12 +55,10 @@ class _CardViewState extends State<CardView> {
     final card = await CardHiveDb().get(widget.card.oid);
 
     if (card != null) {
-      log('本地获取到card111');
       setState(() {
         _card = card;
       });
     } else {
-      log('请求获取card111');
       final (err, res) = await CardApi().getById(_card!.oid).toCatch;
       if (err != null || res == null) return;
 
@@ -265,7 +256,7 @@ class _CardViewState extends State<CardView> {
                         const SizedBox(height: 10),
                         if (_card!.release != null)
                           Text(
-                            'Released on ${TimeUtil.format(_card!.release)}',
+                            'Released on ${_card!.release?.format}',
                             style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 12),
                           ),
                       ],

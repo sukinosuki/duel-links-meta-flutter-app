@@ -25,7 +25,7 @@ class DeckTypeDetailHiveDb {
 
     DeckType? deckType;
     try {
-      deckType = await MyHive.box2.get(key) as DeckType?;
+      deckType = await MyHive.box.get(key) as DeckType?;
     } catch (e) {
       log('转换失败 $e');
       return null;
@@ -36,18 +36,18 @@ class DeckTypeDetailHiveDb {
 
   Future<DateTime?> getExpireTime(String deckTypeName) async {
     final key = _getExpireTimeKey(deckTypeName);
-    final date = await MyHive.box2.get(key) as DateTime?;
+    final date = await MyHive.box.get(key) as DateTime?;
 
     return date;
   }
 
   Future<void> set(DeckType deckType) {
     final key = _getKey(deckType.name);
-    return MyHive.box2.put(key, deckType);
+    return MyHive.box.put(key, deckType);
   }
 
   Future<void> setExpireTime(DeckType deckType, DateTime date) {
     final key = _getExpireTimeKey(deckType.name);
-    return MyHive.box2.put(key, date);
+    return MyHive.box.put(key, date);
   }
 }

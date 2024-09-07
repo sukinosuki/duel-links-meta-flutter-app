@@ -24,7 +24,7 @@ class SkillHiveDb {
 
     Skill? skill;
     try {
-      skill = await MyHive.box2.get(key) as Skill?;
+      skill = await MyHive.box.get(key) as Skill?;
     } catch (e) {
       log('转换失败 $e');
       return null;
@@ -37,7 +37,7 @@ class SkillHiveDb {
     final key = _getExpireTimeKey(skillName);
     DateTime? time;
     try {
-      time = await MyHive.box2.get(key) as DateTime?;
+      time = await MyHive.box.get(key) as DateTime?;
     } catch (e) {
       log('转换失败 $e');
       return null;
@@ -48,12 +48,12 @@ class SkillHiveDb {
 
    Future<void> set(Skill skill) {
     final key = _getKey(skill.name);
-    return MyHive.box2.put(key, skill);
+    return MyHive.box.put(key, skill);
   }
 
    Future<void> setExpireTime(String skillName, DateTime time) {
     final key = _getExpireTimeKey(skillName);
 
-    return MyHive.box2.put(key, time);
+    return MyHive.box.put(key, time);
   }
 }

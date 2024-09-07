@@ -1,6 +1,8 @@
+import 'dart:developer';
+
 import 'package:duel_links_meta/components/Loading.dart';
-import 'package:duel_links_meta/constant/colors.dart';
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
 class WebviewPage extends StatefulWidget {
@@ -19,27 +21,38 @@ class _WebviewPageState extends State<WebviewPage> {
   String get url => super.widget.url;
 
   late final WebViewController _webViewController;
-  var loadingPercentage = 0;
+  int loadingPercentage = 0;
 
-  initWebViewController() {
+  void initWebViewController() {
     _webViewController = WebViewController()
       ..loadRequest(Uri.parse(url))
-      ..setNavigationDelegate(NavigationDelegate(onPageStarted: (url) {
-        setState(() {
-          if (loadingPercentage == 100) return;
-          loadingPercentage = 0;
-        });
-      }, onProgress: (progress) {
-        setState(() {
-          if (loadingPercentage == 100) return;
-          loadingPercentage = progress;
-        });
-      }, onPageFinished: (url) {
-        setState(() {
-          if (loadingPercentage == 100) return;
-          loadingPercentage = 100;
-        });
-      }));
+      ..setNavigationDelegate(
+        NavigationDelegate(
+          onPageStarted: (url) {
+            setState(() {
+              if (loadingPercentage == 100) return;
+              loadingPercentage = 0;
+            });
+          },
+          onProgress: (progress) {
+            setState(() {
+              if (loadingPercentage == 100) return;
+              loadingPercentage = progress;
+            });
+          },
+          onPageFinished: (url) {
+            setState(() {
+              if (loadingPercentage == 100) return;
+              loadingPercentage = 100;
+            });
+          },
+        ),
+      );
+  }
+
+  void openByBrowser() {
+    final uri = Uri.parse(url);
+    launchUrl(uri).ignore();
   }
 
   @override
@@ -61,48 +74,24 @@ class _WebviewPageState extends State<WebviewPage> {
         actions: [
           Row(
             children: [
-              // IconButton(
-              //   icon: const Icon(Icons.arrow_back_ios),
-              //   onPressed: () async {
-              //     final messenger = ScaffoldMessenger.of(context);
-              //     if (await _webViewController.canGoBack()) {
-              //       await _webViewController.goBack();
-              //     } else {
-              //       messenger.showSnackBar(
-              //         const SnackBar(content: Text('No back history item')),
-              //       );
-              //       return;
-              //     }
-              //   },
-              // ),
-              // IconButton(
-              //   icon: const Icon(Icons.arrow_forward_ios),
-              //   onPressed: () async {
-              //     final messenger = ScaffoldMessenger.of(context);
-              //     if (await _webViewController.canGoForward()) {
-              //       await _webViewController.goForward();
-              //     } else {
-              //       messenger.showSnackBar(
-              //         const SnackBar(content: Text('No forward history item')),
-              //       );
-              //       return;
-              //     }
-              //   },
-              // ),
               IconButton(
-                icon: const Icon(Icons.replay),
-                onPressed: () {
-                  _webViewController.reload();
-                },
+                onPressed: openByBrowser,
+                icon: const Icon(Icons.open_in_browser_rounded),
               ),
+              // IconButton(
+              //   icon: const Icon(Icons.replay),
+              //   onPressed: () {
+              //     _webViewController.reload();
+              //   },
+              // ),
             ],
-          )
+          ),
         ],
       ),
       body: Stack(
         children: [
           AnimatedOpacity(
-            duration: const Duration(milliseconds: 0),
+            duration: Duration.zero,
             opacity: loadingPercentage == 100 ? 1 : 0,
             child: WebViewWidget(
               controller: _webViewController,

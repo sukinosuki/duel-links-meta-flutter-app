@@ -13,7 +13,7 @@ class HomeHiveDb {
    final String _navTabFetchDateKey = 'nav_tab:fetch_date';
 
    Future<List<NavTab>?> getNavTabList() async {
-    final hiveData = await MyHive.box2.get(_navTabKey) as List?;
+    final hiveData = await MyHive.box.get(_navTabKey) as List?;
 
     if (hiveData == null) return null;
 
@@ -25,24 +25,24 @@ class HomeHiveDb {
   }
 
    Future<void> deleteNavTabList() {
-    return MyHive.box2.delete(_navTabKey);
+    return MyHive.box.delete(_navTabKey);
   }
 
    Future<void> deleteNavTabListExpireTime() {
-    return MyHive.box2.delete(_navTabFetchDateKey);
+    return MyHive.box.delete(_navTabFetchDateKey);
   }
 
    Future<DateTime?> getNavTabListExpireTime() async {
-    final expireTime = await MyHive.box2.get(_navTabFetchDateKey) as DateTime?;
+    final expireTime = await MyHive.box.get(_navTabFetchDateKey) as DateTime?;
 
     return expireTime;
   }
 
    Future<void> setNavTabList(List<NavTab>? data) {
-    return MyHive.box2.put(_navTabKey, data);
+    return MyHive.box.put(_navTabKey, data);
   }
 
    Future<void> setNavTabListExpireTime(DateTime? time) {
-    return MyHive.box2.put(_navTabFetchDateKey, time);
+    return MyHive.box.put(_navTabFetchDateKey, time);
   }
 }

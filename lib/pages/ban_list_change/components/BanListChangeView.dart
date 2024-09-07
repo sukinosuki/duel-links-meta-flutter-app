@@ -1,17 +1,15 @@
-import 'dart:developer';
-
+import 'package:duel_links_meta/api/BanListChangeApi.dart';
+import 'package:duel_links_meta/components/cards_viewpager/index.dart';
+import 'package:duel_links_meta/extension/DateTime.dart';
 import 'package:duel_links_meta/extension/Future.dart';
 import 'package:duel_links_meta/hive/db/BanListChangeHiveDb.dart';
 import 'package:duel_links_meta/hive/db/CardHiveDb.dart';
-import 'package:duel_links_meta/http/BanListChangeApi.dart';
 import 'package:duel_links_meta/pages/ban_list_change/components/BanListChangeCardView.dart';
 import 'package:duel_links_meta/pages/ban_list_change/components/BanListChangePickerView.dart';
 import 'package:duel_links_meta/pages/ban_list_change/type/DataGroup.dart';
-import 'package:duel_links_meta/pages/cards_viewpager/index.dart';
 import 'package:duel_links_meta/type/MdCard.dart';
 import 'package:duel_links_meta/type/ban_list_change/BanListChange.dart';
 import 'package:duel_links_meta/type/enum/PageStatus.dart';
-import 'package:duel_links_meta/util/time_util.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:intl/intl.dart';
@@ -29,7 +27,6 @@ class _BanListChangeViewState extends State<BanListChangeView> with AutomaticKee
   List<DataGroup<BanListChange>> _banListChangeGroup = [];
   BanListChange? currentBanListChange;
   final formatter = DateFormat('MM-dd');
-  bool _isInit = false;
 
   //
   Future<bool> fetchData({bool force = false}) async {
@@ -127,6 +124,7 @@ class _BanListChangeViewState extends State<BanListChangeView> with AutomaticKee
   void showUpdatesDatePicker() {
     showModalBottomSheet<void>(
       context: context,
+      backgroundColor: Colors.transparent,
       builder: (context) => BanListChangePicker(
         data: _banListChangeGroup,
         onConfirm: handlePickerConfirm,
@@ -137,7 +135,7 @@ class _BanListChangeViewState extends State<BanListChangeView> with AutomaticKee
 
   Future<void> _handleRefresh() async {
     final shouldRefresh = await fetchData();
-    _isInit = true;
+
     if (shouldRefresh) {
       await fetchData(force: true);
     }
@@ -181,7 +179,7 @@ class _BanListChangeViewState extends State<BanListChangeView> with AutomaticKee
                         onTap: showUpdatesDatePicker,
                         child: Row(
                           children: [
-                            Text(TimeUtil.format(currentBanListChange?.date ?? currentBanListChange?.announced)),
+                            Text((currentBanListChange?.date ?? currentBanListChange?.announced)?.format ?? ''),
                             const Icon(Icons.keyboard_arrow_down, size: 16),
                           ],
                         ),
@@ -207,7 +205,7 @@ class _BanListChangeViewState extends State<BanListChangeView> with AutomaticKee
 
           if (_pageStatus == PageStatus.fail) const Center(
             child: Text('Loading failed'),
-          )
+          ),
         ],
       ),
     );

@@ -1,11 +1,12 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:duel_links_meta/api/SkillApi.dart';
 import 'package:duel_links_meta/extension/Future.dart';
-import 'package:duel_links_meta/gen/assets.gen.dart';
 import 'package:duel_links_meta/hive/db/SkillHiveDb.dart';
-import 'package:duel_links_meta/http/SkillApi.dart';
 import 'package:duel_links_meta/type/enum/PageStatus.dart';
 import 'package:duel_links_meta/type/skill/Skill.dart';
 import 'package:flutter/material.dart';
+
+import '../gen/assets.gen.dart';
 
 class SkillModalView extends StatefulWidget {
   const SkillModalView({required this.name, super.key, this.skill});
@@ -90,21 +91,19 @@ class _SkillModalViewState extends State<SkillModalView> {
                   const SizedBox(height: 4),
                   if (_skill.relatedCards.isNotEmpty)
                     SizedBox(
-                      height: 60,
+                      height: 65,
                       child: ListView.builder(
                         scrollDirection: Axis.horizontal,
                         itemCount: _skill.relatedCards.length,
                         itemBuilder: (context, index) {
                           return Row(
                             children: [
-                              Container(
-                                color: Colors.white38,
-                                height: 60,
-                                width: 60 / 1.4,
-                                child: CachedNetworkImage(
-                                  fit: BoxFit.cover,
-                                  imageUrl: 'https://s3.duellinksmeta.com/cards/${_skill.relatedCards[index].oid}_w100.webp',
-                                ),
+                              CachedNetworkImage(
+                                fit: BoxFit.fitWidth,
+                                width: 45,
+                                imageUrl: 'https://s3.duellinksmeta.com/cards/${_skill.relatedCards[index].oid}_w100.webp',
+                                placeholder: (context, url) => Assets.images.cardPlaceholder.image(),
+                                errorWidget: (context, url, obj) => Assets.images.cardPlaceholder.image(),
                               ),
                               const SizedBox(width: 4),
                             ],
@@ -117,25 +116,26 @@ class _SkillModalViewState extends State<SkillModalView> {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text('Characters', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
+                        const Text(
+                          'Characters',
+                          style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+                        ),
                         ListView.builder(
                           padding: EdgeInsets.zero,
-                          // scrollDirection: Axis.horizontal,
                           itemCount: _skill.characters.length,
                           physics: const NeverScrollableScrollPhysics(),
                           shrinkWrap: true,
                           itemBuilder: (context, index) {
                             return Container(
-                              padding: EdgeInsets.only(bottom: 4),
+                              padding: const EdgeInsets.only(bottom: 4),
                               child: Row(
                                 children: [
                                   SizedBox(
-                                    width: 36,
-                                    height: 42,
+                                    width: 40,
+                                    height: 40 * 1.16,
                                     child: CachedNetworkImage(
                                       fit: BoxFit.cover,
-                                      imageUrl:
-                                          'https://s3.duellinksmeta.com${_skill.characters[index].character.thumbnailImage}',
+                                      imageUrl: 'https://s3.duellinksmeta.com${_skill.characters[index].character.thumbnailImage}',
                                     ),
                                   ),
                                   const SizedBox(width: 4),
@@ -167,10 +167,12 @@ class _SkillModalViewState extends State<SkillModalView> {
                     )
                 ],
               ),
-        
-              if (_pageStatus == PageStatus.loading) Positioned(child: Center(
-                child: CircularProgressIndicator(),
-              ))
+              if (_pageStatus == PageStatus.loading)
+                const Positioned(
+                  child: Center(
+                    child: CircularProgressIndicator(),
+                  ),
+                )
             ],
           ),
         ),

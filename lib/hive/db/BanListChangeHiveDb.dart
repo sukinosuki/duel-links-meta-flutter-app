@@ -19,7 +19,7 @@ class BanListChangeHiveDb {
     List<BanListChange>? data;
 
     try {
-      final list = await MyHive.box2.get(_key) as List<dynamic>?;
+      final list = await MyHive.box.get(_key) as List<dynamic>?;
       data = list?.map((e) => e as BanListChange).toList();
     } catch (e) {
       log('转换失败 $e');
@@ -32,7 +32,7 @@ class BanListChangeHiveDb {
   Future<DateTime?> getExpireTime() async {
     DateTime? expireTime;
     try {
-      expireTime = await MyHive.box2.get(_expireKey) as DateTime?;
+      expireTime = await MyHive.box.get(_expireKey) as DateTime?;
     } catch (e) {
       log('转换失败 $e');
       return null;
@@ -41,10 +41,10 @@ class BanListChangeHiveDb {
   }
 
   Future<void> set(List<BanListChange> data) {
-    return MyHive.box2.put(_key, data);
+    return MyHive.box.put(_key, data);
   }
 
   Future<void> setExpireTime(DateTime time) {
-    return MyHive.box2.put(_expireKey, time);
+    return MyHive.box.put(_expireKey, time);
   }
 }

@@ -26,7 +26,7 @@ class TopDeckHiveDb {
 
     List<TopDeck>? list;
     try {
-      final data = await MyHive.box2.get(key) as List<dynamic>?;
+      final data = await MyHive.box.get(key) as List<dynamic>?;
       list  = data?.map((e) => e as TopDeck).toList();
     }catch(e) {
       log('转换失败 $e');
@@ -39,7 +39,7 @@ class TopDeckHiveDb {
     final key = _getExpireTimeKey(isRush);
     DateTime? time;
     try {
-      time = await MyHive.box2.get(key) as DateTime?;
+      time = await MyHive.box.get(key) as DateTime?;
     } catch(e) {
       log('转换失败 $e');
     }
@@ -50,12 +50,12 @@ class TopDeckHiveDb {
   Future<void> set(List<TopDeck> list, {required bool isRush}) {
     final key = _getKey(isRush);
 
-    return MyHive.box2.put(key, list);
+    return MyHive.box.put(key, list);
   }
 
   Future<void> setExpireTime(DateTime time, {required bool isRush}) {
     final key = _getExpireTimeKey(isRush);
 
-    return MyHive.box2.put(key, time);
+    return MyHive.box.put(key, time);
   }
 }

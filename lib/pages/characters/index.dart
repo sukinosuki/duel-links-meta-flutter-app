@@ -1,17 +1,13 @@
-import 'dart:developer';
 
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:duel_links_meta/api/CharacterApi.dart';
+import 'package:duel_links_meta/api/WorldApi.dart';
 import 'package:duel_links_meta/components/Loading.dart';
-import 'package:duel_links_meta/constant/colors.dart';
-import 'package:duel_links_meta/http/CharacterApi.dart';
 import 'package:duel_links_meta/pages/character/index.dart';
 import 'package:duel_links_meta/type/character/Character.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:duel_links_meta/type/enum/PageStatus.dart';
+import 'package:duel_links_meta/type/world/World.dart';
 import 'package:flutter/material.dart';
-
-import '../../http/WorldApi.dart';
-import '../../type/enum/PageStatus.dart';
-import '../../type/world/World.dart';
 
 class CharactersPage extends StatefulWidget {
   const CharactersPage({super.key});
@@ -52,10 +48,10 @@ class _CharactersPageState extends State<CharactersPage> {
       _characters = [];
     });
     var worldsRes = await WorldApi().list();
-    var worlds = worldsRes.body!.map((e) => World.fromJson(e)).toList();
+    var worlds = worldsRes.body!.map(World.fromJson).toList();
 
     var res = await CharacterApi().list();
-    var list = res.body!.map((e) => Character.fromJson(e)).toList();
+    var list = res.body!.map(Character.fromJson).toList();
 
     setState(() {
       _characters = list;
@@ -74,9 +70,7 @@ class _CharactersPageState extends State<CharactersPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: BaColors.theme,
       appBar: AppBar(
-        backgroundColor: BaColors.main,
         title: Row(
           children: [
             if (_index != null)
@@ -127,7 +121,6 @@ class _CharactersPageState extends State<CharactersPage> {
               itemCount: _visibleCharacters.length,
               itemBuilder: (context, index) {
                 return Card(
-                  color: BaColors.main,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(6),
                   ),

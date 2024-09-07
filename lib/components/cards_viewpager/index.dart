@@ -1,9 +1,9 @@
-import 'package:duel_links_meta/pages/cards_viewpager/CardView.dart';
 import 'package:duel_links_meta/type/MdCard.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/widgets.dart';
+
+import 'CardView.dart';
 
 class CardsViewpagerPage extends StatefulWidget {
   const CardsViewpagerPage({required this.cards, required this.index, super.key});

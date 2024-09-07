@@ -16,13 +16,13 @@ class PacksHiveDb {
   final String _expireTimeKey = 'pack_set:list_last_fetch_date';
 
   Future<void> set(List<PackSet> data) {
-    return MyHive.box2.put(_key, data);
+    return MyHive.box.put(_key, data);
   }
 
   Future<List<PackSet>?>? get() async {
     List<PackSet>? list;
     try {
-      final data = await MyHive.box2.get(_key) as List?;
+      final data = await MyHive.box.get(_key) as List?;
       list = data?.map((e) => e as PackSet).toList();
     } catch (e) {
       log('转换失败 $e');
@@ -32,13 +32,13 @@ class PacksHiveDb {
   }
 
   Future<void> setExpireTime(DateTime date) {
-    return MyHive.box2.put(_expireTimeKey, date);
+    return MyHive.box.put(_expireTimeKey, date);
   }
 
   Future<DateTime?>? getExpireTime() async {
     DateTime? time;
     try {
-      time = await MyHive.box2.get(_expireTimeKey) as DateTime?;
+      time = await MyHive.box.get(_expireTimeKey) as DateTime?;
     } catch (e) {
       log('转换失败 $e');
     }

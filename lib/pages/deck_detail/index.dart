@@ -1,13 +1,10 @@
-import 'dart:developer';
-
+import 'package:duel_links_meta/api/TopDeckApi.dart';
 import 'package:duel_links_meta/extension/Future.dart';
 import 'package:duel_links_meta/pages/deck_detail/components/DeckInfo.dart';
 import 'package:duel_links_meta/type/enum/PageStatus.dart';
 import 'package:duel_links_meta/type/top_deck/TopDeck.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
-
-import '../../http/TopDeckApi.dart';
 
 class DeckDetailPage extends StatefulWidget {
   const DeckDetailPage({required this.topDeck, super.key});

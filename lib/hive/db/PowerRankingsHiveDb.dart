@@ -23,7 +23,7 @@ class PowerRankingsHiveDb {
     final key = _getKey(isRush);
     List<TierList_PowerRanking>? list;
     try {
-      final data = await MyHive.box2.get(key) as List<dynamic>?;
+      final data = await MyHive.box.get(key) as List<dynamic>?;
       list = data?.map((e) => e as TierList_PowerRanking).toList();
     } catch(e){
       log('转换失败 $e');
@@ -34,14 +34,14 @@ class PowerRankingsHiveDb {
 
   Future<void> set(List<TierList_PowerRanking> list, {required bool isRush}) {
     final key = _getKey(isRush);
-    return MyHive.box2.put(key, list);
+    return MyHive.box.put(key, list);
   }
 
   Future<DateTime?>? getExpireTime({required bool isRush}) async{
     final key = _getExpireTimeKey(isRush);
     DateTime? time;
     try {
-      time = await MyHive.box2.get(key) as DateTime?;
+      time = await MyHive.box.get(key) as DateTime?;
     } catch(e){
       log('转换失败 $e');
     }
@@ -52,7 +52,7 @@ class PowerRankingsHiveDb {
   Future<void> setExpireTime(DateTime time, {required bool isRush}) {
     final key = _getExpireTimeKey(isRush);
 
-    return MyHive.box2.put(key, time);
+    return MyHive.box.put(key, time);
   }
 
 }

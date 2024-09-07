@@ -1,8 +1,8 @@
+import 'package:duel_links_meta/api/NavTabApi.dart';
 import 'package:duel_links_meta/components/SettingModalView.dart';
 import 'package:duel_links_meta/extension/Future.dart';
 import 'package:duel_links_meta/hive/MyHive.dart';
 import 'package:duel_links_meta/hive/db/NavHiveDb.dart';
-import 'package:duel_links_meta/http/NavTabApi.dart';
 import 'package:duel_links_meta/pages/farming_and_event/index.dart';
 import 'package:duel_links_meta/pages/home/components/NavItemCard.dart';
 import 'package:duel_links_meta/pages/home/type/NavTabType.dart';
@@ -35,12 +35,18 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
     NavTab(id: NavTabType.topDecksRush.value, title: 'TOP DECKS: RUSH'),
     NavTab(id: NavTabType.farmingAndEvents.value, title: 'FARMING & EVENTS'),
     NavTab(id: NavTabType.leaksAndUpdates.value, title: 'LEAKS & UPDATES', url: 'https://www.duellinksmeta.com/leaks-and-updates'),
-    NavTab(id: NavTabType.genGuide.value, title: 'GEM GUIDE'),
+    NavTab(id: NavTabType.genGuide.value, title: 'GEM GUIDE', url: 'https://www.duellinksmeta.com/gem-guide'),
     NavTab(id: NavTabType.deckBuilder.value, title: 'DECK BUILDER', url: 'https://www.duellinksmeta.com/deck-tester/'),
     NavTab(id: NavTabType.tournaments.value, title: 'TOURNAMENTS', url: 'https://www.duellinksmeta.com/tournaments'),
     NavTab(id: NavTabType.duelAssist.value, title: 'DUEL ASSIST', url: 'https://www.duellinksmeta.com/duel-assist'),
     NavTab(id: NavTabType.packOpener.value, title: 'PACK OPENER', url: 'https://www.duellinksmeta.com/pack-opening-simulator'),
   ];
+
+  List<NavTab> get _showNavTabs {
+    if (appStore.showWebviewNavs.value) return _navTabs;
+
+    return _navTabs.where((element) => element.url == null).toList();
+  }
 
   //
   void handleTapNav(NavTab nav) {
@@ -79,10 +85,10 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
   Future<void> toggleDarkMode() async {
     if (Get.isDarkMode) {
       Get.changeThemeMode(ThemeMode.light);
-      MyHive.box2.put('dark_mode', 'light').ignore();
+      MyHive.box.put('dark_mode', 'light').ignore();
     } else {
       Get.changeThemeMode(ThemeMode.dark);
-      MyHive.box2.put('dark_mode', 'dark').ignore();
+      MyHive.box.put('dark_mode', 'dark').ignore();
     }
   }
 
@@ -141,6 +147,7 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
   Future<void> handleOpenSettingDialog() async {
     await showModalBottomSheet<void>(
       context: context,
+      backgroundColor: Colors.transparent,
       builder: (context) {
         return const SettingModalView();
       },
@@ -165,6 +172,9 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
       appBar: AppBar(
         automaticallyImplyLeading: false,
         title: const Text('Duel Links Meta'),
+        // foregroundColor: Colors.pink,
+        // backgroundColor: Colors.pink,
+        // surfaceTintColor: Colors.pink,
         actions: [
           IconButton(onPressed: handleOpenSettingDialog, icon: const Icon(Icons.settings_rounded)),
         ],
@@ -172,7 +182,7 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
       body: RefreshIndicator(
         onRefresh: handleRefresh,
         key: _refreshIndicatorKey,
-        child: GridView.builder(
+        child: Obx(() => GridView.builder(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: 2,
@@ -180,14 +190,14 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
             crossAxisSpacing: 8,
             childAspectRatio: 2,
           ),
-          itemCount: _navTabs.length,
+          itemCount: _showNavTabs.length,
           itemBuilder: (BuildContext context, int index) {
             return GestureDetector(
-              onTap: () => handleTapNav(_navTabs[index]),
-              child: NavItemCard(navTab: _navTabs[index]),
+              onTap: () => handleTapNav(_showNavTabs[index]),
+              child: NavItemCard(navTab: _showNavTabs[index]),
             );
           },
-        ),
+        )),
       ),
     );
   }

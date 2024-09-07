@@ -14,13 +14,17 @@ import 'package:flutter/services.dart';
 class $AssetsImagesGen {
   const $AssetsImagesGen();
 
-  /// File path: assets/images/card_placeholder.webp
+  /// File path: assets/images/card_placeholder.jpg
   AssetGenImage get cardPlaceholder =>
-      const AssetGenImage('assets/images/card_placeholder.webp');
+      const AssetGenImage('assets/images/card_placeholder.jpg');
 
   /// File path: assets/images/common_card_new.png
   AssetGenImage get commonCardNew =>
       const AssetGenImage('assets/images/common_card_new.png');
+
+  /// File path: assets/images/dlm_logo.png
+  AssetGenImage get dlmLogo =>
+      const AssetGenImage('assets/images/dlm_logo.png');
 
   /// File path: assets/images/icon_amount_1.webp
   AssetGenImage get iconAmount1 =>
@@ -150,6 +154,14 @@ class $AssetsImagesGen {
   AssetGenImage get rarityUr =>
       const AssetGenImage('assets/images/rarity_ur.webp');
 
+  /// File path: assets/images/site-logo-dlm.png
+  AssetGenImage get siteLogoDlmPng =>
+      const AssetGenImage('assets/images/site-logo-dlm.png');
+
+  /// File path: assets/images/site-logo-dlm.svg
+  SvgGenImage get siteLogoDlmSvg =>
+      const SvgGenImage('assets/images/site-logo-dlm.svg');
+
   /// File path: assets/images/tier_1.png
   AssetGenImage get tier1Png => const AssetGenImage('assets/images/tier_1.png');
 
@@ -210,6 +222,7 @@ class $AssetsImagesGen {
   List<dynamic> get values => [
         cardPlaceholder,
         commonCardNew,
+        dlmLogo,
         iconAmount1,
         iconAmount2,
         iconAmount3,
@@ -242,6 +255,8 @@ class $AssetsImagesGen {
         rarityR,
         raritySr,
         rarityUr,
+        siteLogoDlmPng,
+        siteLogoDlmSvg,
         tier1Png,
         tier1Webp,
         tier1Dark,

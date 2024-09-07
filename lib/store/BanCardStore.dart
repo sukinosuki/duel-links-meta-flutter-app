@@ -1,8 +1,8 @@
 import 'dart:developer';
 
+import 'package:duel_links_meta/api/CardApi.dart';
 import 'package:duel_links_meta/extension/Future.dart';
 import 'package:duel_links_meta/hive/db/CardHiveDb.dart';
-import 'package:duel_links_meta/http/CardApi.dart';
 import 'package:duel_links_meta/pages/splash/BanStatusCardHiveDb.dart';
 import 'package:duel_links_meta/type/MdCard.dart';
 import 'package:duel_links_meta/type/enum/PageStatus.dart';
