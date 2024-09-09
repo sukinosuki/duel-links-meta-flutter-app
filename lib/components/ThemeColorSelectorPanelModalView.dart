@@ -11,14 +11,13 @@ class ThemeColorSelectorPanelModalView extends StatefulWidget {
 }
 
 class _ThemeColorSelectorPanelModalViewState extends State<ThemeColorSelectorPanelModalView> {
-  var _index = 0;
-  var appStore = Get.put(AppStore());
+  AppStore appStore = Get.put(AppStore());
 
   @override
   Widget build(BuildContext context) {
     return ModalBottomSheetWrap(
       child: Container(
-        padding: EdgeInsets.all(20),
+        padding: const EdgeInsets.symmetric(horizontal: 20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

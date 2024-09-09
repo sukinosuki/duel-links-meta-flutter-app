@@ -52,17 +52,12 @@ class _SettingModalViewState extends State<SettingModalView> {
   Widget build(BuildContext context) {
     return ModalBottomSheetWrap(
       child: Container(
-        // height: 400,
-        padding: const EdgeInsets.only(top: 20),
         child: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizedBox(
-                height: 28,
-              ),
               const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 12),
+                padding: EdgeInsets.symmetric(horizontal: 12, vertical: 20),
                 child: Text(
                   'Setting',
                   style: TextStyle(fontSize: 24),
@@ -168,7 +163,7 @@ class _SettingModalViewState extends State<SettingModalView> {
                 ),
               ),
               const Padding(
-                padding: EdgeInsets.symmetric(vertical: 12, horizontal: 12),
+                padding: EdgeInsets.symmetric(vertical: 20, horizontal: 12),
                 child: Text(
                   'About',
                   style: TextStyle(fontSize: 24),

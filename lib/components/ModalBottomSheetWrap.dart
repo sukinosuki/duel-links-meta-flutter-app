@@ -20,11 +20,15 @@ class ModalBottomSheetWrap extends StatelessWidget {
         borderRadius: const BorderRadius.all(Radius.circular(24)),
         child: ColoredBox(
           color: Theme.of(context).colorScheme.onPrimary,
-          child: SingleChildScrollView(
-            child: Column(
-              children: [
-                child,
-              ],
+
+          child: Container(
+            padding: EdgeInsets.symmetric(vertical: 20),
+            child: SingleChildScrollView(
+              child: Column(
+                children: [
+                  child,
+                ],
+              ),
             ),
           ),
         ),
