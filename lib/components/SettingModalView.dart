@@ -180,7 +180,7 @@ class _SettingModalViewState extends State<SettingModalView> {
               ),
               ListTile(
                 title: const Text('Commit ID'),
-                trailing: Text(githubHash),
+                trailing: Text(githubHash.length > 6 ? githubHash.substring(0, 6) : githubHash),
               ),
               Material(
                 color: Colors.transparent,

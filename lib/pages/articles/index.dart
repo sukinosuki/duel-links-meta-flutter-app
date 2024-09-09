@@ -35,7 +35,6 @@ class _ArticlesPageState extends State<ArticlesPage> with AutomaticKeepAliveClie
     Navigator.push(context, MaterialPageRoute<void>(builder: (context) => WebviewPage(title: title, url: url)));
   }
 
-  //
   Future<void> fetchData({bool isLoadMore = false}) async {
     if (!isLoadMore) {
       final list = await ArticleHiveDb().get('');
@@ -57,16 +56,18 @@ class _ArticlesPageState extends State<ArticlesPage> with AutomaticKeepAliveClie
     params[r'hidden[$ne]'] = 'true';
     params[r'category[$ne]'] = 'quick-news';
 
-    final (err, list) = await  ArticleApi().articleList(params).toCatch;
+    final (err, list) = await ArticleApi().articleList(params).toCatch;
     if (err != null || list == null) {
       if (isLoadMore) {
         setState(() {
           _listViewData.loadMoreStatus = PageStatus.fail;
         });
       } else {
-        setState(() {
-          _listViewData.pageStatus = PageStatus.fail;
-        });
+        if (_listViewData.data.isEmpty) {
+          setState(() {
+            _listViewData.pageStatus = PageStatus.fail;
+          });
+        }
       }
       return;
     }
@@ -106,7 +107,7 @@ class _ArticlesPageState extends State<ArticlesPage> with AutomaticKeepAliveClie
         return;
       }
 
-      if (_listViewData.loadMoreStatus == PageStatus.loading) {
+      if (_listViewData.loadMoreStatus == PageStatus.loading || _listViewData.loadMoreStatus == PageStatus.fail) {
         return;
       }
 
@@ -180,7 +181,6 @@ class _ArticlesPageState extends State<ArticlesPage> with AutomaticKeepAliveClie
                 },
               ),
             ),
-
             if (_listViewData.pageStatus == PageStatus.fail)
               const SingleChildScrollView(
                 physics: AlwaysScrollableScrollPhysics(),

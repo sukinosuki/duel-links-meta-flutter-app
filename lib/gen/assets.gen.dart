@@ -14,6 +14,26 @@ import 'package:flutter/services.dart';
 class $AssetsImagesGen {
   const $AssetsImagesGen();
 
+  /// File path: assets/images/app_icon.png
+  AssetGenImage get appIcon =>
+      const AssetGenImage('assets/images/app_icon.png');
+
+  /// File path: assets/images/background-blueflex.png
+  AssetGenImage get backgroundBlueflex =>
+      const AssetGenImage('assets/images/background-blueflex.png');
+
+  /// File path: assets/images/background-fixed-rb.png
+  AssetGenImage get backgroundFixedRb =>
+      const AssetGenImage('assets/images/background-fixed-rb.png');
+
+  /// File path: assets/images/background-fixed-tl.png
+  AssetGenImage get backgroundFixedTl =>
+      const AssetGenImage('assets/images/background-fixed-tl.png');
+
+  /// File path: assets/images/background-sparks.jpg
+  AssetGenImage get backgroundSparks =>
+      const AssetGenImage('assets/images/background-sparks.jpg');
+
   /// File path: assets/images/card_placeholder.jpg
   AssetGenImage get cardPlaceholder =>
       const AssetGenImage('assets/images/card_placeholder.jpg');
@@ -220,6 +240,11 @@ class $AssetsImagesGen {
 
   /// List of all assets
   List<dynamic> get values => [
+        appIcon,
+        backgroundBlueflex,
+        backgroundFixedRb,
+        backgroundFixedTl,
+        backgroundSparks,
         cardPlaceholder,
         commonCardNew,
         dlmLogo,

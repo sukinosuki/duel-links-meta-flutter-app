@@ -19,7 +19,7 @@
   },
   {
     "name": "json_annotation",
-    "repos": "https://github.com/google/json_serializable.dart/tree/master/json_annotation",
+    "repos": "https://github.com/google/json_serializable.dart",
     "license_path": "https://github.com/google/json_serializable.dart/blob/master/json_annotation/LICENSE",
     "version": "^4.8.1"
   },
@@ -106,5 +106,17 @@
     "repos": "https://github.com/isar/hive",
     "license_path": "https://github.com/isar/hive/blob/main/LICENSE",
     "version": "^2.0.1"
+  },
+  {
+    "name": "package_info_plus",
+    "repos": "https://github.com/fluttercommunity/plus_plugins/tree/main/packages/package_info_plus/package_info_plus",
+    "license_path": "https://github.com/fluttercommunity/plus_plugins/blob/main/packages/package_info_plus/package_info_plus/LICENSE",
+    "version": "8.0.2"
+  },
+  {
+    "name": "url_launcher",
+    "repos": "https://github.com/flutter/packages/tree/main/packages/url_launcher/url_launcher",
+    "license_path": "https://github.com/flutter/packages/blob/main/packages/url_launcher/url_launcher/LICENSE",
+    "version": "6.3.0"
   }
 ]

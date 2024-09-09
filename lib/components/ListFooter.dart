@@ -2,7 +2,7 @@ import 'package:duel_links_meta/type/enum/PageStatus.dart';
 import 'package:flutter/material.dart';
 
 class ListFooter extends StatefulWidget {
-  const ListFooter({super.key, required this.loadMoreStatus, required this.hasMore});
+  const ListFooter({required this.loadMoreStatus, required this.hasMore, super.key});
 
   final PageStatus loadMoreStatus;
   final bool hasMore;
@@ -12,9 +12,9 @@ class ListFooter extends StatefulWidget {
 }
 
 class _ListFooterState extends State<ListFooter> {
-  var loadMoreStatusTextMap = <PageStatus, String>{
+  Map<PageStatus, String> loadMoreStatusTextMap = <PageStatus, String>{
     PageStatus.loading: 'Loading',
-    PageStatus.fail: 'Fail',
+    PageStatus.fail: 'Loading Failed',
     PageStatus.success: 'Loading',
   };
 
@@ -34,15 +34,15 @@ class _ListFooterState extends State<ListFooter> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Text(loadMoreStatusText),
-          const SizedBox(width: 10),
-          const SizedBox(
-            height: 20,
-            width: 20,
-            child: CircularProgressIndicator(
-              strokeWidth: 2,
-              semanticsLabel: '21',
+          if (widget.hasMore) const SizedBox(width: 10),
+          if (widget.hasMore)
+            const SizedBox(
+              height: 20,
+              width: 20,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+              ),
             ),
-          )
         ],
       ),
     );

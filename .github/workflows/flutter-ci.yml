@@ -30,8 +30,8 @@ jobs:
       - name: Build apks
         run: |
           flutter pub get
-          flutter build apk --dart-define=GITHUB_HASH=$GITHUB_SHA --release
-          flutter build apk --dart-define=GITHUB_HASH=$GITHUB_SHA --target-platform android-arm,android-arm64,android-x64 --split-per-abi --release
+          flutter build apk --dart-define=GITHUB_HASH=$GITHUB_SHA --build-name=${{ github.event.inputs.TAG }} --build-number=1 --release
+          flutter build apk --dart-define=GITHUB_HASH=$GITHUB_SHA --build-name=${{ github.event.inputs.TAG }} --build-number=1 --target-platform android-arm,android-arm64,android-x64 --split-per-abi --release
           mkdir -p releases
           mv -f build/app/outputs/flutter-apk/*-release.apk releases
           mv -f releases/app-release.apk releases/app-universal-release.apk

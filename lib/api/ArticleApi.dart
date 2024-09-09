@@ -13,7 +13,7 @@ class ArticleApi {
 
   Future<Response<List<Article>>> articleList(Map<String, String> params) {
     return http.get(
-      '/api/v1/articles',
+      '/api/v121/articles',
       query: params,
       decoder: (data) => (data as List<dynamic>).map(Article.fromJson).toList(),
     );
